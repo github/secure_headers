@@ -1,4 +1,4 @@
-# SecureHeaders [![Build Status](https://secure.travis-ci.org/twitter/secureheaders.png)](http://travis-ci.org/twitter/secureheaders) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/twitter/secureheaders)
+# SecureHeaders [![Build Status](https://travis-ci.org/twitter/secureheaders.png?branch=master)](http://travis-ci.org/twitter/secureheaders) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/twitter/secureheaders)
 
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 1.1 Specification](https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html)
