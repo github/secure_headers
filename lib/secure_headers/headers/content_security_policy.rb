@@ -89,13 +89,8 @@ module SecureHeaders
       append_http_additions unless ssl_request?
 
       header_value = build_impl_specific_directives
-
-      # remaining entries are plain old directives
-      @config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
-        header_value += "#{symbol_to_hyphen_case(k)} #{@config[k].join(" ")}; "
-      end
-
-      header_value += "report-uri #{@report_uri};" if @report_uri
+      header_value += generic_directives(@config)
+      header_value += report_uri_directive(@report_uri)
 
       #store the value for next time
       @config = header_value
@@ -193,18 +188,24 @@ module SecureHeaders
       default = expect_directive_value(:default_src)
       # firefox 18 still requires the use of the options value, but can substitute default-src for allow
       if browser.firefox?
-        if supports_standard?
-          header_value += "default-src #{default.join(" ")}; " if default.any?
-        elsif default
-          header_value += "allow #{default.join(" ")}; " if default.any?
-        end
-
-        options_directive = build_options_directive
-        header_value += "options #{options_directive.join(" ")}; " if options_directive.any?
+        header_value += build_firefox_specific_preamble(default) || ''
       else
         header_value += "default-src #{default.join(" ")}; " if default.any?
       end
 
+      header_value
+    end
+
+    def build_firefox_specific_preamble(default_src_value)
+      header_value = ''
+      if supports_standard?
+        header_value += "default-src #{default_src_value.join(" ")}; " if default_src_value.any?
+      elsif default_src_value
+        header_value += "allow #{default_src_value.join(" ")}; " if default_src_value.any?
+      end
+
+      options_directive = build_options_directive
+      header_value += "options #{options_directive.join(" ")}; " if options_directive.any?
       header_value
     end
 
@@ -244,6 +245,20 @@ module SecureHeaders
 
     def directive? val, name
       val.to_s.casecmp(name) == 0
+    end
+
+    def report_uri_directive(report_uri)
+      report_uri.nil? ? '' : "report-uri #{report_uri};"
+    end
+
+
+    def generic_directives(config)
+      header_value = ''
+      config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
+        header_value += "#{symbol_to_hyphen_case(k)} #{config[k].join(" ")}; "
+      end
+
+      header_value
     end
 
     def symbol_to_hyphen_case sym
