@@ -47,15 +47,7 @@ module SecureHeaders
       end
     end
 
-    def set_hsts_header(options = nil)
-      options = self.class.options_for :hsts, options
-      return if options == false
-
-      header = StrictTransportSecurity.new(options)
-      set_header(header.name, header.value)
-    end
-
-    def set_csp_header(request, options = nil)
+    def set_csp_header(request, options=nil)
       options = self.class.options_for :csp, options
       return if options == false
 
@@ -63,28 +55,28 @@ module SecureHeaders
       set_header(header.name, header.value)
     end
 
-    def set_x_frame_options_header(options = nil)
-      options = self.class.options_for :x_frame_options, options
+    def set_a_header(name, klass, options=nil)
+      options = self.class.options_for name, options
       return if options == false
 
-      header = XFrameOptions.new(options)
+      header = klass.new(options)
       set_header(header.name, header.value)
     end
 
-    def set_x_content_type_options_header(options = nil)
-      options = self.class.options_for :x_content_type_options, options
-      return if options == false
-
-      header = XContentTypeOptions.new(options)
-      set_header(header.name, header.value)
+    def set_x_frame_options_header(options=nil)
+      set_a_header(:x_frame_options, XFrameOptions, options)
     end
 
-    def set_x_xss_protection_header(options = nil)
-      options = self.class.options_for :x_xss_protection, options
-      return if options == false
+    def set_x_content_type_options_header(options=nil)
+      set_a_header(:x_content_type_options, XContentTypeOptions, options)
+    end
 
-      header = XXssProtection.new(options)
-      set_header(header.name, header.value)
+    def set_x_xss_protection_header(options=nil)
+      set_a_header(:x_xss_protection, XXssProtection, options)
+    end
+
+    def set_hsts_header(options=nil)
+      set_a_header(:hsts, StrictTransportSecurity, options)
     end
 
     def set_header(name, value)
