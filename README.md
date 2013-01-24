@@ -11,7 +11,7 @@ The gem will automatically apply several headers that are related to security.  
 
 Add to your Gemfile
 
-    gem 'secure-headers'
+    gem 'secure-headers', require: 'secure_headers'
 
 And then execute:
 
