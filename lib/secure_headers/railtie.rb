@@ -1,3 +1,5 @@
+require 'active_support/dependencies'
+
 # rails 3.1+
 if defined?(Rails::Railtie)
   module SecureHeaders
