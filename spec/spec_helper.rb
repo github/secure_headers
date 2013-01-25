@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'spork'
-require 'active_support'
 
 unless Spork.using_spork?
   require 'simplecov'

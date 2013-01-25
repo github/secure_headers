@@ -1,5 +1,3 @@
-require 'active_support/dependencies'
-
 # rails 3.1+
 if defined?(Rails::Railtie)
   module SecureHeaders
@@ -25,10 +23,12 @@ else
     end
   end
 
-  if ActiveSupport::Dependencies.autoload_paths
-    ActiveSupport::Dependencies.autoload_paths << File.expand_path(File.join("..", "..", "..", "app", "controllers"), __FILE__)
-  else
-    ActiveSupport::Dependencies.autoload_paths = [File.expand_path(File.join("..", "..", "..", "app", "controllers"), __FILE__)]
+  if defined?(ActiveSupport::Dependencies)
+    if ActiveSupport::Dependencies.autoload_paths
+      ActiveSupport::Dependencies.autoload_paths << File.expand_path(File.join("..", "..", "..", "app", "controllers"), __FILE__)
+    else
+      ActiveSupport::Dependencies.autoload_paths = [File.expand_path(File.join("..", "..", "..", "app", "controllers"), __FILE__)]
+    end
   end
 
   if defined? ActionController::Routing
