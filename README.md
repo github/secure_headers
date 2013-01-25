@@ -88,8 +88,9 @@ header will be constructed using the supplied options.
 ### Widely supported
 
 ```ruby
-:hsts => {:max_age => 631138519, :include_subdomain => true} # HTTP Strict Transport Security.
-:x_frame_options => {:value => 'SAMEORIGIN'}
+:hsts             => {:max_age => 631138519, :include_subdomain => true}
+:x_frame_options  => {:value => 'SAMEORIGIN'}
+:x_xss_protection => {:value => '1', :mode => false}  # set the :mode option to 'block' to enforce the browser's xss filter
 ```
 
 ### Content Security Policy (CSP)
@@ -138,7 +139,6 @@ and [Firefox CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
 ```ruby
 :x_content_type_options => {:value => 'nosniff'}
-:x_xss_protection       => {:value => '1', :mode => false}  # set the :mode option to block
 ```
 
 ### Example CSP header config
