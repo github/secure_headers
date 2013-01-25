@@ -39,6 +39,7 @@ describe ContentSecurityPolicyController do
     it "makes a POST request" do
       Net::HTTP.stub(:new).and_return(request)
       request.should_receive(:request).with(instance_of(::Net::HTTP::Post))
+      params.stub(:to_json)
       subject.scribe
     end
 
@@ -60,7 +61,7 @@ describe ContentSecurityPolicyController do
     end
 
     it "logs errors when it cannot forward the CSP report" do
-      class Rails; end
+      class Rails; def logger; end; end
       logger = double(:repond_to? => true)
       Rails.stub(:logger).and_return(logger)
 
