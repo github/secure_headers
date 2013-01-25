@@ -109,7 +109,7 @@ and [Firefox CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
   # Send reports that cannot be sent across host here (see below), forward them to report_uri
   # override this if you have a route with the same value (content_security_policy#scribe)
-  :forward_endpoint => TwitterRailsSecurity::Headers::ContentSecurityPolicy::FF_CSP_ENDPOINT
+  :forward_endpoint => SecureHeaders::ContentSecurityPolicy::FF_CSP_ENDPOINT
 
   # these directives all take 'none', 'self', or a globbed pattern
   :img_src     => nil,
