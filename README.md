@@ -40,9 +40,9 @@ By default, it will set all of the headers listed in the options section below u
 This gem makes a few assumptions about how you will use some features.  For example:
 
 * It adds 'chrome-extension:' to your CSP directives by default.  This helps drastically reduce the amount of reports, but you can also disable this feature by supplying :disable_chrome_extension => true.
-* It fills any blank directives with the value in :default_src  Getting a default-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying :disable_fill_missing => true.
-* It copies the connect-src value to xhr-src for AJAX requests.
-* Firefox does not support cross-origin CSP reports.  If we are using Firefox, AND the value for :report_uri does not satisfy the same-origin requirements, we will instead forward to an internal endpoint (the forward_endpoint value or FF_CSP_ENDPOINT).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :report_uri without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
+* It fills any blank directives with the value in :default_src  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying :disable_fill_missing => true.
+* It copies the connect\-src value to xhr\-src for AJAX requests.
+* Firefox does not support cross\-origin CSP reports.  If we are using Firefox, AND the value for :report_uri does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (the forward_endpoint value or FF_CSP_ENDPOINT).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :report_uri without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
 
 
 ## Configuration
@@ -184,18 +184,18 @@ and [Firefox CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
 Currently, Firefox does not support the w3c draft standard.  So there are a few steps taken to make the two interchangeable.
 
-Firefox > 18 partially supports the standard via using the default-src directive over allow/options, but the following inconsistencies remain.
+Firefox > 18 partially supports the standard via using the default\-src directive over allow/options, but the following inconsistencies remain.
 
-* inline-script or eval-script values in default/style/script-src directives are moved to the options directive. Note: the style-src directive is not fully supported in Firefox - see https://bugzilla.mozilla.org/show_bug.cgi?id=763879.
-* CSP reports will not POST cross-origin.  This sets up an internal endpoint in the application that will forward the request. Set the "forward_endpoint" value in the CSP section if you need to post cross origin for firefox.
+* inline\-script or eval\-script values in default/style/script\-src directives are moved to the options directive. Note: the style\-src directive is not fully supported in Firefox \- see https://bugzilla.mozilla.org/show_bug.cgi?id=763879.
+* CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the "forward_endpoint" value in the CSP section if you need to post cross origin for firefox.
 * Firefox adds port numbers to each /https?/ value which can make local development tricky with mocked services. Add environment specific code to configure this.
 
 ### Adding the Firefox report forwarding endpoint
 
 **You need to add the following line to the TOP of confib/routes.rb**
-**This is an unauthenticated, unauthorized endpoint. Only do this if your report-uri is not on the same origin as your application!!!**
+**This is an unauthenticated, unauthorized endpoint. Only do this if your report\-uri is not on the same origin as your application!!!**
 
-If you need to change the route for the internal forwarding point, be sure it matches what is set in :forward_endpoint or else the reports will post to a non-existent endpoint.
+If you need to change the route for the internal forwarding point, be sure it matches what is set in :forward_endpoint or else the reports will post to a non\-existent endpoint.
 
 #### Rails 2
 
