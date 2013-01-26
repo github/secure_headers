@@ -11,42 +11,6 @@ end
 Spork.prefork do
   require 'pry'
   require 'rspec'
-
-  # Need these features from Rails, stubbing various features from various versions
-  class ApplicationController; end
-
-  module ActionController
-    module Routing
-      class Routes
-        def self.draw; end
-      end
-
-      module RouteSet; class Mapper; end; end
-    end
-  end
-
-  module ActiveSupport
-    class JSON
-      def self.encode obj, options = nil; end
-    end
-
-    module Dependencies
-      class << self
-        attr_accessor :autoload_paths
-        autoload_paths = []
-      end
-    end
-  end
-
-  class Object
-    def try(*a, &b); end
-
-    def to_json(options = nil); end
-  end
-
-  class NilClass
-    def try(*args); end
-  end
 end
 
 Spork.each_run do

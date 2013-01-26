@@ -31,7 +31,7 @@ class ContentSecurityPolicyController < ActionController::Base
 
     head :ok
   rescue StandardError => e
-    Rails.logger.warn "Unable to POST CSP report to #{report_uri} because #{e}"
+    Rails.logger.warn("Unable to POST CSP report to #{report_uri} because #{e}") if defined?(Rails.logger)
     head :bad_request
   end
 
