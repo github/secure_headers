@@ -8,6 +8,12 @@ module SecureHeaders
     end
     include Constants
 
+    def after_configure
+      super
+      normalize_reporting_endpoint if report_uri && forward_endpoint
+      filter_unsupported_directives
+    end
+
     def base_name
       FIREFOX_CSP_HEADER_NAME
     end

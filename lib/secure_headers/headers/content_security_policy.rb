@@ -54,9 +54,11 @@ module SecureHeaders
 
       @report_uri = @config.delete(:report_uri)
 
+      after_configure
+    end
+
+    def after_configure
       normalize_csp_options
-      normalize_reporting_endpoint if report_uri && forward_endpoint
-      filter_unsupported_directives
     end
 
     def base_name
@@ -144,9 +146,6 @@ module SecureHeaders
       end
     end
 
-    def filter_unsupported_directives
-    end
-
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
     def translate_dir_value val
       if %w{inline eval}.include?(val)
@@ -162,9 +161,6 @@ module SecureHeaders
     # inline/eval => impl-specific values
     def translate_inline_or_eval val
       val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
-    end
-
-    def normalize_reporting_endpoint
     end
 
     def build_impl_specific_directives
