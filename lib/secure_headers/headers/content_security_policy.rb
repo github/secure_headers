@@ -96,9 +96,11 @@ module SecureHeaders
       add_missing_chrome_extension_values unless disable_chrome_extension?
       append_http_additions unless ssl_request?
 
-      header_value = build_impl_specific_directives
-      header_value += generic_directives(@config)
-      header_value += report_uri_directive(@report_uri)
+      header_value = [
+        build_impl_specific_directives,
+        generic_directives(@config),
+        report_uri_directive(@report_uri),
+      ].join
 
       #store the value for next time
       @config = header_value
