@@ -119,22 +119,6 @@ module SecureHeaders
     end
 
     describe "#supports_standard?" do
-      it "returns true for IE" do
-        browser = Brwsr::Browser.new(:ua => "IE")
-        subject = ContentSecurityPolicy.new
-        subject.stub(:browser).and_return(browser)
-        subject.send(:supports_standard?).should be_true
-      end
-
-      ['Safari', 'Chrome'].each do |browser_name|
-        it "returns true for #{browser_name}" do
-          browser = Brwsr::Browser.new(:ua => browser_name)
-          subject = WebkitContentSecurityPolicy.new
-          subject.stub(:browser).and_return(browser)
-          subject.send(:supports_standard?).should be_true
-        end
-      end
-
       it "returns true for Firefox v >= 18" do
         browser = Brwsr::Browser.new(:ua => "Firefox 18")
         subject = FirefoxContentSecurityPolicy.new

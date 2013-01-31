@@ -176,10 +176,6 @@ module SecureHeaders
     def normalize_reporting_endpoint
     end
 
-    def supports_standard?
-      true
-    end
-
     def build_impl_specific_directives
       header_value = ""
       default = expect_directive_value(:default_src)
