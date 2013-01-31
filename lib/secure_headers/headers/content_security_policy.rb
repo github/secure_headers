@@ -215,12 +215,10 @@ module SecureHeaders
     end
 
     def generic_directives(config)
-      header_value = ''
-      config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
+      # ensure consistent ordering
+      config.keys.sort_by{|k| k.to_s}.inject('') do |header_value, k|
         header_value += "#{symbol_to_hyphen_case(k)} #{config[k].join(" ")}; "
       end
-
-      header_value
     end
 
     def symbol_to_hyphen_case sym
