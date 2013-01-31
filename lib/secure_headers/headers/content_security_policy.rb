@@ -151,7 +151,6 @@ module SecureHeaders
     end
 
     def filter_unsupported_directives
-      @config.delete(:frame_ancestors)
     end
 
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
