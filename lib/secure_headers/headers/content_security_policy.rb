@@ -3,18 +3,12 @@ require 'brwsr'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
+
   class ContentSecurityPolicy
     module Constants
       STANDARD_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src chrome-extension:"
-      FIREFOX_CSP_HEADER = "options eval-script inline-script; allow https://* data:; frame-src https://* about: javascript:; img-src chrome-extension:"
-
-      FIREFOX_CSP_HEADER_NAME = 'X-Content-Security-Policy'
-      WEBKIT_CSP_HEADER_NAME = 'X-WebKit-CSP'
       STANDARD_HEADER_NAME = "Content-Security-Policy"
-
-      FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
       DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
-      FIREFOX_DIRECTIVES = DIRECTIVES + [:xhr_src, :frame_ancestors] - [:connect_src]
       META = [:enforce, :http_additions, :disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
     end
     include Constants
@@ -170,9 +164,6 @@ module SecureHeaders
       val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
     end
 
-    # if we have a forwarding endpoint setup and we are not on the same origin as our report_uri
-    # or only a path was supplied (in which case we assume cross-host)
-    # we need to forward the request for Firefox.
     def normalize_reporting_endpoint
     end
 

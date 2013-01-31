@@ -1,5 +1,13 @@
 module SecureHeaders
   class FirefoxContentSecurityPolicy < ContentSecurityPolicy
+    module Constants
+      FIREFOX_CSP_HEADER = "options eval-script inline-script; allow https://* data:; frame-src https://* about: javascript:; img-src chrome-extension:"
+      FIREFOX_CSP_HEADER_NAME = 'X-Content-Security-Policy'
+      FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
+      FIREFOX_DIRECTIVES = ContentSecurityPolicy::DIRECTIVES + [:xhr_src, :frame_ancestors] - [:connect_src]
+    end
+    include Constants
+
     def base_name
       FIREFOX_CSP_HEADER_NAME
     end
