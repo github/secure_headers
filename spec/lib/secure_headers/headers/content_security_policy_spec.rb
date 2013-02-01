@@ -19,8 +19,8 @@ module SecureHeaders
     FIREFOX_18 = "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:18.0) Gecko/18.0 Firefox/18.0"
     CHROME = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4"
 
-    def request_for user_agent, request_uri = nil
-      double(:ssl? => false, :env => {'HTTP_USER_AGENT' => user_agent}, :url => (request_uri || 'http://example.com') )
+    def request_for user_agent, request_uri=nil, options={:ssl => false}
+      double(:ssl? => options[:ssl], :env => {'HTTP_USER_AGENT' => user_agent}, :url => (request_uri || 'http://example.com') )
     end
 
     before(:each) do
@@ -42,6 +42,14 @@ module SecureHeaders
         specify { ContentSecurityPolicy.new(request_for(FIREFOX), opts).name.should == FIREFOX_CSP_HEADER_NAME}
         specify { ContentSecurityPolicy.new(request_for(FIREFOX_18), opts).name.should == FIREFOX_CSP_HEADER_NAME}
         specify { ContentSecurityPolicy.new(request_for(CHROME), opts).name.should == WEBKIT_CSP_HEADER_NAME}
+      end
+
+      context "when in experimental mode" do
+        let(:opts) { default_opts.merge(:enforce => true).merge(:experimental => {})}
+        specify { ContentSecurityPolicy.new(request_for(IE), opts, :experimental => true).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(request_for(FIREFOX), opts, :experimental => true).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(request_for(FIREFOX_18), opts, :experimental => true).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(request_for(CHROME), opts, :experimental => true).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
       end
     end
 
@@ -302,6 +310,29 @@ module SecureHeaders
         end
       end
 
+      context "when supplying a experimental values" do
+        let(:options) {{
+          :disable_chrome_extension => true,
+          :disable_fill_missing => true,
+          :default_src => 'self',
+          :script_src => 'https://*',
+          :experimental => {
+            :script_src => 'self'
+          }
+        }}
+
+        let(:header) {}
+        it "returns the original value" do
+          header = ContentSecurityPolicy.new(request_for(CHROME), options)
+          header.value.should == "default-src 'self'; script-src https://*;"
+        end
+
+        it "it returns the experimental value if requested" do
+          header = ContentSecurityPolicy.new(request_for(CHROME), options, :experimental => true)
+          header.value.should == "default-src 'self'; script-src 'self';"
+        end
+      end
+
       context "when supplying additional http directive values" do
         let(:options) {
           default_opts.merge({
@@ -318,10 +349,44 @@ module SecureHeaders
         end
 
         it "does not add the directive values if requesting https" do
-          request = request_for(CHROME)
-          request.stub(:ssl?).and_return(true)
-          csp = ContentSecurityPolicy.new(request, options)
+          csp = ContentSecurityPolicy.new(request_for(CHROME, '/', :ssl => true), options)
           csp.value.should == "default-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
+        end
+
+        context "when supplying an experimental block" do
+          # this simulates the situation where we are enforcing that scripts
+          # only come from http[s]? depending if we're on ssl or not. The
+          # report only tag will allow scripts from self over ssl, and
+          # from a secure CDN over non-ssl
+          let(:options) {{
+            :disable_chrome_extension => true,
+            :disable_fill_missing => true,
+            :default_src => 'self',
+            :script_src => 'https://*',
+            :http_additions => {
+              :script_src => 'http://*'
+            },
+            :experimental => {
+              :script_src => 'self',
+              :http_additions => {
+                :script_src => 'https://mycdn.example.com'
+              }
+            }
+          }}
+          # for comparison purposes, if not using the experimental header this would produce
+          # "allow 'self'; script-src https://*" for https requests
+          # and
+          # "allow 'self; script-src https://* http://*" for http requests
+
+          it "uses the value in the experimental block over SSL" do
+            csp = ContentSecurityPolicy.new(request_for(FIREFOX, '/', :ssl => true), options, :experimental => true)
+            csp.value.should == "allow 'self'; script-src 'self';"
+          end
+
+          it "merges the values from experimental/http_additions when not over SSL" do
+            csp = ContentSecurityPolicy.new(request_for(FIREFOX), options, :experimental => true)
+            csp.value.should == "allow 'self'; script-src 'self' https://mycdn.example.com;"
+          end
         end
       end
     end

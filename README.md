@@ -134,6 +134,19 @@ and [Firefox CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
   # would produce the directive: "img-src https://* http://*;"
   # when over http, ignored for https requests
   :http_additions => {}
+
+  # If you have enforce => true, you can use the `experiments` block to
+  # also produce a report-only header. Values in this block override the
+  # parent config for the report-only, and leave the enforcing header
+  # unaltered. http_additions work the same way described above, but
+  # are added to your report-only header as expected.
+  :experimental => {
+    :script_src => 'self',
+    :img_src => 'https://mycdn.example.com',
+    :http_additions {
+      :img_src => 'http://mycdn.example.com'
+    }
+  }
 }
 ```
 
