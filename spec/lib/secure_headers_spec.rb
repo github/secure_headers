@@ -209,7 +209,7 @@ describe SecureHeaders do
     context "when using Chrome" do
       it "sets default CSP header" do
         stub_user_agent(USER_AGENTS[:chrome])
-        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", WEBKIT_CSP_HEADER)
+        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", STANDARD_CSP_HEADER)
         subject.set_csp_header request
       end
     end
@@ -217,7 +217,7 @@ describe SecureHeaders do
     context "when using a browser besides chrome/firefox" do
       it "sets the CSP header" do
         stub_user_agent(USER_AGENTS[:opera])
-        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", WEBKIT_CSP_HEADER)
+        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", STANDARD_CSP_HEADER)
         subject.set_csp_header request
       end
     end
