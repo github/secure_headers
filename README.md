@@ -7,6 +7,8 @@ The gem will automatically apply several headers that are related to security.  
 - X-XSS-Protection - [Cross site scripting heuristic filter for IE/Chrome](http://msdn.microsoft.com/en-us/library/dd565647\(v=vs.85\).aspx)
 - X-Content-Type-Options - [Prevent content type sniffing](http://msdn.microsoft.com/en-us/library/ie/gg622941\(v=vs.85\).aspx)
 
+This gem has integration with Rails, but works for any Ruby code. See the sinatra example section.
+
 ## Installation
 
 Add to your Gemfile
@@ -209,6 +211,40 @@ If the csp reporting endpoint is clobbered by another route, add:
 
 ```ruby
 match SecureHeaders::ContentSecurityPolicy::FF_CSP_ENDPOINT => "content_security_policy#scribe"
+```
+### Using with Sinatra
+
+Here's an example using SecureHeaders for Sinatra applications:
+
+```ruby
+require 'rubygems'
+require 'sinatra'
+require 'haml'
+require 'secure_headers'
+
+::SecureHeaders::Configuration.configure do |config|
+  config.hsts = {:max_age => 99, :include_subdomains => true}
+  config.x_frame_options = 'DENY'
+  config.x_content_type_options = "nosniff"
+  config.x_xss_protection = {:value => '1', :mode => false}
+  config.csp = {
+    :default_src => "https://* inline eval",
+    # ALWAYS supply a full URL for report URIs
+    :report_uri => 'https://example.com/uri-directive',
+    :img_src => "https://* data:",
+    :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
+  }
+end
+
+class Donkey < Sinatra::Application
+  include SecureHeaders
+  set :root, APP_ROOT
+
+  get '/' do
+    set_csp_header(request, nil)
+    haml :index
+  end
+end
 ```
 
 ## Authors
