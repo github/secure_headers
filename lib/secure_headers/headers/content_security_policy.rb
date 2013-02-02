@@ -30,7 +30,8 @@ module SecureHeaders
     alias :ssl_request? :ssl_request
 
 
-    def initialize request = nil, config = nil
+    def initialize(request=nil, config=nil, options={})
+      @experimental = !!options.delete(:experimental)
       if config
         configure request, config
       elsif request
@@ -40,6 +41,12 @@ module SecureHeaders
 
     def configure request, opts
       @config = opts.dup
+
+      experimental_config = @config.delete(:experimental)
+      if @experimental && experimental_config
+        @config[:http_additions] = experimental_config[:http_additions]
+        @config.merge!(experimental_config)
+      end
 
       parse_request request
       META.each do |meta|
@@ -63,7 +70,9 @@ module SecureHeaders
                WEBKIT_CSP_HEADER_NAME
              end
 
-      base += "-Report-Only" unless enforce
+      if !enforce || @experimental
+        base += "-Report-Only"
+      end
       base
     end
 

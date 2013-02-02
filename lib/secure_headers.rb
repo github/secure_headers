@@ -53,6 +53,10 @@ module SecureHeaders
 
       header = ContentSecurityPolicy.new(request, options)
       set_header(header.name, header.value)
+      if options && options[:experimental] && options[:enforce]
+        header = ContentSecurityPolicy.new(request, options, :experimental => true)
+        set_header(header.name, header.value)
+      end
     end
 
     def set_a_header(name, klass, options=nil)
