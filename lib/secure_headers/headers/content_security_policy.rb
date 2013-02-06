@@ -263,6 +263,12 @@ module SecureHeaders
 
     def generic_directives(config)
       header_value = ''
+      if config[:img_src]
+        config[:img_src] = config[:img_src] + ['data:'] unless config[:img_src].include?('data:')
+      else
+        config[:img_src] = ['data:']
+      end
+
       config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
         header_value += "#{symbol_to_hyphen_case(k)} #{config[k].join(" ")}; "
       end
