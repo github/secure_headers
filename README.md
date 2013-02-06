@@ -49,7 +49,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
 
 ## Configuration
 
-**Place the following in an initializer:**
+**Place the following in an initializer (recommended):**
 
 ```ruby
 ::SecureHeaders::Configuration.configure do |config|
@@ -70,7 +70,7 @@ end
 ensure_security_headers
 ```
 
-Or simply add it to application controller
+Or simply add it to application controller (not recommended, currently a bug)
 
 ```ruby
 ensure_security_headers
