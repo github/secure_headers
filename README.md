@@ -197,7 +197,7 @@ and [Firefox CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
 ## Note on Firefox handling of CSP
 
-Currently, Firefox does not support the webkit draft standard.  So there are a few steps taken to make the two interchangeable.
+Currently, Firefox does not support the w3c draft standard.  So there are a few steps taken to make the two interchangeable.
 
 Firefox > 18 partially supports the standard via using the default\-src directive over allow/options, but the following inconsistencies remain.
 
