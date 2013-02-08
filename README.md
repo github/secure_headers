@@ -97,7 +97,7 @@ header will be constructed using the supplied options.
 
 ### Content Security Policy (CSP)
 
-All browsers will receive the w3c csp header except Mozilla, which gets its own header.
+All browsers will receive the webkit csp header except Mozilla, which gets its own header.
 See [WebKit/W3C specification](http://www.w3.org/TR/CSP/)
 and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specification)
 
