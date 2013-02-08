@@ -98,7 +98,11 @@ header will be constructed using the supplied options.
 ### Content Security Policy (CSP)
 
 All browsers will receive the webkit csp header except Mozilla, which gets its own header.
+<<<<<<< HEAD
 See [WebKit specification](http://www.w3.org/TR/CSP/)
+=======
+See [WebKit/W3C specification](http://www.w3.org/TR/CSP/)
+>>>>>>> e21132c60ba6869e6ec05617ca2b847b8c46ee79
 and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specification)
 
 ```ruby
