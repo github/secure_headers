@@ -97,8 +97,8 @@ header will be constructed using the supplied options.
 
 ### Content Security Policy (CSP)
 
-All browsers will receive the webkit csp header except Mozilla, which gets its own header.
-See [WebKit/webkit specification](http://www.w3.org/TR/CSP/)
+All browsers will receive the w3c csp header except Mozilla, which gets its own header.
+See [w3c/w3c specification](http://www.w3.org/TR/CSP/)
 and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specification)
 
 ```ruby
@@ -158,7 +158,7 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
 ### Example CSP header config
 
-**Configure the CSP header as if it were the webkit-style header, no need to supply 'options' or 'allow' directives.**
+**Configure the CSP header as if it were the w3c-style header, no need to supply 'options' or 'allow' directives.**
 
 ```ruby
 # most basic example
@@ -197,7 +197,7 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
 ## Note on Mozilla handling of CSP
 
-Currently, Mozilla does not support the webkit draft standard.  So there are a few steps taken to make the two interchangeable.
+Currently, Mozilla does not support the w3c draft standard.  So there are a few steps taken to make the two interchangeable.
 
 Mozilla > 18 partially supports the standard via using the default\-src directive over allow/options, but the following inconsistencies remain.
 
