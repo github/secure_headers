@@ -44,7 +44,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
 * It adds 'chrome-extension:' to your CSP directives by default.  This helps drastically reduce the amount of reports, but you can also disable this feature by supplying :disable_chrome_extension => true.
 * It fills any blank directives with the value in :default_src  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying :disable_fill_missing => true.
 * It copies the connect\-src value to xhr\-src for AJAX requests.
-* Mozilla does not support cross\-origin CSP reports.  If we are using Mozilla, AND the value for :report_uri does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (the forward_endpoint value or FF_CSP_ENDPOINT).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :report_uri without restriction. More information can be found in the "Note on Mozilla handling of CSP" section.
+* Firefox does not support cross\-origin CSP reports.  If we are using Firefox, AND the value for :report_uri does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (the forward_endpoint value or FF_CSP_ENDPOINT).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :report_uri without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
 
 
 ## Configuration
@@ -97,9 +97,9 @@ header will be constructed using the supplied options.
 
 ### Content Security Policy (CSP)
 
-All browsers will receive the webkit csp header except Mozilla, which gets its own header.
+All browsers will receive the webkit csp header except Firefox, which gets its own header.
 See [WebKit specification](http://www.w3.org/TR/CSP/)
-and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specification)
+and [Firefox CSP specification](https://wiki.mozilla.org/Security/CSP/Specification)
 
 ```ruby
 :csp => {
@@ -168,7 +168,7 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 }
 # Chrome
 > "default-src 'unsafe-inline' 'unsafe-eval' https://* chrome-extension:; report-uri /uri-directive;"
-# Mozilla
+# Firefox
 > "options inline-script eval-script; allow https://*; report-uri /uri-directive;"
 
 # turn off inline scripting/eval
@@ -178,7 +178,7 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 }
 # Chrome
 > "default-src  https://*; report-uri /uri-directive;"
-# Mozilla
+# Firefox
 > "allow https://*; report-uri /uri-directive;"
 
 # Auction site wants to allow images from anywhere, plugin content from a list of trusted media providers (including a content distribution network), and scripts only from its server hosting sanitized JavaScript
@@ -191,21 +191,21 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 }
 # Chrome
 "default-src  'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
-# Mozilla
+# Firefox
 "allow 'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
 ```
 
-## Note on Mozilla handling of CSP
+## Note on Firefox handling of CSP
 
-Currently, Mozilla does not support the w3c draft standard.  So there are a few steps taken to make the two interchangeable.
+Currently, Firefox does not support the w3c draft standard.  So there are a few steps taken to make the two interchangeable.
 
-Mozilla > 18 partially supports the standard via using the default\-src directive over allow/options, but the following inconsistencies remain.
+Firefox > 18 partially supports the standard via using the default\-src directive over allow/options, but the following inconsistencies remain.
 
-* inline\-script or eval\-script values in default/style/script\-src directives are moved to the options directive. Note: the style\-src directive is not fully supported in Mozilla \- see https://bugzilla.mozilla.org/show_bug.cgi?id=763879.
+* inline\-script or eval\-script values in default/style/script\-src directives are moved to the options directive. Note: the style\-src directive is not fully supported in Firefox \- see https://bugzilla.mozilla.org/show_bug.cgi?id=763879.
 * CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the "forward_endpoint" value in the CSP section if you need to post cross origin for firefox.
-* Mozilla adds port numbers to each /https?/ value which can make local development tricky with mocked services. Add environment specific code to configure this.
+* Firefox adds port numbers to each /https?/ value which can make local development tricky with mocked services. Add environment specific code to configure this.
 
-### Adding the Mozilla report forwarding endpoint
+### Adding the Firefox report forwarding endpoint
 
 **You need to add the following line to the TOP of confib/routes.rb**
 **This is an unauthenticated, unauthorized endpoint. Only do this if your report\-uri is not on the same origin as your application!!!**
@@ -308,7 +308,7 @@ end
 ## Acknowledgements
 
 * Justin Collins [@presidentbeef](https://twitter.com/presidentbeef) & Jim O'Leary [@jimio](https://twitter.com/jimio) for reviews.
-* Ian Melven [@imelven](https://twitter.com/imelven) - Discussions/info about CSP in general, made us aware of the [userCSP](https://addons.mozilla.org/en-US/firefox/addon/newusercspdesign/) Mozilla extension.
+* Ian Melven [@imelven](https://twitter.com/imelven) - Discussions/info about CSP in general, made us aware of the [userCSP](https://addons.mozilla.org/en-US/firefox/addon/newusercspdesign/) Firefox extension.
 * Sumit Shah [@omnidactyl](https://twitter.com/omnidactyl) - For being an eager guinea pig.
 * Chris Aniszczyk [@cra](https://twitter.com/cra) - For running an awesome open source program at Twitter.
 
