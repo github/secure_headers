@@ -232,23 +232,35 @@ module SecureHeaders
         }.should raise_error(ContentSecurityPolicyBuildError, "Couldn't build CSP header :( Expected to find default_src directive value")
       end
 
+      context "auto-whitelists data: uris for img-src" do
+
+        it "sets the value if no img-src specified" do
+          csp = ContentSecurityPolicy.new(request_for(CHROME), {:default_src => 'self', :disable_fill_missing => true, :disable_chrome_extension => true})
+          csp.value.should == "default-src 'self'; img-src data:;"
+        end
+
+        it "appends the value if img-src is specified" do
+          csp = ContentSecurityPolicy.new(request_for(CHROME), {:default_src => 'self', :img_src => 'self', :disable_fill_missing => true, :disable_chrome_extension => true})
+          csp.value.should == "default-src 'self'; img-src 'self' data:;"
+        end
+      end
+
       it "fills in directives without values with default-src value" do
         options = default_opts.merge(:disable_fill_missing => false)
         csp = ContentSecurityPolicy.new(request_for(CHROME), options)
-        default = "default-src https://*;"
-        value = "default-src https://*; connect-src https://*; font-src https://*; frame-src https://*; img-src https://*; media-src https://*; object-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
+        value = "default-src https://*; connect-src https://*; font-src https://*; frame-src https://*; img-src https://* data:; media-src https://*; object-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
         csp.value.should == value
       end
 
       it "sends the chrome csp header if an unknown browser is supplied" do
         csp = ContentSecurityPolicy.new(request_for(IE), default_opts)
-        csp.value.should == "default-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
+        csp.value.should match "default-src"
       end
 
       context "X-Content-Security-Policy" do
         it "builds a csp header for firefox" do
           csp = ContentSecurityPolicy.new(request_for(FIREFOX), default_opts)
-          csp.value.should == "allow https://*; options inline-script eval-script; script-src https://* data:; style-src https://* chrome-extension: about:; report-uri /csp_report;"
+          csp.value.should == "allow https://*; options inline-script eval-script; img-src data:; script-src https://* data:; style-src https://* chrome-extension: about:; report-uri /csp_report;"
         end
 
         it "copies connect-src values to xhr_src values" do
@@ -259,7 +271,7 @@ module SecureHeaders
             :disable_fill_missing => true
           }
           csp = ContentSecurityPolicy.new(request_for(FIREFOX), opts)
-          csp.value.should == "allow http://twitter.com; xhr-src 'self' http://*.localhost.com:*;"
+          csp.value.should =~ /xhr-src 'self' http:/
         end
 
         it "copies connect-src values to xhr_src values for FF 18" do
@@ -270,35 +282,34 @@ module SecureHeaders
             :disable_fill_missing => true
           }
           csp = ContentSecurityPolicy.new(request_for(FIREFOX_18), opts)
-          csp.value.should == "default-src http://twitter.com; xhr-src 'self' http://*.localhost.com:*;"
+          csp.value.should =~ /xhr-src 'self' http:\/\/\*\.localhost\.com:\*/
         end
 
         it "builds a w3c-style-ish header for Firefox > version 18" do
           csp = ContentSecurityPolicy.new(request_for(FIREFOX_18), default_opts)
-          csp.value.should == "default-src https://*; options inline-script eval-script; script-src https://* data:; style-src https://* chrome-extension: about:; report-uri /csp_report;"
+          csp.value.should =~ /default-src/
         end
 
         # cross-host posting not allowed in FF < 18
         it "changes the report-uri to the local forwarder path if cross-host" do
           csp = ContentSecurityPolicy.new(request_for(FIREFOX), @options_with_forwarding)
-          csp.value.should == "allow https://*; options inline-script eval-script; script-src https://* data:; style-src https://* chrome-extension: about:; report-uri #{@options_with_forwarding[:forward_endpoint]};"
+          csp.value.should =~ /report-uri #{@options_with_forwarding[:forward_endpoint]};/
         end
       end
 
       context "X-Webkit-CSP" do
         it "builds a csp header for chrome" do
           csp = ContentSecurityPolicy.new(request_for(CHROME), default_opts)
-          csp.value.should == "default-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
+          csp.value.should == "default-src https://*; img-src data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
         end
 
         it "ignores :forward_endpoint settings" do
           csp = ContentSecurityPolicy.new(request_for(CHROME), @options_with_forwarding)
-          csp.value.should == "default-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri #{@options_with_forwarding[:report_uri]};"
+          csp.value.should =~ /report-uri #{@options_with_forwarding[:report_uri]};/
         end
 
         it "whitelists chrome_extensions by default" do
           opts = {
-            :disable_fill_missing => true,
             :default_src => 'https://*',
             :report_uri => '/csp_report',
             :script_src => 'inline eval https://* data:',
@@ -306,7 +317,9 @@ module SecureHeaders
           }
 
           csp = ContentSecurityPolicy.new(request_for(CHROME), opts)
-          csp.value.should == "default-src https://* chrome-extension:; script-src 'unsafe-inline' 'unsafe-eval' https://* data: chrome-extension:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
+
+          # ignore the report-uri directive
+          csp.value.split(';')[0...-1].each{|directive| directive.should =~ /chrome-extension:/}
         end
       end
 
@@ -324,12 +337,12 @@ module SecureHeaders
         let(:header) {}
         it "returns the original value" do
           header = ContentSecurityPolicy.new(request_for(CHROME), options)
-          header.value.should == "default-src 'self'; script-src https://*;"
+          header.value.should == "default-src 'self'; img-src data:; script-src https://*;"
         end
 
         it "it returns the experimental value if requested" do
           header = ContentSecurityPolicy.new(request_for(CHROME), options, :experimental => true)
-          header.value.should == "default-src 'self'; script-src 'self';"
+          header.value.should_not =~ /https/
         end
       end
 
@@ -345,12 +358,12 @@ module SecureHeaders
 
         it "adds directive values for headers on http" do
           csp = ContentSecurityPolicy.new(request_for(CHROME), options)
-          csp.value.should == "default-src https://*; frame-src http://*; img-src http://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
+          csp.value.should == "default-src https://*; frame-src http://*; img-src http://* data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
         end
 
         it "does not add the directive values if requesting https" do
           csp = ContentSecurityPolicy.new(request_for(CHROME, '/', :ssl => true), options)
-          csp.value.should == "default-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* chrome-extension: about:; report-uri /csp_report;"
+          csp.value.should_not =~ /http:/
         end
 
         context "when supplying an experimental block" do
@@ -380,12 +393,12 @@ module SecureHeaders
 
           it "uses the value in the experimental block over SSL" do
             csp = ContentSecurityPolicy.new(request_for(FIREFOX, '/', :ssl => true), options, :experimental => true)
-            csp.value.should == "allow 'self'; script-src 'self';"
+            csp.value.should == "allow 'self'; img-src data:; script-src 'self';"
           end
 
           it "merges the values from experimental/http_additions when not over SSL" do
             csp = ContentSecurityPolicy.new(request_for(FIREFOX), options, :experimental => true)
-            csp.value.should == "allow 'self'; script-src 'self' https://mycdn.example.com;"
+            csp.value.should == "allow 'self'; img-src data:; script-src 'self' https://mycdn.example.com;"
           end
         end
       end
