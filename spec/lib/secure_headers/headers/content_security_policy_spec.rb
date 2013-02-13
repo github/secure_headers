@@ -111,13 +111,7 @@ module SecureHeaders
         end
       end
 
-      it "returns true for Firefox v >= 18" do
-        browser = Brwsr::Browser.new(:ua => "Firefox 18")
-        subject.stub(:browser).and_return(browser)
-        subject.send(:supports_standard?).should be_true
-      end
-
-      it "returns false for Firefox v < 18" do
+      it "returns false for Firefox" do
         browser = Brwsr::Browser.new(:ua => "Firefox 17")
         subject.stub(:browser).and_return(browser)
         subject.send(:supports_standard?).should be_false
@@ -264,11 +258,6 @@ module SecureHeaders
           }
           csp = ContentSecurityPolicy.new(request_for(FIREFOX_18), opts)
           csp.value.should =~ /xhr-src 'self' http:\/\/\*\.localhost\.com:\*/
-        end
-
-        it "builds a w3c-style-ish header for Firefox > version 18" do
-          csp = ContentSecurityPolicy.new(request_for(FIREFOX_18), default_opts)
-          csp.value.should =~ /default-src/
         end
       end
 
