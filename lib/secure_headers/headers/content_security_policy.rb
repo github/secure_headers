@@ -283,11 +283,11 @@ module SecureHeaders
     def parse_request request
       @browser = Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
       @ssl_request = request.ssl?
-      @request_uri = if defined? ActionDispatch::Request
-        # rails 3
+      @request_uri = if request.respond_to?(:original_url)
+        # rails 3.1+
         request.original_url
       else
-        # rails 2
+        # rails 2/3.0
         request.url
       end
     end

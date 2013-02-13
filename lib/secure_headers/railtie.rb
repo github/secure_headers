@@ -2,7 +2,7 @@
 if defined?(Rails::Railtie)
   module SecureHeaders
     class Railtie < Rails::Engine
-      isolate_namespace ::SecureHeaders
+      isolate_namespace ::SecureHeaders if defined? isolate_namespace # rails 3.0
       ActionController::Base.send :include, ::SecureHeaders
     end
   end
