@@ -14,7 +14,7 @@ This gem has integration with Rails, but works for any Ruby code. See the sinatr
 Add to your Gemfile
 
 ```ruby
-gem 'secure-headers'
+gem 'secure_headers'
 ```
 
 And then execute:
@@ -26,7 +26,7 @@ $ bundle
 Or install it yourself as:
 
 ```console
-$ gem install secure-headers
+$ gem install secure_headers
 ```
 
 ## Usage
@@ -44,7 +44,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
 * It adds 'chrome-extension:' to your CSP directives by default.  This helps drastically reduce the amount of reports, but you can also disable this feature by supplying :disable_chrome_extension => true.
 * It fills any blank directives with the value in :default_src  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying :disable_fill_missing => true.
 * It copies the connect\-src value to xhr\-src for AJAX requests.
-* Mozilla does not support cross\-origin CSP reports.  If we are using Mozilla, AND the value for :report_uri does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (the forward_endpoint value or FF_CSP_ENDPOINT).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :report_uri without restriction. More information can be found in the "Note on Mozilla handling of CSP" section.
+* Mozilla does not support cross\-origin CSP reports.  If we are using Mozilla, AND the value for :report_uri does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (`FF_CSP_ENDPOINT`).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :report_uri without restriction. More information can be found in the "Note on Mozilla handling of CSP" section.
 
 
 ## Configuration
@@ -110,9 +110,10 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
   # Where reports are sent. Use full URLs.
   :report_uri  => 'https://mylogaggregator.example.com',
 
-  # Send reports that cannot be sent across host here (see below), forward them to report_uri
-  # override this if you have a route with the same value (content_security_policy#scribe)
-  :forward_endpoint => SecureHeaders::ContentSecurityPolicy::FF_CSP_ENDPOINT
+  # Send reports that cannot be sent across host here. These requests are sent
+  # the server, not the browser. If no value is supplied, it will default to
+  # the value in report_uri.
+  :forward_endpoint => 'https://internal.mylogaggregator.example.com'
 
   # these directives all take 'none', 'self', or a globbed pattern
   :img_src     => nil,
@@ -202,15 +203,13 @@ Currently, Mozilla does not support the w3c draft standard.  So there are a few 
 Mozilla > 18 partially supports the standard via using the default\-src directive over allow/options, but the following inconsistencies remain.
 
 * inline\-script or eval\-script values in default/style/script\-src directives are moved to the options directive. Note: the style\-src directive is not fully supported in Mozilla \- see https://bugzilla.mozilla.org/show_bug.cgi?id=763879.
-* CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the "forward_endpoint" value in the CSP section if you need to post cross origin for firefox.
+* CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the `forward_endpoint` value in the CSP section if you need to post cross origin for firefox. The internal endpoint that receives the initial request will forward the request to `forward_endpoint`
 * Mozilla adds port numbers to each /https?/ value which can make local development tricky with mocked services. Add environment specific code to configure this.
 
 ### Adding the Mozilla report forwarding endpoint
 
 **You need to add the following line to the TOP of confib/routes.rb**
 **This is an unauthenticated, unauthorized endpoint. Only do this if your report\-uri is not on the same origin as your application!!!**
-
-If you need to change the route for the internal forwarding point, be sure it matches what is set in :forward_endpoint or else the reports will post to a non\-existent endpoint.
 
 #### Rails 2
 
@@ -267,7 +266,7 @@ You can use SecureHeaders for Padrino applications as well:
 In your `Gemfile`:
 
 ```ruby
-  gem "secure-headers", :require => 'secure_headers'
+  gem "secure_headers", :require => 'secure_headers'
 ```
 
 then in your `app.rb` file you can:
