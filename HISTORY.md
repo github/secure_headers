@@ -9,7 +9,7 @@ Notes:
 Features:
 ------
 
-- ability to apply two headers, one in enforce mode, on in "experimental" mode https://github.com/twitter/secureheaders/pull/11
+- ability to apply two headers, one in enforce mode, one in "experimental" mode https://github.com/twitter/secureheaders/pull/11
 - Rails 3.0 support https://github.com/twitter/secureheaders/pull/28
 
 Bug fixes, misc:
