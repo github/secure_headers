@@ -1,3 +1,8 @@
+0.1.1
+=======
+
+Bug fix. Firefox doesn't seem to like the default-src directive, reverting back to 'allow'
+
 0.1.0
 =======
 
