@@ -289,12 +289,6 @@ module SecureHeaders
           csp = ContentSecurityPolicy.new(request_for(FIREFOX_18), default_opts)
           csp.value.should =~ /default-src/
         end
-
-        # cross-host posting not allowed in FF < 18
-        it "changes the report-uri to the local forwarder path if cross-host" do
-          csp = ContentSecurityPolicy.new(request_for(FIREFOX), @options_with_forwarding)
-          csp.value.should =~ /report-uri #{@options_with_forwarding[:forward_endpoint]};/
-        end
       end
 
       context "X-Webkit-CSP" do

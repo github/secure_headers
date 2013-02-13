@@ -7,13 +7,13 @@ class ContentSecurityPolicyController < ActionController::Base
   def scribe
     csp = ::SecureHeaders::Configuration.csp
 
-    report_uri = csp[:report_uri] if csp
-    if report_uri.nil?
+    forward_endpoint = csp[:forward_endpoint] if csp
+    if forward_endpoint.nil?
       head :ok
       return
     end
 
-    uri = URI.parse(report_uri)
+    uri = URI.parse(forward_endpoint)
     http = Net::HTTP.new(uri.host, uri.port)
     if uri.scheme == 'https'
       use_ssl(http)
@@ -31,7 +31,7 @@ class ContentSecurityPolicyController < ActionController::Base
 
     head :ok
   rescue StandardError => e
-    Rails.logger.warn("Unable to POST CSP report to #{report_uri} because #{e}") if defined?(Rails.logger)
+    Rails.logger.warn("Unable to POST CSP report to #{forward_endpoint} because #{e}") if defined?(Rails.logger)
     head :bad_request
   end
 
