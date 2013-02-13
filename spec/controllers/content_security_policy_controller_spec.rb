@@ -14,9 +14,10 @@ describe ContentSecurityPolicyController do
   describe "#csp" do
     let(:request) { double().as_null_object }
     let(:endpoint) { "https://example.com" }
+    let(:secondary_endpoint) { "https://internal.example.com" }
 
     before(:each) do
-      SecureHeaders::Configuration.stub(:csp).and_return(:report_uri => endpoint)
+      SecureHeaders::Configuration.stub(:csp).and_return({:report_uri => endpoint, :forward_endpoint => secondary_endpoint})
       subject.should_receive :head
       subject.stub(:params).and_return(params)
       Net::HTTP.any_instance.stub(:request)
@@ -24,7 +25,6 @@ describe ContentSecurityPolicyController do
 
     context "delivery endpoint" do
       it "posts over ssl" do
-        SecureHeaders::Configuration.stub(:csp).and_return(:report_uri => endpoint)
         subject.should_receive(:use_ssl)
         subject.scribe
       end
@@ -43,8 +43,8 @@ describe ContentSecurityPolicyController do
       subject.scribe
     end
 
-    it "POSTs to the configured host" do
-      Net::HTTP::Post.should_receive(:new).with(endpoint).and_return(request)
+    it "POSTs to the configured forward_endpoint" do
+      Net::HTTP::Post.should_receive(:new).with(secondary_endpoint).and_return(request)
       subject.scribe
     end
 
