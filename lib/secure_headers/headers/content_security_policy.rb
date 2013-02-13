@@ -192,7 +192,7 @@ module SecureHeaders
     end
 
     def supports_standard?
-      !browser.firefox? || (browser.firefox? && browser.version.to_i >= 18)
+      !browser.firefox?
     end
 
     def build_impl_specific_directives
