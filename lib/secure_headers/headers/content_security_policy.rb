@@ -56,7 +56,7 @@ module SecureHeaders
       @report_uri = @config.delete(:report_uri)
 
       normalize_csp_options
-      normalize_reporting_endpoint if report_uri && forward_endpoint
+      normalize_reporting_endpoint if forward_endpoint
       filter_unsupported_directives
     end
 
@@ -182,9 +182,8 @@ module SecureHeaders
     # or only a path was supplied (in which case we assume cross-host)
     # we need to forward the request for Firefox.
     def normalize_reporting_endpoint
-      # can't use supports_standard because FF18 does not support cross-origin posting.
       if browser.firefox? && (!same_origin? || URI.parse(report_uri).host.nil?)
-        @report_uri = (@forward_endpoint || FF_CSP_ENDPOINT)
+        @report_uri = FF_CSP_ENDPOINT
       end
     end
 
