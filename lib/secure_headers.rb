@@ -13,16 +13,24 @@ module SecureHeaders
   class << self
     def append_features(base)
       base.module_eval do
+        @@secure_headers_options = nil
+
         extend ClassMethods
         include InstanceMethods
+
+        # jank?
+        def self.secure_headers_options=(opts)
+          @@secure_headers_options = opts
+        end
+
+        def self.secure_headers_options
+          @@secure_headers_options
+        end
       end
     end
   end
 
   module ClassMethods
-
-    attr_accessor :secure_headers_options
-
     def ensure_security_headers options = {}, *args
       self.secure_headers_options = options
       before_filter :set_security_headers
