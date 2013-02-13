@@ -222,7 +222,7 @@ map.csp_endpoint
 If the csp reporting endpoint is clobbered by another route, add:
 
 ```ruby
-match SecureHeaders::ContentSecurityPolicy::FF_CSP_ENDPOINT => "content_security_policy#scribe"
+post SecureHeaders::ContentSecurityPolicy::FF_CSP_ENDPOINT => "content_security_policy#scribe"
 ```
 ### Using with Sinatra
 
