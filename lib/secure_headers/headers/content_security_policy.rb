@@ -56,7 +56,7 @@ module SecureHeaders
       @report_uri = @config.delete(:report_uri)
 
       normalize_csp_options
-      normalize_reporting_endpoint if forward_endpoint
+      normalize_reporting_endpoint
       filter_unsupported_directives
     end
 
@@ -183,7 +183,11 @@ module SecureHeaders
     # we need to forward the request for Firefox.
     def normalize_reporting_endpoint
       if browser.firefox? && (!same_origin? || URI.parse(report_uri).host.nil?)
-        @report_uri = FF_CSP_ENDPOINT
+        if forward_endpoint
+          @report_uri = FF_CSP_ENDPOINT
+        else
+          @report_uri = nil
+        end
       end
     end
 
@@ -246,6 +250,8 @@ module SecureHeaders
     end
 
     def same_origin?
+      return if report_uri.nil?
+
       origin = URI.parse(request_uri)
       uri = URI.parse(report_uri)
       uri.host == origin.host && origin.port == uri.port && origin.scheme == uri.scheme

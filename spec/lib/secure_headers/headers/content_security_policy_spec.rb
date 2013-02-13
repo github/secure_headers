@@ -20,7 +20,7 @@ module SecureHeaders
     CHROME = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4"
 
     def request_for user_agent, request_uri=nil, options={:ssl => false}
-      double(:ssl? => options[:ssl], :env => {'HTTP_USER_AGENT' => user_agent}, :url => (request_uri || 'http://example.com') )
+      double(:ssl? => options[:ssl], :env => {'HTTP_USER_AGENT' => user_agent}, :url => (request_uri || 'http://areallylongdomainexample.com') )
     end
 
     before(:each) do
@@ -50,30 +50,6 @@ module SecureHeaders
         specify { ContentSecurityPolicy.new(request_for(FIREFOX), opts, :experimental => true).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(request_for(FIREFOX_18), opts, :experimental => true).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(request_for(CHROME), opts, :experimental => true).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
-      end
-    end
-
-    describe "#fill_directives" do
-      let(:opts) {{:default_src => ['https://*']}}
-      let(:expected) {{}}
-
-      it "fills empty directives with the 'allow' directive in Firefox" do
-        csp = ContentSecurityPolicy.new(request_for(FIREFOX), opts)
-        csp.directives.each {|dir| expected[dir] = ["https://*"]}
-        csp.send(:fill_directives).should == expected.merge(opts)
-      end
-
-      it "fills empty directives with the 'default' directive in Chrome" do
-        csp = ContentSecurityPolicy.new(request_for(CHROME), opts)
-        csp.directives.each {|dir| expected[dir] = ["https://*"]}
-        csp.send(:fill_directives).should == expected.merge(opts)
-      end
-
-      it "does not overwrite supplied values" do
-        options = opts.merge(:img_src => ['https://twitter.com'])
-        csp = ContentSecurityPolicy.new(request_for(CHROME), options)
-        csp.directives.each {|dir| expected[dir] = ["https://*"]}
-        csp.send(:fill_directives).should == expected.merge(options)
       end
     end
 
@@ -211,16 +187,21 @@ module SecureHeaders
           subject.report_uri.should == FF_CSP_ENDPOINT
         end
 
-        it "does not update the URI is the report_uri is on the same origin" do
-          opts = {:report_uri => 'https://example.com/csp', :forward_endpoint => 'https://anotherexample.com'}
-          subject.configure(request_for(FIREFOX, "https://example.com/somewhere"), opts)
-          subject.report_uri.should == 'https://example.com/csp'
+        it "doesn't set report-uri if no forward_endpoint is supplied" do
+          subject.configure(request_for(FIREFOX, "https://example.com"), :report_uri => "https://another.example.com")
+          subject.report_uri.should be_nil
         end
+      end
 
-        it "does not update the report-uri when using a non-firefox browser" do
-          subject.configure(request_for(CHROME), opts)
-          subject.report_uri.should == 'https://example.com/csp'
-        end
+      it "does not update the URI is the report_uri is on the same origin" do
+        opts = {:report_uri => 'https://example.com/csp', :forward_endpoint => 'https://anotherexample.com'}
+        subject.configure(request_for(FIREFOX, "https://example.com/somewhere"), opts)
+        subject.report_uri.should == 'https://example.com/csp'
+      end
+
+      it "does not update the report-uri when using a non-firefox browser" do
+        subject.configure(request_for(CHROME), opts)
+        subject.report_uri.should == 'https://example.com/csp'
       end
     end
 
@@ -260,7 +241,7 @@ module SecureHeaders
       context "X-Content-Security-Policy" do
         it "builds a csp header for firefox" do
           csp = ContentSecurityPolicy.new(request_for(FIREFOX), default_opts)
-          csp.value.should == "allow https://*; options inline-script eval-script; img-src data:; script-src https://* data:; style-src https://* chrome-extension: about:; report-uri /csp_report;"
+          csp.value.should == "allow https://*; options inline-script eval-script; img-src data:; script-src https://* data:; style-src https://* chrome-extension: about:;"
         end
 
         it "copies connect-src values to xhr_src values" do
