@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'secure_headers/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "secure-headers"
+  gem.name          = "secure_headers"
   gem.version       = SecureHeaders::VERSION
   gem.authors       = ["Neil Matatall"]
   gem.email         = ["neil.matatall@gmail.com"]
