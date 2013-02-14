@@ -13,24 +13,27 @@ module SecureHeaders
   class << self
     def append_features(base)
       base.module_eval do
-        @@secure_headers_options = nil
-
         extend ClassMethods
         include InstanceMethods
-
-        # jank?
-        def self.secure_headers_options=(opts)
-          @@secure_headers_options = opts
-        end
-
-        def self.secure_headers_options
-          @@secure_headers_options
-        end
       end
     end
   end
 
   module ClassMethods
+    def secure_headers_options
+      if defined?(@secure_headers_options)
+        @secure_headers_options
+      elsif superclass.respond_to?(:options)
+        superclass.options
+      else
+        {}
+      end
+    end
+
+    def secure_headers_options=(options)
+      @secure_headers_options = options
+    end
+
     def ensure_security_headers options = {}, *args
       self.secure_headers_options = options
       before_filter :set_security_headers
@@ -44,7 +47,7 @@ module SecureHeaders
   end
 
   module InstanceMethods
-    def set_security_headers(options = self.class.secure_headers_options || {})
+    def set_security_headers(options = self.class.secure_headers_options)
       brwsr = Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
       set_hsts_header(options[:hsts]) if request.ssl?
       set_x_frame_options_header(options[:x_frame_options])
