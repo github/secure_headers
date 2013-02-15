@@ -46,7 +46,7 @@ module SecureHeaders
 
       parse_request request
       META.each do |meta|
-        self.send(meta.to_s + "=", @config.delete(meta))
+        self.send("#{meta}=", @config.delete(meta))
       end
 
       @report_uri = @config.delete(:report_uri)
