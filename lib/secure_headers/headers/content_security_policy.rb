@@ -176,10 +176,6 @@ module SecureHeaders
       end
     end
 
-    def supports_standard?
-      !browser.firefox?
-    end
-
     def build_impl_specific_directives
       default = expect_directive_value(:default_src)
       browser_strategy.build_impl_specific_directives(default)
