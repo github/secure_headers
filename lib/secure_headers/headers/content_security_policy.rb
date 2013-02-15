@@ -160,14 +160,8 @@ module SecureHeaders
       end
     end
 
-    # inline/eval => impl-specific values
     def translate_inline_or_eval val
-      # can't use supports_standard because FF18 does not support this part of the standard.
-      if browser.firefox?
-        val == 'inline' ? 'inline-script' : 'eval-script'
-      else
-        val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
-      end
+      browser_strategy.translate_inline_or_eval(val)
     end
 
     # if we have a forwarding endpoint setup and we are not on the same origin as our report_uri

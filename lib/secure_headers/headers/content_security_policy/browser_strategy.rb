@@ -49,6 +49,10 @@ module SecureHeaders
         config.delete(:frame_ancestors)
         config
       end
+
+      def translate_inline_or_eval val
+        val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
+      end
     end
   end
 end

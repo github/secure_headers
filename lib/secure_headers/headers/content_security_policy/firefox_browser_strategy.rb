@@ -18,6 +18,10 @@ module SecureHeaders
         config[:xhr_src] = config.delete(:connect_src) if config[:connect_src]
         config
       end
+
+      def translate_inline_or_eval val
+        val == 'inline' ? 'inline-script' : 'eval-script'
+      end
     end
   end
 end
