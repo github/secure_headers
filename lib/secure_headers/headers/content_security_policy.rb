@@ -28,7 +28,6 @@ module SecureHeaders
     alias :disable_fill_missing? :disable_fill_missing
     alias :ssl_request? :ssl_request
 
-    # KEEP
     def initialize(request=nil, config=nil, options={})
       @experimental = !!options.delete(:experimental)
       if config
@@ -38,7 +37,6 @@ module SecureHeaders
       end
     end
 
-    # KEEP but extract last 3 lines
     def configure request, opts
       @config = opts.dup
 
@@ -84,7 +82,6 @@ module SecureHeaders
       browser_strategy.directives
     end
 
-    # KEEP
     def build_value
       fill_directives unless disable_fill_missing?
       add_missing_chrome_extension_values unless disable_chrome_extension?
@@ -101,7 +98,6 @@ module SecureHeaders
       raise ContentSecurityPolicyBuildError.new("Couldn't build CSP header :( #{e}")
     end
 
-    # KEEP
     def fill_directives
       return unless @config[:default_src]
 
@@ -114,7 +110,6 @@ module SecureHeaders
       @config
     end
 
-    # I DON'T KNOW
     def add_missing_chrome_extension_values
       directives.each do |directive|
         next unless @config[directive]
