@@ -59,7 +59,7 @@ module SecureHeaders
     end
 
     def name
-      return browser_strategy.name
+      browser_strategy.name
     end
 
     def value
