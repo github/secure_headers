@@ -21,12 +21,10 @@ module SecureHeaders
 
   module ClassMethods
     def secure_headers_options
-      if defined?(@secure_headers_options)
+      if @secure_headers_options
         @secure_headers_options
-      elsif superclass.respond_to?(:options)
-        superclass.options
-      else
-        {}
+      elsif superclass.respond_to?(:secure_headers_options) # stop at application_controller
+        superclass.secure_headers_options
       end
     end
 
