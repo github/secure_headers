@@ -5,14 +5,22 @@ class ContentSecurityPolicyController < ActionController::Base
   CA_FILE = File.expand_path(File.join('..','..', '..', 'config', 'curl-ca-bundle.crt'), __FILE__)
 
   def scribe
-    csp = ::SecureHeaders::Configuration.csp
+    csp = ::SecureHeaders::Configuration.csp || {}
 
-    forward_endpoint = csp[:forward_endpoint] if csp
-    if forward_endpoint.nil?
-      head :ok
-      return
+    forward_endpoint = csp[:forward_endpoint]
+    if forward_endpoint
+      forward_params_to(forward_endpoint)
     end
 
+    head :ok
+  rescue StandardError => e
+    log_warning(forward_endpoint, e)
+    head :bad_request
+  end
+
+  private
+
+  def forward_params_to(forward_endpoint)
     uri = URI.parse(forward_endpoint)
     http = Net::HTTP.new(uri.host, uri.port)
     if uri.scheme == 'https'
@@ -28,11 +36,6 @@ class ContentSecurityPolicyController < ActionController::Base
     else
       http.request(request)
     end
-
-    head :ok
-  rescue StandardError => e
-    Rails.logger.warn("Unable to POST CSP report to #{forward_endpoint} because #{e}") if defined?(Rails.logger)
-    head :bad_request
   end
 
   def use_ssl request
@@ -40,5 +43,11 @@ class ContentSecurityPolicyController < ActionController::Base
     request.ca_file = CA_FILE
     request.verify_mode = OpenSSL::SSL::VERIFY_PEER
     request.verify_depth = 9
+  end
+
+  def log_warning(forward_endpoint, e)
+    if defined?(Rails.logger)
+      Rails.logger.warn("Unable to POST CSP report to #{forward_endpoint} because #{e}")
+    end
   end
 end
