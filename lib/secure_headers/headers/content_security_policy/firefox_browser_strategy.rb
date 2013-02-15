@@ -59,6 +59,10 @@ module SecureHeaders
 
         options_directive
       end
+
+      def normalize_reporting_endpoint?
+        true
+      end
     end
   end
 end

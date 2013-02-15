@@ -61,6 +61,10 @@ module SecureHeaders
           ""
         end
       end
+
+      def normalize_reporting_endpoint?
+        false
+      end
     end
   end
 end

@@ -161,12 +161,13 @@ module SecureHeaders
     # or only a path was supplied (in which case we assume cross-host)
     # we need to forward the request for Firefox.
     def normalize_reporting_endpoint
-      if browser.firefox? && (!same_origin? || URI.parse(report_uri).host.nil?)
-        if forward_endpoint
-          @report_uri = FF_CSP_ENDPOINT
-        else
-          @report_uri = nil
-        end
+      return unless browser_strategy.normalize_reporting_endpoint?
+      return unless !same_origin? || URI.parse(report_uri).host.nil?
+
+      if forward_endpoint
+        @report_uri = FF_CSP_ENDPOINT
+      else
+        @report_uri = nil
       end
     end
 
