@@ -35,6 +35,14 @@ module SecureHeaders
         end
         base
       end
+
+      def csp_header
+        WEBKIT_CSP_HEADER
+      end
+
+      def directives
+        WEBKIT_DIRECTIVES
+      end
     end
   end
 end

@@ -69,23 +69,22 @@ module SecureHeaders
       return browser_strategy.name
     end
 
-    # SPLIT
     def value
       return @config if @config.is_a?(String)
-      if @config.nil?
-        return supports_standard? ? WEBKIT_CSP_HEADER : FIREFOX_CSP_HEADER
-      end
 
-      build_value
+      if @config.nil?
+        browser_strategy.csp_header
+      else
+        build_value
+      end
     end
 
     private
 
     def directives
       # can't use supports_standard because FF18 does not support this part of the standard.
-      browser.firefox? ? FIREFOX_DIRECTIVES : WEBKIT_DIRECTIVES
+      browser_strategy.directives
     end
-
 
     # KEEP
     def build_value
