@@ -60,11 +60,6 @@ module SecureHeaders
       filter_unsupported_directives
     end
 
-    def browser_strategy
-      @browser_strategy ||= BrowserStrategy.build(self)
-    end
-    private :browser_strategy
-
     def name
       return browser_strategy.name
     end
@@ -80,6 +75,10 @@ module SecureHeaders
     end
 
     private
+
+    def browser_strategy
+      @browser_strategy ||= BrowserStrategy.build(self)
+    end
 
     def directives
       browser_strategy.directives
