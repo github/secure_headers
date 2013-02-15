@@ -2,15 +2,15 @@ module SecureHeaders
   class ContentSecurityPolicy
     class FirefoxBrowserStrategy < BrowserStrategy
       def base_name
-        FIREFOX_CSP_HEADER_NAME
+        SecureHeaders::ContentSecurityPolicy::FIREFOX_CSP_HEADER_NAME
       end
 
       def csp_header
-        FIREFOX_CSP_HEADER
+        SecureHeaders::ContentSecurityPolicy::FIREFOX_CSP_HEADER
       end
 
       def directives
-        FIREFOX_DIRECTIVES
+        SecureHeaders::ContentSecurityPolicy::FIREFOX_DIRECTIVES
       end
 
       def filter_unsupported_directives(config)

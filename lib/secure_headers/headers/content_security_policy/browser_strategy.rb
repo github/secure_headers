@@ -25,7 +25,7 @@ module SecureHeaders
       end
 
       def base_name
-        STANDARD_HEADER_NAME
+        SecureHeaders::ContentSecurityPolicy::STANDARD_HEADER_NAME
       end
 
       def name
@@ -37,11 +37,11 @@ module SecureHeaders
       end
 
       def csp_header
-        WEBKIT_CSP_HEADER
+        SecureHeaders::ContentSecurityPolicy::WEBKIT_CSP_HEADER
       end
 
       def directives
-        WEBKIT_DIRECTIVES
+        SecureHeaders::ContentSecurityPolicy::WEBKIT_DIRECTIVES
       end
 
       def filter_unsupported_directives(config)
