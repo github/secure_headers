@@ -5,7 +5,7 @@ module SecureHeaders
     class BrowserStrategy
       extend Forwardable
 
-      def_delegators :@content_security_policy, :browser, :experimental, :enforce, :config, :directive?
+      def_delegators :@content_security_policy, :browser, :experimental, :enforce, :config
 
       def self.build(content_security_policy)
         browser = content_security_policy.browser

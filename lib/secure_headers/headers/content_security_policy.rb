@@ -188,14 +188,9 @@ module SecureHeaders
       uri.host == origin.host && origin.port == uri.port && origin.scheme == uri.scheme
     end
 
-    def directive? val, name
-      val.to_s.casecmp(name) == 0
-    end
-
     def report_uri_directive(report_uri)
       report_uri.nil? ? '' : "report-uri #{report_uri};"
     end
-
 
     def generic_directives(config)
       header_value = ''

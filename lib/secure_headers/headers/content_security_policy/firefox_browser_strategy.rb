@@ -60,6 +60,10 @@ module SecureHeaders
         options_directive
       end
 
+      def directive? val, name
+        val.to_s.casecmp(name) == 0
+      end
+
       def normalize_reporting_endpoint?
         true
       end
