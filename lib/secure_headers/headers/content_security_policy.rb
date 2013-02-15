@@ -19,9 +19,7 @@ module SecureHeaders
     end
     include Constants
 
-    META.each do |meta|
-      attr_accessor meta
-    end
+    attr_accessor *META
     attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental, :config
 
     alias :disable_chrome_extension? :disable_chrome_extension
