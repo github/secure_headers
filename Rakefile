@@ -21,19 +21,17 @@ task :all_spec => :spec do
 
   unless $? == 0
     fail "Header tests with app not using initializer failed"
-    # Dir.chdir pwd
+    Dir.chdir pwd
   end
 
   Dir.chdir pwd
   Dir.chdir 'fixtures/rails_3_2_12_no_init'
   puts Dir.pwd
-  puts
-  puts
   puts `rake spec`
 
   unless $? == 0
     fail "Header tests with app not using initializer failed"
-    # Dir.chdir pwd
+    Dir.chdir pwd
   end
 end
 
