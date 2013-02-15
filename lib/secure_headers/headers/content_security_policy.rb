@@ -63,10 +63,10 @@ module SecureHeaders
     def value
       return @config if @config.is_a?(String)
 
-      if @config.nil?
-        browser_strategy.csp_header
-      else
+      if @config
         build_value
+      else
+        browser_strategy.csp_header
       end
     end
 
@@ -181,7 +181,7 @@ module SecureHeaders
     end
 
     def same_origin?
-      return if report_uri.nil?
+      return unless report_uri
 
       origin = URI.parse(request_uri)
       uri = URI.parse(report_uri)
@@ -189,7 +189,7 @@ module SecureHeaders
     end
 
     def report_uri_directive(report_uri)
-      report_uri.nil? ? '' : "report-uri #{report_uri};"
+      report_uri ? "report-uri #{report_uri};" : ''
     end
 
     def generic_directives(config)
