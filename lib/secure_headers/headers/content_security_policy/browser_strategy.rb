@@ -43,6 +43,12 @@ module SecureHeaders
       def directives
         WEBKIT_DIRECTIVES
       end
+
+      def filter_unsupported_directives(config)
+        config = config.dup
+        config.delete(:frame_ancestors)
+        config
+      end
     end
   end
 end

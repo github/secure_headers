@@ -12,6 +12,12 @@ module SecureHeaders
       def directives
         FIREFOX_DIRECTIVES
       end
+
+      def filter_unsupported_directives(config)
+        config = config.dup
+        config[:xhr_src] = config.delete(:connect_src) if config[:connect_src]
+        config
+      end
     end
   end
 end

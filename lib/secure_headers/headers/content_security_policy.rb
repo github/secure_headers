@@ -145,12 +145,7 @@ module SecureHeaders
     end
 
     def filter_unsupported_directives
-      if browser.firefox?
-        # can't use supports_standard because FF18 does not support this part of the standard.
-        @config[:xhr_src] = @config.delete(:connect_src) if @config[:connect_src]
-      else
-        @config.delete(:frame_ancestors)
-      end
+      @config = browser_strategy.filter_unsupported_directives(@config)
     end
 
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
