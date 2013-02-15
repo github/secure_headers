@@ -7,6 +7,34 @@ require 'net/https'
 desc "Run RSpec"
 RSpec::Core::RakeTask.new do |t|
   t.verbose = false
+   t.rspec_opts = "--format progress"
+end
+
+task :default => :all_spec
+
+desc "Run all specs, and test fixture apps"
+task :all_spec => :spec do
+  pwd = Dir.pwd
+  Dir.chdir 'fixtures/rails_3_2_12'
+  puts Dir.pwd
+  puts `rake spec`
+
+  unless $? == 0
+    fail "Header tests with app not using initializer failed"
+    # Dir.chdir pwd
+  end
+
+  Dir.chdir pwd
+  Dir.chdir 'fixtures/rails_3_2_12_no_init'
+  puts Dir.pwd
+  puts
+  puts
+  puts `rake spec`
+
+  unless $? == 0
+    fail "Header tests with app not using initializer failed"
+    # Dir.chdir pwd
+  end
 end
 
 UPDATE_URI = 'https://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt?raw=1'
@@ -124,4 +152,3 @@ def mozilla_license
 # ***** END LICENSE BLOCK *****
 EOM
 end
-task :default => :spec
