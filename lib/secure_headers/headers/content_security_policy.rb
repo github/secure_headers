@@ -22,7 +22,7 @@ module SecureHeaders
     META.each do |meta|
       attr_accessor meta
     end
-    attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental
+    attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental, :config
 
     alias :disable_chrome_extension? :disable_chrome_extension
     alias :disable_fill_missing? :disable_fill_missing
@@ -82,7 +82,6 @@ module SecureHeaders
     private
 
     def directives
-      # can't use supports_standard because FF18 does not support this part of the standard.
       browser_strategy.directives
     end
 
@@ -182,57 +181,12 @@ module SecureHeaders
     end
 
     def build_impl_specific_directives
-      header_value = ""
       default = expect_directive_value(:default_src)
-      # firefox 18 still requires the use of the options value, but can substitute default-src for allow
-      if browser.firefox?
-        header_value += build_firefox_specific_preamble(default) || ''
-      else
-        header_value += "default-src #{default.join(" ")}; " if default.any?
-      end
-
-      header_value
-    end
-
-    def build_firefox_specific_preamble(default_src_value)
-      header_value = ''
-      if supports_standard?
-        header_value += "default-src #{default_src_value.join(" ")}; " if default_src_value.any?
-      elsif default_src_value
-        header_value += "allow #{default_src_value.join(" ")}; " if default_src_value.any?
-      end
-
-      options_directive = build_options_directive
-      header_value += "options #{options_directive.join(" ")}; " if options_directive.any?
-      header_value
+      browser_strategy.build_impl_specific_directives(default)
     end
 
     def expect_directive_value key
       @config.delete(key) {|k| raise ContentSecurityPolicyBuildError.new("Expected to find #{k} directive value")}
-    end
-
-    # moves inline/eval values from script-src to options
-    # discards those values in the style-src directive
-    def build_options_directive
-      options_directive = []
-      @config.each do |directive, val|
-        next if val.is_a?(String)
-        new_val = []
-        val.each do |token|
-          if ['inline-script', 'eval-script'].include?(token)
-            # Firefox does not support blocking inline styles ATM
-            # https://bugzilla.mozilla.org/show_bug.cgi?id=763879
-            unless directive?(directive, "style_src") || options_directive.include?(token)
-              options_directive << token
-            end
-          else
-            new_val << token
-          end
-        end
-        @config[directive] = new_val
-      end
-
-      options_directive
     end
 
     def same_origin?

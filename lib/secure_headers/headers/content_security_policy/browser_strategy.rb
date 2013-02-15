@@ -5,7 +5,7 @@ module SecureHeaders
     class BrowserStrategy
       extend Forwardable
 
-      def_delegators :@content_security_policy, :browser, :experimental, :enforce
+      def_delegators :@content_security_policy, :browser, :experimental, :enforce, :config, :directive?
 
       def self.build(content_security_policy)
         browser = content_security_policy.browser
@@ -52,6 +52,14 @@ module SecureHeaders
 
       def translate_inline_or_eval val
         val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
+      end
+
+      def build_impl_specific_directives(default)
+        if default.any?
+          "default-src #{default.join(" ")}; "
+        else
+          ""
+        end
       end
     end
   end
