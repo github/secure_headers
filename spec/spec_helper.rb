@@ -18,6 +18,8 @@ Spork.each_run do
   require File.join(File.dirname(__FILE__), '..', 'app', 'controllers', 'content_security_policy_controller')
   include ::SecureHeaders::StrictTransportSecurity::Constants
   include ::SecureHeaders::ContentSecurityPolicy::Constants
+  include ::SecureHeaders::WebkitContentSecurityPolicy::Constants
+  include ::SecureHeaders::FirefoxContentSecurityPolicy::Constants
   include ::SecureHeaders::XFrameOptions::Constants
   include ::SecureHeaders::XXssProtection::Constants
   include ::SecureHeaders::XContentTypeOptions::Constants
