@@ -8,6 +8,9 @@ module SecureHeaders
     module Constants
       STANDARD_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src chrome-extension:"
       STANDARD_HEADER_NAME = "Content-Security-Policy"
+
+      # left in this class for legacy reasons
+      FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
       DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
       META = [:enforce, :http_additions, :disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
     end
