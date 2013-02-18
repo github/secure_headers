@@ -1,4 +1,4 @@
-guard 'spork', :rspec_port => 1235, :rspec_env => { 'RAILS_ENV' => 'test' } do
+guard 'spork', :rspec_port => 1235, :aggressive_kill => false do
   watch('spec/spec_helper.rb') { :rspec }
 end
 
