@@ -12,7 +12,7 @@ Spork.prefork do
   require File.expand_path("../../config/environment", __FILE__)
   require 'rspec/rails'
   require 'rspec/autorun'
-  require 'ruby-debug'
+  # require 'ruby-debug'
 end
 
 Spork.each_run do
