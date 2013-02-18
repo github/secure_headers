@@ -51,31 +51,6 @@ module SecureHeaders
         specify { ContentSecurityPolicy.build(request_for(FIREFOX), opts, :experimental => true).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.build(request_for(FIREFOX_18), opts, :experimental => true).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.build(request_for(CHROME), opts, :experimental => true).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
-# =======
-#     end
-
-#     describe "#fill_directives" do
-#       let(:opts) {{:default_src => ['https://*']}}
-#       let(:expected) {{}}
-
-#       it "fills empty directives with the 'allow' directive in Firefox" do
-#         csp = ContentSecurityPolicy.build(request_for(FIREFOX), opts)
-#         csp.directives.each {|dir| expected[dir] = ["https://*"]}
-#         csp.send(:fill_directives).should == expected.merge(opts)
-#       end
-
-#       it "fills empty directives with the 'default' directive in Chrome" do
-#         csp = ContentSecurityPolicy.build(request_for(CHROME), opts)
-#         csp.directives.each {|dir| expected[dir] = ["https://*"]}
-#         csp.send(:fill_directives).should == expected.merge(opts)
-#       end
-
-#       it "does not overwrite supplied values" do
-#         options = opts.merge(:img_src => ['https://twitter.com'])
-#         csp = ContentSecurityPolicy.build(request_for(CHROME), options)
-#         csp.directives.each {|dir| expected[dir] = ["https://*"]}
-#         csp.send(:fill_directives).should == expected.merge(options)
-# >>>>>>> b/gh-6_smelly_csp
       end
     end
 
