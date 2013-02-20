@@ -20,19 +20,18 @@ module SecureHeaders
   end
 
   module ClassMethods
+    attr_writer :secure_headers_options
     def secure_headers_options
       if @secure_headers_options
         @secure_headers_options
       elsif superclass.respond_to?(:secure_headers_options) # stop at application_controller
         superclass.secure_headers_options
+      else
+        {}
       end
     end
 
-    def secure_headers_options=(options)
-      @secure_headers_options = options
-    end
-
-    def ensure_security_headers options = {}, *args
+    def ensure_security_headers options = {}
       self.secure_headers_options = options
       before_filter :set_security_headers
     end
