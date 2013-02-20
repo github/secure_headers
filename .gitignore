@@ -19,3 +19,8 @@ tmp
 
 /fixtures/rails_3_2_12/log/test.log
 /fixtures/rails_3_2_12_no_init/log/test.log
+*.sqlite3
+test.sqlite3
+*test.sqlite3
+/fixtures/rails_3_2_12_no_init/db/test.sqlite3
+/fixtures/rails_3_2_12/db/test.sqlite3
