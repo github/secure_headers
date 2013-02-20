@@ -102,22 +102,6 @@ module SecureHeaders
       end
     end
 
-    describe "#supports_standard?" do
-      ['IE', 'Safari', 'Chrome'].each do |browser_name|
-        it "returns true for #{browser_name}" do
-          browser = Brwsr::Browser.new(:ua => browser_name)
-          subject.stub(:browser).and_return(browser)
-          subject.send(:supports_standard?).should be_true
-        end
-      end
-
-      it "returns false for Firefox" do
-        browser = Brwsr::Browser.new(:ua => "Firefox 17")
-        subject.stub(:browser).and_return(browser)
-        subject.send(:supports_standard?).should be_false
-      end
-    end
-
     describe "#same_origin?" do
       let(:origin) {"https://example.com:123"}
 
