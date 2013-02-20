@@ -44,7 +44,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
 * It adds 'chrome-extension:' to your CSP directives by default.  This helps drastically reduce the amount of reports, but you can also disable this feature by supplying :disable_chrome_extension => true.
 * It fills any blank directives with the value in :default_src  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying :disable_fill_missing => true.
 * It copies the connect\-src value to xhr\-src for AJAX requests.
-* Firefox does not support cross\-origin CSP reports.  If we are using Firefox, AND the value for :report_uri does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (`FF_CSP_ENDPOINT`).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :report_uri without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
+* Firefox does not support cross\-origin CSP reports.  If we are using Firefox, AND the value for :report_uri does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (`FF_CSP_ENDPOINT`).  This is also the case if :report_uri only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in :forward_endpoint without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
 
 
 ## Configuration
