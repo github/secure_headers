@@ -33,7 +33,7 @@ module SecureHeaders
     # or use the forwarding endpoint
     # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
     #
-    # :report used to determine what :ssl_request, :ua, and :request_uri
+    # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
       if options[:request]
@@ -43,7 +43,8 @@ module SecureHeaders
         # fails open, assumes http. Bad idea? Will always include http additions.
         # could also fail if not supplied.
         @ssl_request = !!options.delete(:ssl)
-        # a nil value here means we always assume we are not on the same host
+        # a nil value here means we always assume we are not on the same host,
+        # which causes all FF csp reports to go through the forwarder
         @request_uri = options.delete(:request_uri)
       end
 

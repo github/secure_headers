@@ -171,7 +171,6 @@ module SecureHeaders
         end
 
         it "forwards if the request_uri is set to a non-matching value" do
-          debugger
           csp = ContentSecurityPolicy.new({:report_uri => "https://another.example.com", :forward_endpoint => '/somewhere'}, :ua => "Firefox", :request_uri => "https://anexample.com")
           csp.report_uri.should == FF_CSP_ENDPOINT
         end
