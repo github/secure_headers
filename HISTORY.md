@@ -1,7 +1,16 @@
 0.2.0
 =======
 
-0.1.0 introduced a serious regression in which child controllers overwrote parent controller config values
+- 0.1.0 introduced a serious regression in which child controllers overwrote parent controller config values
+- Decoupling of CSP headers and the request object. Allows you to generate static values to save cycles:
+
+```ruby
+FIREFOX = SecureHeaders::ContentSecurityPolicy.new(config, :ua => "Firefox", :ssl => true).value
+CHROME = SecureHeaders::ContentSecurityPolicy.new(config, :ua => "Chrome", :ssl => true).value
+```
+- :forward_endpoint now acts as the endpoint that reports are forwarded to (when using the internal forwarder feature for cross-host reporting)
+- Skeleton applications have been added to test isolated application configurations
+- Cleanup by @bemurphy
 
 0.1.1
 =======
