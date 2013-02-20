@@ -165,9 +165,9 @@ module SecureHeaders
           csp.report_uri.should == FF_CSP_ENDPOINT
         end
 
-        it "doesn't set report-uri if no forward_endpoint is supplied" do
-          csp = ContentSecurityPolicy.new({:report_uri => "https://another.example.com"}, :request => request_for(FIREFOX, "https://anexample.com"))
-          csp.report_uri.should be_nil
+        it "doesn't change report-uri if a path supplied" do
+          csp = ContentSecurityPolicy.new({:report_uri => "/csp_reports"}, :request => request_for(FIREFOX, "https://anexample.com"))
+          csp.report_uri.should == "/csp_reports"
         end
 
         it "forwards if the request_uri is set to a non-matching value" do
@@ -224,7 +224,7 @@ module SecureHeaders
       context "X-Content-Security-Policy" do
         it "builds a csp header for firefox" do
           csp = ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX))
-          csp.value.should == "allow https://*; options inline-script eval-script; img-src data:; script-src https://* data:; style-src https://* chrome-extension: about:;"
+          csp.value.should == "allow https://*; options inline-script eval-script; img-src data:; script-src https://* data:; style-src https://* chrome-extension: about:; report-uri /csp_report;"
         end
 
         it "copies connect-src values to xhr_src values" do
