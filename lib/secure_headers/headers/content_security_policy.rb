@@ -26,16 +26,32 @@ module SecureHeaders
     alias :disable_fill_missing? :disable_fill_missing
     alias :ssl_request? :ssl_request
 
-    def initialize(request=nil, config=nil, options={})
+    # +options+ param contains
+    # :experimental use experimental block for config
+    # :ssl_request used to determine if http_additions should be used
+    # :request_uri used to determine if firefox should send the report directly
+    # or use the forwarding endpoint
+    # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
+    #
+    # :report used to determine what :ssl_request, :ua, and :request_uri are set to
+    def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
-      if config
-        configure request, config
-      elsif request
-        parse_request request
+      if options[:request]
+        parse_request(options[:request])
+      else
+        @browser = Brwsr::Browser.new(:ua => options[:ua])
+        # fails open, assumes http. Bad idea? Will always include http additions.
+        # could also fail if not supplied.
+        @ssl_request = !!options.delete(:ssl)
+        # a nil value here means we always assume we are not on the same host,
+        # which causes all FF csp reports to go through the forwarder
+        @request_uri = options.delete(:request_uri)
       end
+
+      configure(config) if config
     end
 
-    def configure request, opts
+    def configure opts
       @config = opts.dup
 
       experimental_config = @config.delete(:experimental)
@@ -44,7 +60,6 @@ module SecureHeaders
         @config.merge!(experimental_config)
       end
 
-      parse_request request
       META.each do |meta|
         self.send("#{meta}=", @config.delete(meta))
       end
@@ -181,7 +196,7 @@ module SecureHeaders
     end
 
     def same_origin?
-      return unless report_uri
+      return unless report_uri && request_uri
 
       origin = URI.parse(request_uri)
       uri = URI.parse(report_uri)
