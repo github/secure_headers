@@ -16,3 +16,6 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
+
+/fixtures/rails_3_2_12/log/test.log
+/fixtures/rails_3_2_12_no_init/log/test.log
