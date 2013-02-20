@@ -17,7 +17,7 @@ task :all_spec => :spec do
   pwd = Dir.pwd
   Dir.chdir 'fixtures/rails_3_2_12'
   puts Dir.pwd
-  puts `rake spec`
+  puts `bundle install >> /dev/null; bundle exec rspec spec`
 
   unless $? == 0
     fail "Header tests with app not using initializer failed"
@@ -27,7 +27,7 @@ task :all_spec => :spec do
   Dir.chdir pwd
   Dir.chdir 'fixtures/rails_3_2_12_no_init'
   puts Dir.pwd
-  puts `rake spec`
+  puts `bundle install >> /dev/null; bundle exec rspec spec`
 
   unless $? == 0
     fail "Header tests with app not using initializer failed"
