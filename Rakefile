@@ -17,11 +17,11 @@ task :all_spec => :spec do
   pwd = Dir.pwd
   Dir.chdir 'fixtures/rails_3_2_12'
   puts Dir.pwd
-  puts `bundle install >> /dev/null; bundle exec rspec spec`
-
+  str = `bundle install >> /dev/null; bundle exec rspec spec`
+  puts str
   unless $? == 0
-    fail "Header tests with app not using initializer failed"
     Dir.chdir pwd
+    fail "Header tests with app not using initializer failed exit code: #{$?}"
   end
 
   Dir.chdir pwd
