@@ -5,10 +5,10 @@ gem 'sqlite3'
 gem 'rspec-rails', '>= 2.0.0'
 gem 'secure_headers', :path => '../..'
 gem 'spork'
-# gem 'debugger', :platform => :ruby_19
-# gem 'ruby-debug', :platform => :ruby_18
-# gem 'guard-rspec'
-# gem 'guard-spork'
-# gem 'rb-fsevent'
-# gem 'growl'
+gem 'debugger', :platform => :ruby_19
+gem 'ruby-debug', :platform => :ruby_18
+gem 'guard-rspec'
+gem 'guard-spork'
+gem 'rb-fsevent'
+gem 'growl'
 
