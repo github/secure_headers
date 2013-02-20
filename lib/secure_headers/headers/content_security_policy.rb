@@ -3,25 +3,20 @@ require 'brwsr'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
+
   class ContentSecurityPolicy
     module Constants
-      WEBKIT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src chrome-extension:"
-      FIREFOX_CSP_HEADER = "options eval-script inline-script; allow https://* data:; frame-src https://* about: javascript:; img-src chrome-extension:"
-
-      FIREFOX_CSP_HEADER_NAME = 'X-Content-Security-Policy'
-      WEBKIT_CSP_HEADER_NAME = 'X-WebKit-CSP'
+      STANDARD_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src chrome-extension:"
       STANDARD_HEADER_NAME = "Content-Security-Policy"
 
+      # left in this class for legacy reasons
       FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
-      WEBKIT_DIRECTIVES = DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
-      FIREFOX_DIRECTIVES = DIRECTIVES + [:xhr_src, :frame_ancestors] - [:connect_src]
+      DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
       META = [:enforce, :http_additions, :disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
     end
     include Constants
 
-    META.each do |meta|
-      attr_accessor meta
-    end
+    attr_accessor *META
     attr_reader :browser, :ssl_request, :report_uri, :request_uri
 
     alias :enforce? :enforce
@@ -29,6 +24,24 @@ module SecureHeaders
     alias :disable_fill_missing? :disable_fill_missing
     alias :ssl_request? :ssl_request
 
+    ##
+    # Shortcut for merging experiemental configs.
+    # +options+
+    #   :experimental => true
+    def self.build(request, config=nil, options={})
+      browser = Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
+
+      klass = case
+      when browser.ie?
+        self
+      when browser.firefox?
+        FirefoxContentSecurityPolicy
+      else
+        WebkitContentSecurityPolicy
+      end
+
+      klass.new(request, config, options)
+    end
 
     def initialize(request=nil, config=nil, options={})
       @experimental = !!options.delete(:experimental)
@@ -50,44 +63,45 @@ module SecureHeaders
 
       parse_request request
       META.each do |meta|
-        self.send(meta.to_s + "=", @config.delete(meta))
+        self.send("#{meta}=", @config.delete(meta))
       end
 
       @report_uri = @config.delete(:report_uri)
 
-      normalize_csp_options
-      normalize_reporting_endpoint
-      filter_unsupported_directives
+      after_configure
     end
 
-    def name
-      base = if browser.ie?
-               STANDARD_HEADER_NAME
-             elsif browser.firefox?
-               # can't use supports_standard because FF18 does not support this part of the standard.
-               FIREFOX_CSP_HEADER_NAME
-             else
-               WEBKIT_CSP_HEADER_NAME
-             end
+    def after_configure
+      normalize_csp_options
+    end
 
-      if !enforce || @experimental
-        base += "-Report-Only"
-      end
+    def base_name
+      STANDARD_HEADER_NAME
+    end
+
+      # if !enforce || @experimental
+    def name
+      base = base_name
+      base += "-Report-Only" unless enforce && !@experimental
       base
+    end
+
+    def directives
+      DIRECTIVES
     end
 
     def value
       return @config if @config.is_a?(String)
-      if @config.nil?
-        return supports_standard? ? WEBKIT_CSP_HEADER : FIREFOX_CSP_HEADER
-      end
 
-      build_value
+      if @config.nil?
+        csp_header
+      else
+        build_value
+      end
     end
 
-    def directives
-      # can't use supports_standard because FF18 does not support this part of the standard.
-      browser.firefox? ? FIREFOX_DIRECTIVES : WEBKIT_DIRECTIVES
+    def csp_header
+      STANDARD_CSP_HEADER
     end
 
     private
@@ -97,9 +111,11 @@ module SecureHeaders
       add_missing_chrome_extension_values unless disable_chrome_extension?
       append_http_additions unless ssl_request?
 
-      header_value = build_impl_specific_directives
-      header_value += generic_directives(@config)
-      header_value += report_uri_directive(@report_uri)
+      header_value = [
+        build_impl_specific_directives,
+        generic_directives(@config),
+        report_uri_directive(@report_uri),
+      ].join
 
       #store the value for next time
       @config = header_value
@@ -147,15 +163,6 @@ module SecureHeaders
       end
     end
 
-    def filter_unsupported_directives
-      if browser.firefox?
-        # can't use supports_standard because FF18 does not support this part of the standard.
-        @config[:xhr_src] = @config.delete(:connect_src) if @config[:connect_src]
-      else
-        @config.delete(:frame_ancestors)
-      end
-    end
-
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
     def translate_dir_value val
       if %w{inline eval}.include?(val)
@@ -170,54 +177,13 @@ module SecureHeaders
 
     # inline/eval => impl-specific values
     def translate_inline_or_eval val
-      # can't use supports_standard because FF18 does not support this part of the standard.
-      if browser.firefox?
-        val == 'inline' ? 'inline-script' : 'eval-script'
-      else
-        val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
-      end
-    end
-
-    # if we have a forwarding endpoint setup and we are not on the same origin as our report_uri
-    # or only a path was supplied (in which case we assume cross-host)
-    # we need to forward the request for Firefox.
-    def normalize_reporting_endpoint
-      if browser.firefox? && (!same_origin? || URI.parse(report_uri).host.nil?)
-        if forward_endpoint
-          @report_uri = FF_CSP_ENDPOINT
-        else
-          @report_uri = nil
-        end
-      end
-    end
-
-    def supports_standard?
-      !browser.firefox?
+      val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
     end
 
     def build_impl_specific_directives
       header_value = ""
       default = expect_directive_value(:default_src)
-      # firefox 18 still requires the use of the options value, but can substitute default-src for allow
-      if browser.firefox?
-        header_value += build_firefox_specific_preamble(default) || ''
-      else
-        header_value += "default-src #{default.join(" ")}; " if default.any?
-      end
-
-      header_value
-    end
-
-    def build_firefox_specific_preamble(default_src_value)
-      header_value = ''
-      if supports_standard?
-        header_value += "default-src #{default_src_value.join(" ")}; " if default_src_value.any?
-      elsif default_src_value
-        header_value += "allow #{default_src_value.join(" ")}; " if default_src_value.any?
-      end
-
-      options_directive = build_options_directive
-      header_value += "options #{options_directive.join(" ")}; " if options_directive.any?
+      header_value += "default-src #{default.join(" ")}; " if default.any?
       header_value
     end
 
@@ -265,20 +231,16 @@ module SecureHeaders
       report_uri.nil? ? '' : "report-uri #{report_uri};"
     end
 
-
     def generic_directives(config)
-      header_value = ''
       if config[:img_src]
         config[:img_src] = config[:img_src] + ['data:'] unless config[:img_src].include?('data:')
       else
         config[:img_src] = ['data:']
       end
-
-      config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
+      # ensure consistent ordering
+      config.keys.sort_by{|k| k.to_s}.inject('') do |header_value, k|
         header_value += "#{symbol_to_hyphen_case(k)} #{config[k].join(" ")}; "
       end
-
-      header_value
     end
 
     def symbol_to_hyphen_case sym
