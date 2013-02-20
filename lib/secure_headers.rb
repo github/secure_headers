@@ -59,10 +59,10 @@ module SecureHeaders
       options = self.class.options_for :csp, options
       return if options == false
 
-      header = ContentSecurityPolicy.new(request, options)
+      header = ContentSecurityPolicy.new(options, :request => request)
       set_header(header.name, header.value)
       if options && options[:experimental] && options[:enforce]
-        header = ContentSecurityPolicy.new(request, options, :experimental => true)
+        header = ContentSecurityPolicy.new(options, :experimental => true, :request => request)
         set_header(header.name, header.value)
       end
     end
