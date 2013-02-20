@@ -1,3 +1,8 @@
+0.2.0
+=======
+
+0.1.0 introduced a serious regression in which child controllers overwrote parent controller config values
+
 0.1.1
 =======
 
