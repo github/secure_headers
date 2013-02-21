@@ -1,3 +1,13 @@
+0.2.3
+=======
+
+- Fix error in report-uri logic for Firefox forwarding.
+
+0.2.2
+=======
+
+- Stop applying chrome-extension: to Firefox directives.
+
 0.2.1
 =======
 
