@@ -165,9 +165,16 @@ module SecureHeaders
           csp.report_uri.should == FF_CSP_ENDPOINT
         end
 
-        it "doesn't change report-uri if a path supplied" do
-          csp = ContentSecurityPolicy.new({:report_uri => "/csp_reports"}, :request => request_for(FIREFOX, "https://anexample.com"))
-          csp.report_uri.should == "/csp_reports"
+        context "when the report-uri is a path" do
+          it "doesn't change report-uri" do
+            csp = ContentSecurityPolicy.new({:report_uri => "/csp_reports"}, :request => request_for(FIREFOX, "https://anexample.com"))
+            csp.report_uri.should == "/csp_reports"
+          end
+
+          it "changes the report-uri if the forward_endpoint is supplied" do
+            csp = ContentSecurityPolicy.new({:report_uri => "/csp_reports", :forward_endpoint => 'http://example.com/csp'}, :request => request_for(FIREFOX, "https://anexample.com"))
+            csp.report_uri.should == FF_CSP_ENDPOINT
+          end
         end
 
         it "forwards if the request_uri is set to a non-matching value" do

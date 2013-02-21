@@ -63,7 +63,7 @@ module SecureHeaders
       end
 
       def normalize_reporting_endpoint?
-        # noop except for Firefox for now
+        false
       end
 
       def add_missing_extension_values

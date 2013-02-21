@@ -168,14 +168,12 @@ module SecureHeaders
     # we need to forward the request for Firefox.
     def normalize_reporting_endpoint
       return unless browser_strategy.normalize_reporting_endpoint?
-      if same_origin? || report_uri.nil? || URI.parse(report_uri).host.nil?
+      if same_origin? || report_uri.nil?
         return
       end
 
       if forward_endpoint
         @report_uri = FF_CSP_ENDPOINT
-      else
-        @report_uri = nil
       end
     end
 
