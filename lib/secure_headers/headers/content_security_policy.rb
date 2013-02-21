@@ -97,7 +97,7 @@ module SecureHeaders
 
     def build_value
       fill_directives unless disable_fill_missing?
-      add_missing_chrome_extension_values unless disable_chrome_extension?
+      browser_strategy.add_missing_extension_values unless disable_chrome_extension?
       append_http_additions unless ssl_request?
 
       header_value = [
@@ -123,15 +123,6 @@ module SecureHeaders
         end
       end
       @config
-    end
-
-    def add_missing_chrome_extension_values
-      directives.each do |directive|
-        next unless @config[directive]
-        if !@config[directive].include?('chrome-extension:')
-          @config[directive] << 'chrome-extension:'
-        end
-      end
     end
 
     def append_http_additions
