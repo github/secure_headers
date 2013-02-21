@@ -1,3 +1,8 @@
+0.2.1
+=======
+
+- Firefox headers will now stop overriding report_uri when only a path is supplied
+
 0.2.0
 =======
 
