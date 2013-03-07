@@ -1,3 +1,7 @@
+0.3.0
+=======
+- Greatly reduce the need to use the forward_endpoint attribute. If you are posting from your site to a host that matches TLD+1 (e.g. translate.twitter.com matches twitter.com), use a protocol relative value for report-uri. This will alleviate the need to use forwarding. If your host doesn't match, you still need to use forwarding due to host mismatches for Firefox.
+
 0.2.3
 =======
 

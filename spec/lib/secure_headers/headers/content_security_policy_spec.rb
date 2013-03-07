@@ -186,6 +186,33 @@ module SecureHeaders
         csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
         csp.report_uri.should == 'https://example.com/csp'
       end
+
+      context "when using a protocol-relative value for report-uri" do
+        let(:opts) {
+          {
+            :default_src => 'self',
+            :report_uri => '//example.com/csp'
+          }
+        }
+
+        it "uses the current protocol" do
+          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX, '/', :ssl => true))
+          csp.value.should =~ %r{report-uri https://example.com/csp;}
+
+          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX))
+          csp.value.should =~ %r{report-uri http://example.com/csp;}
+        end
+
+        it "uses the pre-configured https protocol" do
+          csp = ContentSecurityPolicy.new(opts, :ua => "Firefox", :ssl => true)
+          csp.value.should =~ %r{report-uri https://example.com/csp;}
+        end
+
+        it "uses the pre-configured http protocol" do
+          csp = ContentSecurityPolicy.new(opts, :ua => "Firefox", :ssl => false)
+          csp.value.should =~ %r{report-uri http://example.com/csp;}
+        end
+      end
     end
 
     describe "#value" do
