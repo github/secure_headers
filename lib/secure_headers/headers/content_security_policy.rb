@@ -103,7 +103,7 @@ module SecureHeaders
       header_value = [
         build_impl_specific_directives,
         generic_directives(@config),
-        report_uri_directive(@report_uri)
+        report_uri_directive
       ].join
 
       #store the value for next time
@@ -174,8 +174,6 @@ module SecureHeaders
 
       if forward_endpoint
         @report_uri = FF_CSP_ENDPOINT
-      else
-        @report_uri = nil
       end
     end
 
@@ -196,8 +194,18 @@ module SecureHeaders
       uri.host == origin.host && origin.port == uri.port && origin.scheme == uri.scheme
     end
 
-    def report_uri_directive(report_uri)
-      report_uri ? "report-uri #{report_uri};" : ''
+    def report_uri_directive
+      return '' if @report_uri.nil?
+
+      if @report_uri.start_with?('//')
+        @report_uri = if @ssl_request
+                        "https:" + @report_uri
+                      else
+                        "http:" + @report_uri
+                      end
+      end
+
+      "report-uri #{@report_uri};"
     end
 
     def generic_directives(config)
