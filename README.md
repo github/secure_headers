@@ -59,8 +59,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
   config.x_xss_protection = {:value => '1', :mode => false}
   config.csp = {
     :default_src => "https://* inline eval",
-    # ALWAYS supply a full URL for report URIs
-    :report_uri => 'https://example.com/uri-directive',
+    :report_uri => '//example.com/uri-directive',
     :img_src => "https://* data:",
     :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
   }
@@ -239,7 +238,6 @@ require 'secure_headers'
   config.x_xss_protection = {:value => '1', :mode => false}
   config.csp = {
     :default_src => "https://* inline eval",
-    # ALWAYS supply a full URL for report URIs
     :report_uri => '//example.com/uri-directive',
     :img_src => "https://* data:",
     :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
@@ -281,7 +279,6 @@ module Web
       config.x_xss_protection       = {:value   => '1', :mode => false}
       config.csp                    = {
         :default_src => "https://* inline eval",
-        # ALWAYS supply a full URL for report URIs
         :report_uri => '//example.com/uri-directive',
         :img_src => "https://* data:",
         :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
