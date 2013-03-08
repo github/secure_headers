@@ -59,8 +59,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
   config.x_xss_protection = {:value => '1', :mode => false}
   config.csp = {
     :default_src => "https://* inline eval",
-    # ALWAYS supply a full URL for report URIs
-    :report_uri => 'https://example.com/uri-directive',
+    :report_uri => '//example.com/uri-directive',
     :img_src => "https://* data:",
     :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
   }
@@ -107,12 +106,12 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
   # default_src is required!
   :default_src     => nil,      # sets the default-src/allow+options directives
 
-  # Where reports are sent. Use full URLs.
-  :report_uri  => 'https://mylogaggregator.example.com',
+  # Where reports are sent. Use protocol relative URLs if you are posting to the same domain (TLD+1). Use paths if you are posting to the application serving the header
+  :report_uri  => '//mysite.example.com',
 
   # Send reports that cannot be sent across host here. These requests are sent
   # the server, not the browser. If no value is supplied, it will default to
-  # the value in report_uri.
+  # the value in report_uri. Use this if you cannot use relative protocols mentioned above due to host mismatches.
   :forward_endpoint => 'https://internal.mylogaggregator.example.com'
 
   # these directives all take 'none', 'self', or a globbed pattern
@@ -239,8 +238,7 @@ require 'secure_headers'
   config.x_xss_protection = {:value => '1', :mode => false}
   config.csp = {
     :default_src => "https://* inline eval",
-    # ALWAYS supply a full URL for report URIs
-    :report_uri => 'https://example.com/uri-directive',
+    :report_uri => '//example.com/uri-directive',
     :img_src => "https://* data:",
     :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
   }
@@ -281,8 +279,7 @@ module Web
       config.x_xss_protection       = {:value   => '1', :mode => false}
       config.csp                    = {
         :default_src => "https://* inline eval",
-        # ALWAYS supply a full URL for report URIs
-        :report_uri => 'https://example.com/uri-directive',
+        :report_uri => '//example.com/uri-directive',
         :img_src => "https://* data:",
         :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
       }
