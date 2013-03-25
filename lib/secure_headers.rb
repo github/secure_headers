@@ -33,7 +33,11 @@ module SecureHeaders
 
     def ensure_security_headers options = {}
       self.secure_headers_options = options
-      before_filter :set_security_headers
+      before_filter :set_hsts_header
+      before_filter :set_x_frame_options_header
+      before_filter :set_csp_header
+      before_filter :set_x_xss_protection_header
+      before_filter :set_x_content_type_options_header
     end
 
     # we can't use ||= because I'm overloading false => disable, nil => default
@@ -44,18 +48,13 @@ module SecureHeaders
   end
 
   module InstanceMethods
-    def set_security_headers(options = self.class.secure_headers_options)
-      brwsr = Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
-      set_hsts_header(options[:hsts]) if request.ssl?
-      set_x_frame_options_header(options[:x_frame_options])
-      set_csp_header(request, options[:csp]) unless broken_implementation?(brwsr)
-      set_x_xss_protection_header(options[:x_xss_protection])
-      if brwsr.ie?
-        set_x_content_type_options_header(options[:x_content_type_options])
-      end
+    def brwsr
+      @secure_headers_brwsr ||= Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
     end
 
-    def set_csp_header(request, options=nil)
+    def set_csp_header(options=self.class.secure_headers_options[:csp])
+      return if broken_implementation?(brwsr)
+
       options = self.class.options_for :csp, options
       return if options == false
 
@@ -67,6 +66,26 @@ module SecureHeaders
       end
     end
 
+    def set_x_frame_options_header(options=self.class.secure_headers_options[:x_frame_options])
+      set_a_header(:x_frame_options, XFrameOptions, options)
+    end
+
+    def set_x_content_type_options_header(options=self.class.secure_headers_options[:x_content_type_options])
+      return unless brwsr.ie?
+      set_a_header(:x_content_type_options, XContentTypeOptions, options)
+    end
+
+    def set_x_xss_protection_header(options=self.class.secure_headers_options[:x_xss_protection])
+      set_a_header(:x_xss_protection, XXssProtection, options)
+    end
+
+    def set_hsts_header(options=self.class.secure_headers_options[:hsts])
+      return unless request.ssl?
+      set_a_header(:hsts, StrictTransportSecurity, options)
+    end
+
+    private
+
     def set_a_header(name, klass, options=nil)
       options = self.class.options_for name, options
       return if options == false
@@ -75,27 +94,9 @@ module SecureHeaders
       set_header(header.name, header.value)
     end
 
-    def set_x_frame_options_header(options=nil)
-      set_a_header(:x_frame_options, XFrameOptions, options)
-    end
-
-    def set_x_content_type_options_header(options=nil)
-      set_a_header(:x_content_type_options, XContentTypeOptions, options)
-    end
-
-    def set_x_xss_protection_header(options=nil)
-      set_a_header(:x_xss_protection, XXssProtection, options)
-    end
-
-    def set_hsts_header(options=nil)
-      set_a_header(:hsts, StrictTransportSecurity, options)
-    end
-
     def set_header(name, value)
       response.headers[name] = value
     end
-
-    private
 
     def broken_implementation?(browser)
       #IOS 5 sometimes refuses to load external resources even when whitelisted with CSP
