@@ -56,7 +56,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
   config.hsts = {:max_age => 99, :include_subdomains => true}
   config.x_frame_options = 'DENY'
   config.x_content_type_options = "nosniff"
-  config.x_xss_protection = {:value => '1', :mode => false}
+  config.x_xss_protection = {:value => 1, :mode => false}
   config.csp = {
     :default_src => "https://* inline eval",
     :report_uri => '//example.com/uri-directive',
@@ -91,7 +91,7 @@ header will be constructed using the supplied options.
 ```ruby
 :hsts             => {:max_age => 631138519, :include_subdomain => true}
 :x_frame_options  => {:value => 'SAMEORIGIN'}
-:x_xss_protection => {:value => '1', :mode => false}  # set the :mode option to 'block' to enforce the browser's xss filter
+:x_xss_protection => {:value => 1, :mode => false}  # set the :mode option to 'block' to enforce the browser's xss filter
 ```
 
 ### Content Security Policy (CSP)
@@ -235,7 +235,7 @@ require 'secure_headers'
   config.hsts = {:max_age => 99, :include_subdomains => true}
   config.x_frame_options = 'DENY'
   config.x_content_type_options = "nosniff"
-  config.x_xss_protection = {:value => '1', :mode => false}
+  config.x_xss_protection = {:value => 1, :mode => false}
   config.csp = {
     :default_src => "https://* inline eval",
     :report_uri => '//example.com/uri-directive',
