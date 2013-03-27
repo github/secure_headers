@@ -17,6 +17,18 @@ module SecureHeaders
       end
 
       context "when using a hash value" do
+        it "should allow string values ('1' or '0' are the only valid strings)" do
+          lambda {
+            XXssProtection.new(:value => '1')
+          }.should_not raise_error
+        end
+
+        it "should allow integer values (1 or 0 are the only valid integers)" do
+          lambda {
+            XXssProtection.new(:value => 1)
+          }.should_not raise_error
+        end
+
         it "should raise an error if no value key is supplied" do
           lambda {
             XXssProtection.new(:mode => 'block')

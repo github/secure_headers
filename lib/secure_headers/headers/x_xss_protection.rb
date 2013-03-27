@@ -38,7 +38,7 @@ module SecureHeaders
         if !@config[:value]
           raise XXssProtectionBuildError.new(":value key is missing")
         elsif @config[:value]
-          unless [0,1].include?(@config[:value])
+          unless [0,1].include?(@config[:value].to_i)
             raise XXssProtectionBuildError.new(":value must be 1 or 0")
           end
 
