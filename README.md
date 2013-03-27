@@ -261,7 +261,7 @@ class Donkey < Sinatra::Application
   set :root, APP_ROOT
 
   get '/' do
-    set_csp_header(request, nil)
+    set_csp_header
     haml :index
   end
 end
@@ -298,7 +298,7 @@ module Web
     end
 
     get '/' do
-      set_csp_header(request, nil)
+      set_csp_header
       render 'index'
     end
   end
