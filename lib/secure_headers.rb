@@ -52,7 +52,21 @@ module SecureHeaders
       @secure_headers_brwsr ||= Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
     end
 
-    def set_csp_header(options=self.class.secure_headers_options[:csp])
+    # backwards compatibility jank, to be removed in 1.0. Old API required a request
+    # object when it didn't really need to.
+    # set_csp_header - uses the request accessor and SecureHeader::Configuration settings
+    # set_csp_header(+Rack::Request+) - uses the parameter and and SecureHeader::Configuration settings
+    # set_csp_header(+Hash+) - uses the request accessor and options from parameters
+    # set_csp_header(+Rack::Request+, +Hash+)
+    def set_csp_header(req = nil, options=nil)
+      if req.is_a?(Hash)
+        options = req
+      elsif req
+        @secure_headers_brwsr = Brwsr::Browser.new(:ua => req.env['HTTP_USER_AGENT'])
+      end
+
+      options = self.class.secure_headers_options[:csp] if options.nil?
+
       return if broken_implementation?(brwsr)
 
       options = self.class.options_for :csp, options
