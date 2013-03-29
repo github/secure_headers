@@ -26,6 +26,12 @@ module SecureHeaders
         s.value.should == "max-age=#{age}"
       end
 
+      it "allows integer values for max-age" do
+        age = 99
+        s = StrictTransportSecurity.new(:max_age => age)
+        s.value.should == "max-age=#{age}"
+      end
+
       context "with an invalid configuration" do
         context "with a hash argument" do
           it "raises an exception with an invalid max-age" do
