@@ -28,7 +28,7 @@ module SecureHeaders
         return DEFAULT_VALUE
       end
 
-      max_age = @config.fetch(:max_age, HSTS_MAX_AGE)
+      max_age = @config.fetch(:max_age, HSTS_MAX_AGE).to_s
       value = "max-age=" + max_age
       value += "; includeSubdomains" if @config[:include_subdomains]
 
@@ -41,7 +41,7 @@ module SecureHeaders
       if @config.is_a? Hash
         if !@config[:max_age]
           raise STSBuildError.new("No max-age was supplied.")
-        elsif @config[:max_age] !~ /\A\d+\z/
+        elsif @config[:max_age].to_s !~ /\A\d+\z/
           raise STSBuildError.new("max-age must be a number. #{@config[:max_age]} was supplied.")
         end
       else
