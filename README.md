@@ -77,7 +77,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
   }
 end
 
-# and then simply include
+# and then simply include this in application_controller
 ensure_security_headers
 ```
 
