@@ -28,6 +28,18 @@ module SecureHeaders
 
       context "with an invalid configuration" do
         context "with a hash argument" do
+          it "should allow string values for max-age" do
+            lambda {
+              StrictTransportSecurity.new(:max_age => '1234')
+            }.should_not raise_error
+          end
+
+          it "should allow integer values for max-age" do
+            lambda {
+              StrictTransportSecurity.new(:max_age => 1234)
+            }.should_not raise_error
+          end
+
           it "raises an exception with an invalid max-age" do
             lambda {
               StrictTransportSecurity.new(:max_age => 'abc123')
