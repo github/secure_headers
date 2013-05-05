@@ -1,3 +1,9 @@
+0.4.3
+======
+
+- Stupid bug where Fixnums couldn't be used for config values
+- Doc updates
+
 0.4.1
 ======
 
