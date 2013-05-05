@@ -29,7 +29,7 @@ module SecureHeaders
       end
 
       max_age = @config.fetch(:max_age, HSTS_MAX_AGE)
-      value = "max-age=" + max_age
+      value = "max-age=" + max_age.to_s
       value += "; includeSubdomains" if @config[:include_subdomains]
 
       value
