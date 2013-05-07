@@ -1,6 +1,11 @@
 0.4.3
 ======
 
+Safari 5 is just completely broken when CSP is used, both mobile and desktop versions
+
+0.4.2
+======
+
 - Stupid bug where Fixnums couldn't be used for config values
 - Doc updates
 
