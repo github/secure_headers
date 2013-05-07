@@ -3,7 +3,7 @@
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 1.1 Specification](https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html)
 - HTTP Strict Transport Security (HSTS) - Ensures the browser never visits the http version of a website. Protects from SSLStrip/Firesheep attacks.  [HSTS Specification](https://tools.ietf.org/html/rfc6797)
-- X-Frame-Options (XFO) - Prevents your content from being framed and potentially clickjacked. [X-Frame-Options draft](https://tools.ietf.org/html/draft-ietf-websec-x-frame-options-00)
+- X-Frame-Options (XFO) - Prevents your content from being framed and potentially clickjacked. [X-Frame-Options draft](https://tools.ietf.org/html/draft-ietf-websec-x-frame-options-02)
 - X-XSS-Protection - [Cross site scripting heuristic filter for IE/Chrome](http://msdn.microsoft.com/en-us/library/dd565647\(v=vs.85\).aspx)
 - X-Content-Type-Options - [Prevent content type sniffing](http://msdn.microsoft.com/en-us/library/ie/gg622941\(v=vs.85\).aspx)
 
@@ -101,7 +101,7 @@ header will be constructed using the supplied options.
 ### Widely supported
 
 ```ruby
-:hsts             => {:max_age => 631138519, :include_subdomain => true}
+:hsts             => {:max_age => 631138519, :include_subdomains => true}
 :x_frame_options  => {:value => 'SAMEORIGIN'}
 :x_xss_protection => {:value => 1, :mode => false}  # set the :mode option to 'block' to enforce the browser's xss filter
 ```
