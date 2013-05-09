@@ -2,9 +2,9 @@ module SecureHeaders
   class XFOBuildError < StandardError; end
   class XFrameOptions
     module Constants
-      XFO_HEADER_NAME = "X-FRAME-OPTIONS"
+      XFO_HEADER_NAME = "X-Frame-Options"
       DEFAULT_VALUE = 'SAMEORIGIN'
-      VALID_XFO_HEADER = /\A(SAMEORIGIN\z|DENY\z|ALLOW-FROM:)/i
+      VALID_XFO_HEADER = /\A(SAMEORIGIN\z|DENY\z|ALLOW-FROM[:\s])/i
     end
     include Constants
 

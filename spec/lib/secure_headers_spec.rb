@@ -99,29 +99,29 @@ describe SecureHeaders do
       end
     end
 
-    it "does not set the X-Content-Type-Options when disabled" do
+    it "does not set the X-Content-Type-Options header if disabled" do
       stub_user_agent(USER_AGENTS[:ie])
       should_not_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME)
       subject.set_x_content_type_options_header(false)
     end
 
-    it "does not set the X-XSS-PROTECTION when disabled" do
+    it "does not set the X-XSS-Protection header if disabled" do
       stub_user_agent(USER_AGENTS[:ie])
       should_not_assign_header(X_XSS_PROTECTION_HEADER_NAME)
       subject.set_x_xss_protection_header(false)
     end
 
-    it "does not set the X-FRAME-OPTIONS header if disabled" do
+    it "does not set the X-Frame-Options header if disabled" do
       should_not_assign_header(XFO_HEADER_NAME)
       subject.set_x_frame_options_header(false)
     end
 
-    it "does not set the hsts header if disabled" do
+    it "does not set the HSTS header if disabled" do
       should_not_assign_header(HSTS_HEADER_NAME)
       subject.set_hsts_header(false)
     end
 
-    it "does not set the hsts header the request is over HTTP" do
+    it "does not set the HSTS header if request is over HTTP" do
       subject.stub_chain(:request, :ssl?).and_return(false)
       should_not_assign_header(HSTS_HEADER_NAME)
       subject.set_hsts_header({:include_subdomains => true})
@@ -158,12 +158,12 @@ describe SecureHeaders do
   end
 
   describe "#set_x_frame_options_header" do
-    it "sets the X-FRAME-OPTIONS header" do
+    it "sets the X-Frame-Options header" do
       should_assign_header(XFO_HEADER_NAME, SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
       subject.set_x_frame_options_header
     end
 
-    it "allows a custom X-FRAME-OPTIONS header" do
+    it "allows a custom X-Frame-Options header" do
       should_assign_header(XFO_HEADER_NAME, "DENY")
       subject.set_x_frame_options_header(:value => 'DENY')
     end
@@ -175,12 +175,12 @@ describe SecureHeaders do
     end
 
     describe "#set_x_xss_protection" do
-      it "sets the XSS protection header" do
+      it "sets the X-XSS-Protection header" do
         should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '1')
         subject.set_x_xss_protection_header
       end
 
-      it "sets a custom X-XSS-PROTECTION header" do
+      it "sets a custom X-XSS-Protection header" do
         should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '0')
         subject.set_x_xss_protection_header("0")
       end
@@ -192,7 +192,7 @@ describe SecureHeaders do
     end
 
     describe "#set_x_content_type_options" do
-      it "sets the X-Content-Type-Options" do
+      it "sets the X-Content-Type-Options header" do
         should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, 'nosniff')
         subject.set_x_content_type_options_header
       end
