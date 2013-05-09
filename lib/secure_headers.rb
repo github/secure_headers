@@ -113,7 +113,6 @@ module SecureHeaders
     end
 
     def broken_implementation?(browser)
-      #IOS 5 sometimes refuses to load external resources even when whitelisted with CSP
       return browser.ios5? || (browser.safari? && browser.version == 5)
     end
   end
