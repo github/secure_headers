@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module SecureHeaders
   describe XFrameOptions do
-    specify{ XFrameOptions.new.name.should == "X-FRAME-OPTIONS" }
+    specify{ XFrameOptions.new.name.should == "X-Frame-Options" }
 
     describe "#value" do
       specify { XFrameOptions.new.value.should == XFrameOptions::Constants::DEFAULT_VALUE}
