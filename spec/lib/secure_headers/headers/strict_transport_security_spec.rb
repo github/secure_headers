@@ -5,32 +5,11 @@ module SecureHeaders
     specify{ StrictTransportSecurity.new.name.should == "Strict-Transport-Security" }
 
     describe "#value" do
-      it "sets Strict Transport Security headers" do
-        s = StrictTransportSecurity.new
-        s.value.should == StrictTransportSecurity::Constants::DEFAULT_VALUE
-      end
-
-      it "allows you to specify includeSubdomains" do
-        s = StrictTransportSecurity.new(:max_age => HSTS_MAX_AGE, :include_subdomains => true)
-        s.value.should == "max-age=#{HSTS_MAX_AGE}; includeSubdomains"
-      end
-
-      it "accepts a string value and returns verbatim" do
-        s = StrictTransportSecurity.new('max-age=1234')
-        s.value.should == "max-age=1234"
-      end
-
-      it "allows you to specify max-age" do
-        age = '8675309'
-        s = StrictTransportSecurity.new(:max_age => age)
-        s.value.should == "max-age=#{age}"
-      end
-
-      it "allows you to specify max-age as a Fixnum" do
-        age = 8675309
-        s = StrictTransportSecurity.new(:max_age => age)
-        s.value.should == "max-age=#{age}"
-      end
+      specify { StrictTransportSecurity.new.value.should == StrictTransportSecurity::Constants::DEFAULT_VALUE}
+      specify { StrictTransportSecurity.new("max-age=1234").value.should == "max-age=1234"}
+      specify { StrictTransportSecurity.new(:max_age => '1234').value.should == "max-age=1234"}
+      specify { StrictTransportSecurity.new(:max_age => 1234).value.should == "max-age=1234"}
+      specify { StrictTransportSecurity.new(:max_age => HSTS_MAX_AGE, :include_subdomains => true).value.should == "max-age=#{HSTS_MAX_AGE}; includeSubdomains"}
 
       context "with an invalid configuration" do
         context "with a hash argument" do

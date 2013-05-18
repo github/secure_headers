@@ -1,6 +1,5 @@
 module SecureHeaders
   class XXssProtectionBuildError < StandardError; end
-  # IE only
   class XXssProtection
     module Constants
       X_XSS_PROTECTION_HEADER_NAME = 'X-XSS-Protection'
