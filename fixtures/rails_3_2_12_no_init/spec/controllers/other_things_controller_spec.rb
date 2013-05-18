@@ -29,11 +29,16 @@ describe OtherThingsController do
       response.headers['Strict-Transport-Security'].should == SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE
     end
 
+    it "sets the X-Content-Type-Options header" do
+      get :index
+      response.headers['X-Content-Type-Options'].should == SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE
+    end
+
     context "using IE" do
       it "sets the X-Content-Type-Options header" do
         request.env['HTTP_USER_AGENT'] = "Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0"
         get :index
-        response.headers['X-Content-Type-Options'].should == "nosniff"
+        response.headers['X-Content-Type-Options'].should == SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE
       end
     end
   end

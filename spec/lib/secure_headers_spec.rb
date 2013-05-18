@@ -80,10 +80,8 @@ describe SecureHeaders do
       it "sets all default headers for #{name} (smoke test)" do
         stub_user_agent(useragent)
         number_of_headers = case name
-        when :ie
+        when :ie, :chrome
           5
-        when :opera
-          4
         when :ios5, :safari5
           3 # csp breaks these browsers
         else
@@ -106,7 +104,6 @@ describe SecureHeaders do
     end
 
     it "does not set the X-XSS-Protection header if disabled" do
-      stub_user_agent(USER_AGENTS[:ie])
       should_not_assign_header(X_XSS_PROTECTION_HEADER_NAME)
       subject.set_x_xss_protection_header(false)
     end
@@ -142,7 +139,7 @@ describe SecureHeaders do
     end
 
     context "when disabled by configuration settings" do
-      it "does not set the X-Content-Type-Options when disabled" do
+      it "does not set any headers when disabled" do
         ::SecureHeaders::Configuration.configure do |config|
           config.hsts = false
           config.x_frame_options = false
@@ -169,37 +166,56 @@ describe SecureHeaders do
     end
   end
 
-  context "when using IE" do
-    before(:each) do
-      stub_user_agent(USER_AGENTS[:ie])
+  describe "#set_strict_transport_security" do
+    it "sets the Strict-Transport-Security header" do
+      should_assign_header(HSTS_HEADER_NAME, SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
+      subject.set_hsts_header
     end
 
-    describe "#set_x_xss_protection" do
-      it "sets the X-XSS-Protection header" do
-        should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '1')
-        subject.set_x_xss_protection_header
-      end
-
-      it "sets a custom X-XSS-Protection header" do
-        should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '0')
-        subject.set_x_xss_protection_header("0")
-      end
-
-      it "sets the block flag" do
-        should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '1; mode=block')
-        subject.set_x_xss_protection_header(:mode => 'block', :value => 1)
-      end
+    it "allows you to specific a custom max-age value" do
+      should_assign_header(HSTS_HEADER_NAME, 'max-age=1234')
+      subject.set_hsts_header(:max_age => 1234)
     end
 
-    describe "#set_x_content_type_options" do
-      it "sets the X-Content-Type-Options header" do
-        should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, 'nosniff')
-        subject.set_x_content_type_options_header
-      end
+    it "allows you to specify includeSubdomains" do
+      should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains")
+      subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true)
+    end
+  end
 
-      it "lets you override X-Content-Type-Options" do
-        should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, 'nosniff')
-        subject.set_x_content_type_options_header(:value => 'nosniff')
+  describe "#set_x_xss_protection" do
+    it "sets the X-XSS-Protection header" do
+      should_assign_header(X_XSS_PROTECTION_HEADER_NAME, SecureHeaders::XXssProtection::Constants::DEFAULT_VALUE)
+      subject.set_x_xss_protection_header
+    end
+
+    it "sets a custom X-XSS-Protection header" do
+      should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '0')
+      subject.set_x_xss_protection_header("0")
+    end
+
+    it "sets the block flag" do
+      should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '1; mode=block')
+      subject.set_x_xss_protection_header(:mode => 'block', :value => 1)
+    end
+  end
+
+  describe "#set_x_content_type_options" do
+    [:ie, :chrome].each do |useragent|
+      context "when using #{useragent}" do
+        before(:each) do
+          stub_user_agent(USER_AGENTS[useragent])
+        end
+
+        it "sets the X-Content-Type-Options header" do
+          should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE)
+          subject.set_x_content_type_options_header
+        end
+
+        it "lets you override X-Content-Type-Options" do
+          should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, 'nosniff')
+          subject.set_x_content_type_options_header(:value => 'nosniff')
+        end
       end
     end
   end
