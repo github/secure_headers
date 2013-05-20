@@ -85,7 +85,7 @@ module SecureHeaders
     end
 
     def set_x_content_type_options_header(options=self.class.secure_headers_options[:x_content_type_options])
-      return unless brwsr.ie?
+      return unless brwsr.ie? || brwsr.chrome?
       set_a_header(:x_content_type_options, XContentTypeOptions, options)
     end
 
