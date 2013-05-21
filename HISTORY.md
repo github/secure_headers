@@ -1,3 +1,8 @@
+0.5.0
+======
+
+X-Content-Type-Options also applied to Chrome requests
+
 0.4.3
 ======
 
