@@ -59,6 +59,8 @@ module SecureHeaders
     # set_csp_header(+Hash+) - uses the request accessor and options from parameters
     # set_csp_header(+Rack::Request+, +Hash+)
     def set_csp_header(req = nil, options=nil)
+      return if broken_implementation?(brwsr)
+
       if req.is_a?(Hash)
         options = req
       elsif req
@@ -66,17 +68,15 @@ module SecureHeaders
       end
 
       options = self.class.secure_headers_options[:csp] if options.nil?
-
-      return if broken_implementation?(brwsr)
-
       options = self.class.options_for :csp, options
+
       return if options == false
 
-      header = ContentSecurityPolicy.new(options, :request => request, :controller => self)
-      set_header(header.name, header.value)
+      csp_header = ContentSecurityPolicy.new(options, :request => request, :controller => self)
+      set_header(csp_header)
       if options && options[:experimental] && options[:enforce]
-        header = ContentSecurityPolicy.new(options, :experimental => true, :request => request, :controller => self)
-        set_header(header.name, header.value)
+        experimental_header = ContentSecurityPolicy.new(options, :experimental => true, :request => request, :controller => self)
+        set_header(experimental_header)
       end
     end
 
@@ -105,11 +105,16 @@ module SecureHeaders
       return if options == false
 
       header = klass.new(options)
-      set_header(header.name, header.value)
+      set_header(header)
     end
 
-    def set_header(name, value)
-      response.headers[name] = value
+    def set_header(name_or_header, value=nil)
+      if name_or_header.is_a?(Header)
+        header = name_or_header
+        response.headers[header.name] = header.value
+      else
+        response.headers[name_or_header] = value
+      end
     end
 
     def broken_implementation?(browser)
@@ -120,6 +125,7 @@ end
 
 
 require "secure_headers/version"
+require "secure_headers/header"
 require "secure_headers/headers/content_security_policy"
 require "secure_headers/headers/content_security_policy/browser_strategy"
 require "secure_headers/headers/content_security_policy/firefox_browser_strategy"

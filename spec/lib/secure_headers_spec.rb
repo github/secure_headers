@@ -31,11 +31,11 @@ describe SecureHeaders do
   }
 
   def should_assign_header name, value
-    subject.should_receive(:set_header).with(name, value)
+    response.headers.should_receive(:[]=).with(name, value)
   end
 
   def should_not_assign_header name
-    subject.should_not_receive(:set_header).with(name, anything)
+    response.headers.should_not_receive(:[]=).with(name, anything)
   end
 
   def stub_user_agent val
@@ -69,6 +69,18 @@ describe SecureHeaders do
       options = {}
       DummyClass.should_receive(:before_filter).exactly(5).times
       DummyClass.ensure_security_headers(options)
+    end
+  end
+
+  describe "#set_header" do
+    it "accepts name/value pairs" do
+      should_assign_header("X-Hipster-Ipsum", "kombucha")
+      subject.send(:set_header, "X-Hipster-Ipsum", "kombucha")
+    end
+
+    it "accepts header objects" do
+      should_assign_header("Strict-Transport-Security", SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
+      subject.send(:set_header, SecureHeaders::StrictTransportSecurity.new)
     end
   end
 
@@ -262,13 +274,13 @@ describe SecureHeaders do
         opts = @opts.merge(:enforce => false)
         should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", anything)
         should_not_assign_header(WEBKIT_CSP_HEADER_NAME)
-        subject.set_csp_header opts
+        subject.set_csp_header(opts)
       end
 
       it "sets a header in enforce mode as well as report-only mode" do
         should_assign_header(WEBKIT_CSP_HEADER_NAME, anything)
         should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", anything)
-        subject.set_csp_header @opts
+        subject.set_csp_header(@opts)
       end
     end
   end

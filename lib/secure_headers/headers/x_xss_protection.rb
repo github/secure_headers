@@ -1,6 +1,6 @@
 module SecureHeaders
   class XXssProtectionBuildError < StandardError; end
-  class XXssProtection
+  class XXssProtection < Header
     module Constants
       X_XSS_PROTECTION_HEADER_NAME = 'X-XSS-Protection'
       DEFAULT_VALUE = "1"

@@ -3,7 +3,7 @@ require 'brwsr'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
-  class ContentSecurityPolicy
+  class ContentSecurityPolicy < Header
     module Constants
       WEBKIT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src chrome-extension:"
       FIREFOX_CSP_HEADER = "options eval-script inline-script; allow https://* data:; frame-src https://* about: javascript:; img-src chrome-extension:"
