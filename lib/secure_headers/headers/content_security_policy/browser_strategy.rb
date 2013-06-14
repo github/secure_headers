@@ -12,7 +12,11 @@ module SecureHeaders
         klass = if browser.ie?
           IeBrowserStrategy
         elsif browser.firefox?
-          FirefoxBrowserStrategy
+          if browser.version.to_i >= 23
+            WebkitBrowserStrategy
+          else
+            FirefoxBrowserStrategy
+          end
         else
           WebkitBrowserStrategy
         end
