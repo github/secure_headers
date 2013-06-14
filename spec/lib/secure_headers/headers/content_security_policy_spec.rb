@@ -18,6 +18,8 @@ module SecureHeaders
     FIREFOX = "Mozilla/5.0 (X11; U; Linux i686; pl-PL; rv:1.9.0.2) Gecko/20121223 Ubuntu/9.25 (jaunty) Firefox/3.8"
     FIREFOX_18 = "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:18.0) Gecko/18.0 Firefox/18.0"
     CHROME = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4"
+    CHROME_25 = "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/537.22 (KHTML like Gecko) Chrome/25.0.1364.99 Safari/537.22"
+
 
     def request_for user_agent, request_uri=nil, options={:ssl => false}
       double(:ssl? => options[:ssl], :env => {'HTTP_USER_AGENT' => user_agent}, :url => (request_uri || 'http://areallylongdomainexample.com') )
@@ -32,12 +34,14 @@ module SecureHeaders
         specify { ContentSecurityPolicy.new(default_opts, :ua => IE).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :ua => FIREFOX).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :ua => CHROME).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(default_opts, :ua => CHROME_25).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
       end
 
       context "when in report-only mode" do
         specify { ContentSecurityPolicy.new(default_opts, :request => request_for(IE)).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX)).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME)).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME_25)).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
       end
 
       context "when in enforce mode" do
@@ -46,6 +50,7 @@ module SecureHeaders
         specify { ContentSecurityPolicy.new(opts, :request => request_for(IE)).name.should == STANDARD_HEADER_NAME}
         specify { ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX)).name.should == FIREFOX_CSP_HEADER_NAME}
         specify { ContentSecurityPolicy.new(opts, :request => request_for(CHROME)).name.should == WEBKIT_CSP_HEADER_NAME}
+        specify { ContentSecurityPolicy.new(opts, :request => request_for(CHROME_25)).name.should == STANDARD_HEADER_NAME}
       end
 
       context "when in experimental mode" do
@@ -53,6 +58,7 @@ module SecureHeaders
         specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(IE)}).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(FIREFOX)}).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(CHROME)}).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(CHROME_25)}).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
       end
     end
 
