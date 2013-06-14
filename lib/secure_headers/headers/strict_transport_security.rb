@@ -1,7 +1,7 @@
 module SecureHeaders
   class STSBuildError < StandardError; end
 
-  class StrictTransportSecurity
+  class StrictTransportSecurity < Header
     module Constants
       HSTS_HEADER_NAME = 'Strict-Transport-Security'
       HSTS_MAX_AGE = "631138519"

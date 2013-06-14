@@ -2,7 +2,11 @@ module SecureHeaders
   class ContentSecurityPolicy
     class WebkitBrowserStrategy < BrowserStrategy
       def base_name
-        SecureHeaders::ContentSecurityPolicy::WEBKIT_CSP_HEADER_NAME
+        if browser.chrome? && browser.version.to_i >= 25
+          SecureHeaders::ContentSecurityPolicy::STANDARD_HEADER_NAME
+        else
+          SecureHeaders::ContentSecurityPolicy::WEBKIT_CSP_HEADER_NAME
+        end
       end
 
       def add_missing_extension_values
