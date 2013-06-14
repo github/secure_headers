@@ -2,7 +2,7 @@ module SecureHeaders
   class ContentSecurityPolicy
     class WebkitBrowserStrategy < BrowserStrategy
       def base_name
-        if browser.chrome? && browser.version.to_i >= 25
+        if (browser.firefox? && browser.version.to_i >= 23) || (browser.chrome? && browser.version.to_i >= 25)
           SecureHeaders::ContentSecurityPolicy::STANDARD_HEADER_NAME
         else
           SecureHeaders::ContentSecurityPolicy::WEBKIT_CSP_HEADER_NAME
