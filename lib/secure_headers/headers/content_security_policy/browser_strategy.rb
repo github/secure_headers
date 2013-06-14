@@ -13,12 +13,12 @@ module SecureHeaders
           IeBrowserStrategy
         elsif browser.firefox?
           if browser.version.to_i >= 23
-            WebkitBrowserStrategy
+            StandardBrowserStrategy
           else
             FirefoxBrowserStrategy
           end
         else
-          WebkitBrowserStrategy
+          StandardBrowserStrategy
         end
 
         klass.new content_security_policy
