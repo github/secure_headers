@@ -1,6 +1,6 @@
 module SecureHeaders
   class XFOBuildError < StandardError; end
-  class XFrameOptions
+  class XFrameOptions < Header
     module Constants
       XFO_HEADER_NAME = "X-Frame-Options"
       DEFAULT_VALUE = 'SAMEORIGIN'

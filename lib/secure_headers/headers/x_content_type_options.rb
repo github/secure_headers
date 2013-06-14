@@ -1,7 +1,7 @@
 module SecureHeaders
   class XContentTypeOptionsBuildError < StandardError; end
   # IE only
-  class XContentTypeOptions
+  class XContentTypeOptions < Header
     module Constants
       X_CONTENT_TYPE_OPTIONS_HEADER_NAME = "X-Content-Type-Options"
       DEFAULT_VALUE = "nosniff"
