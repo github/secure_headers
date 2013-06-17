@@ -1,12 +1,24 @@
+1.0.0
+======
+
+Features:
+
+- Use non-prefixed header names for Firefox >= 23, Chrome >= 25
+- Use csp 1.0 compliant header for firefox >= 23
+
+Bug Fix:
+
+- Stop sending CSP on safari 5.1+
+
 0.5.0
 ======
 
-X-Content-Type-Options also applied to Chrome requests
+- X-Content-Type-Options also applied to Chrome requests
 
 0.4.3
 ======
 
-Safari 5 is just completely broken when CSP is used, both mobile and desktop versions
+- Safari 5 is just completely broken when CSP is used, both mobile and desktop versions
 
 0.4.2
 ======
