@@ -118,7 +118,7 @@ module SecureHeaders
     end
 
     def broken_implementation?(browser)
-      return browser.ios5? || (browser.safari? && browser.version == 5)
+      return browser.ios5? || (browser.safari? && browser.version == '5')
     end
   end
 end

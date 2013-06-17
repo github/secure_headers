@@ -27,6 +27,7 @@ describe SecureHeaders do
     :ios5 => "Mozilla/5.0 (iPhone; CPU iPhone OS 5_0 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9A334 Safari/7534.48.3",
     :ios6 => "Mozilla/5.0 (iPhone; CPU iPhone OS 614 like Mac OS X) AppleWebKit/536.26 (KHTML like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25",
     :safari5 => "Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko ) Version/5.1 Mobile/9B176 Safari/7534.48.3",
+    :safari5_1 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/534.55.3 (KHTML, like Gecko) Version/5.1.3 Safari/534.53.10",
     :safari6 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/536.30.1 (KHTML like Gecko) Version/6.0.5 Safari/536.30.1"
   }
 
@@ -94,7 +95,7 @@ describe SecureHeaders do
         number_of_headers = case name
         when :ie, :chrome
           5
-        when :ios5, :safari5
+        when :ios5, :safari5, :safari5_1
           3 # csp breaks these browsers
         else
           4
