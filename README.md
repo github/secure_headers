@@ -81,7 +81,7 @@ end
 ensure_security_headers
 ```
 
-Or simply add it to application controller (not recommended, currently a bug)
+Or simply add it to application controller
 
 ```ruby
 ensure_security_headers
