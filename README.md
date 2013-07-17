@@ -103,7 +103,7 @@ header will be constructed using the supplied options.
 ```ruby
 :hsts             => {:max_age => 631138519, :include_subdomains => true}
 :x_frame_options  => {:value => 'SAMEORIGIN'}
-:x_xss_protection => {:value => 1, :mode => false}  # set the :mode option to 'block' to enforce the browser's xss filter
+:x_xss_protection => {:value => 1, :mode => 'block'}  # set the :mode option to false to use "warning only" mode
 ```
 
 ### Content Security Policy (CSP)
