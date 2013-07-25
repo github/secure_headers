@@ -319,9 +319,9 @@ end
 
 * Node.js (express) [helmet](https://github.com/evilpacket/helmet) - should have CSP abstraction soon
 * J2EE Servlet >= 3.0 [highlines](https://github.com/sourceclear/headlines) - no CSP abstraction
-* ASP.NET [NWebsec](http://nwebsec.codeplex.com/)
+* ASP.NET - [NWebsec](http://nwebsec.codeplex.com/)
+* Python - [django-csp](https://github.com/mozilla/django-csp/tree/master/csp) + [commonware](https://github.com/jsocol/commonware/tree/master/commonware/request)
 * PHP - ???
-* Python - ???
 
 ## Authors
 
