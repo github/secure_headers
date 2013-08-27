@@ -223,7 +223,7 @@ Currently, Firefox does not support the w3c draft standard.  So there are a few 
 
 * inline\-script or eval\-script values in default/style/script\-src directives are moved to the options directive. Note: the style\-src directive is not fully supported in Firefox \- see https://bugzilla.mozilla.org/show_bug.cgi?id=763879.
 * CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the `forward_endpoint` value in the CSP section if you need to post cross origin for firefox. The internal endpoint that receives the initial request will forward the request to `forward_endpoint`
-* Ffirefox adds port numbers to each /https?/ value which can make local development tricky with mocked services. Add environment specific code to configure this.
+* Firefox adds port numbers to each /https?/ value which can make local development tricky with mocked services. Add environment specific code to configure this.
 
 ### Adding the Firefox report forwarding endpoint
 
