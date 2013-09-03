@@ -21,6 +21,7 @@ module SecureHeaders
 
   module ClassMethods
     attr_writer :secure_headers_options
+    attr_writer :script_hashes
     def secure_headers_options
       if @secure_headers_options
         @secure_headers_options
@@ -31,8 +32,20 @@ module SecureHeaders
       end
     end
 
+    def script_hashes
+      if @script_hashes
+        @script_hashes
+      elsif superclass.respond_to?(:script_hashes) # stop at application_controller
+        superclass.script_hashes
+      else
+        raise "ERR"
+      end
+    end
+
     def ensure_security_headers options = {}
+      self.script_hashes = YAML::load_file('config/script_hashes.yml')
       self.secure_headers_options = options
+      before_filter :prep_script_hash
       before_filter :set_hsts_header
       before_filter :set_x_frame_options_header
       before_filter :set_csp_header
@@ -50,6 +63,24 @@ module SecureHeaders
   module InstanceMethods
     def brwsr
       @secure_headers_brwsr ||= Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
+    end
+
+    def prep_script_hash
+      @partial_events = []
+      @hashes = []
+      ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
+        # this happens after rendering... hack for now to gsub values
+        puts response.headers.inspect
+        @partial_events << payload[:identifier]
+        @hashes << self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s, "")].join(" ")
+        hashes = self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s, "")].join(",")
+
+        # get header name
+        header_name = ContentSecurityPolicy.new(nil, :request => request, :controller => self).name
+        puts response.headers[header_name]
+        response.headers[header_name] = response.headers[header_name].sub(/script-src/, "script-src sha-256:" + hashes)
+        puts response.headers[header_name]
+      end
     end
 
     # backwards compatibility jank, to be removed in 1.0. Old API required a request
