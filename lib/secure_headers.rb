@@ -1,3 +1,5 @@
+require 'yaml'
+
 module SecureHeaders
   module Configuration
     class << self
@@ -38,7 +40,7 @@ module SecureHeaders
       elsif superclass.respond_to?(:script_hashes) # stop at application_controller
         superclass.script_hashes
       else
-        raise "ERR"
+        {}
       end
     end
 
