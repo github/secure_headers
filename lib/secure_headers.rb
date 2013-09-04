@@ -43,7 +43,11 @@ module SecureHeaders
     end
 
     def ensure_security_headers options = {}
-      self.script_hashes = YAML::load_file('config/script_hashes.yml')
+      begin
+        self.script_hashes = YAML::load_file('config/script_hashes.yml')
+      rescue Errno::ENOENT => e
+        puts "WARN: no script hash file."
+      end
       self.secure_headers_options = options
       before_filter :prep_script_hash
       before_filter :set_hsts_header
@@ -66,20 +70,15 @@ module SecureHeaders
     end
 
     def prep_script_hash
+      # isntance variables just for front end debugging
       @partial_events = []
       @hashes = []
       ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
-        # this happens after rendering... hack for now to gsub values
-        puts response.headers.inspect
         @partial_events << payload[:identifier]
-        @hashes << self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s, "")].join(" ")
-        hashes = self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s, "")].join(",")
+        @hashes << self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s + "/", "")].join(" ")
 
-        # get header name
-        header_name = ContentSecurityPolicy.new(nil, :request => request, :controller => self).name
-        puts response.headers[header_name]
-        response.headers[header_name] = response.headers[header_name].sub(/script-src/, "script-src sha-256:" + hashes)
-        puts response.headers[header_name]
+        hashes = self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s + "/", "")]
+        request.env['script_hashes'] = ((request.env['script_hashes'] || []) << hashes).flatten
       end
     end
 
@@ -156,6 +155,7 @@ end
 
 
 require "secure_headers/version"
+require "secure_headers/script_hash"
 require "secure_headers/header"
 require "secure_headers/headers/content_security_policy"
 require "secure_headers/headers/content_security_policy/browser_strategy"

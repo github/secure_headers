@@ -68,7 +68,7 @@ describe SecureHeaders do
   describe "#ensure_security_headers" do
     it "sets a before filter" do
       options = {}
-      DummyClass.should_receive(:before_filter).exactly(5).times
+      DummyClass.should_receive(:before_filter).exactly(6).times
       DummyClass.ensure_security_headers(options)
     end
   end

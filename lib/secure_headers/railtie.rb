@@ -4,6 +4,10 @@ if defined?(Rails::Railtie)
     class Railtie < Rails::Engine
       isolate_namespace ::SecureHeaders if defined? isolate_namespace # rails 3.0
       ActionController::Base.send :include, ::SecureHeaders
+
+      initializer "secure_headers.add_script_hash_middleware" do |app|
+        app.middleware.use SecureHeaders::ScriptHash
+      end
     end
   end
 else
