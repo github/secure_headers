@@ -1,4 +1,4 @@
-INLINE_SCRIPT_REGEX = %r{(<script([ ]*(?!src)([\w\-])+=(?<quote>[\"\'])[^\"\']+\quote)*[ ]*\/?>)(?<js_content>.*)<\/script>}
+INLINE_SCRIPT_REGEX = %r{(<script([ ]*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*[ ]*\/?>)(.*)<\/script>}
 SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
 
 namespace :secure_headers do
