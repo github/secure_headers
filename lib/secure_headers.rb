@@ -44,7 +44,7 @@ module SecureHeaders
 
     def ensure_security_headers options = {}
       begin
-        self.script_hashes = YAML::load_file('config/script_hashes.yml')
+        self.script_hashes = ::YAML::load_file('config/script_hashes.yml')
       rescue Errno::ENOENT => e
         puts "WARN: no script hash file."
       end
@@ -70,15 +70,19 @@ module SecureHeaders
     end
 
     def prep_script_hash
-      # isntance variables just for front end debugging
-      @partial_events = []
-      @hashes = []
       ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
-        @partial_events << payload[:identifier]
-        @hashes << self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s + "/", "")].join(" ")
+        save_hash_for_later payload
+      end
 
-        hashes = self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s + "/", "")]
-        request.env['script_hashes'] = ((request.env['script_hashes'] || []) << hashes).flatten
+      ActiveSupport::Notifications.subscribe("render_template.action_view") do |event_name, start_at, end_at, id, payload|
+        save_hash_for_later payload
+      end
+    end
+
+    def save_hash_for_later payload
+      matching_hashes = self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s + "/", "")]
+      if matching_hashes
+        request.env['script_hashes'] = ((request.env['script_hashes'] || []) << matching_hashes).flatten
       end
     end
 
