@@ -9,13 +9,14 @@ describe SecureHeaders do
   let(:headers) {double}
   let(:response) {double(:headers => headers)}
   let(:max_age) {99}
-  let(:request) {double(:ssl? => true, :url => 'https://example.com')}
+  let(:request) {double(:ssl? => true, :url => 'https://example.com', :xhr? => false)}
 
   before(:each) do
     stub_user_agent(nil)
     headers.stub(:[])
     subject.stub(:response).and_return(response)
     subject.stub(:request).and_return(request)
+    subject.stub(:api_request?).and_return(false)
   end
 
   ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection].map{|header| [header, false]}]
@@ -31,11 +32,11 @@ describe SecureHeaders do
     :safari6 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/536.30.1 (KHTML like Gecko) Version/6.0.5 Safari/536.30.1"
   }
 
-  def should_assign_header name, value
+  def should_assign_header name, value = anything
     response.headers.should_receive(:[]=).with(name, value)
   end
 
-  def should_not_assign_header name
+  def should_not_assign_header name = anything
     response.headers.should_not_receive(:[]=).with(name, anything)
   end
 
@@ -168,6 +169,18 @@ describe SecureHeaders do
   end
 
   describe "#set_x_frame_options_header" do
+    it "does not set the header for xhr requests" do
+      request.stub(:xhr?).and_return(true)
+      should_not_assign_header
+      subject.set_x_frame_options_header
+    end
+
+    it "sets the header for APIish requests" do
+      subject.stub(:api_request?).and_return(true)
+      should_assign_header(XFO_HEADER_NAME)
+      subject.set_x_frame_options_header
+    end
+
     it "sets the X-Frame-Options header" do
       should_assign_header(XFO_HEADER_NAME, SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
       subject.set_x_frame_options_header
@@ -180,6 +193,18 @@ describe SecureHeaders do
   end
 
   describe "#set_strict_transport_security" do
+    it "sets the header for xhr requests" do
+      request.stub(:xhr?).and_return(true)
+      should_assign_header(HSTS_HEADER_NAME)
+      subject.set_hsts_header
+    end
+
+    it "sets the header for APIish requests" do
+      subject.stub(:api_request?).and_return(true)
+      should_assign_header(HSTS_HEADER_NAME)
+      subject.set_hsts_header
+    end
+
     it "sets the Strict-Transport-Security header" do
       should_assign_header(HSTS_HEADER_NAME, SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
       subject.set_hsts_header
@@ -197,6 +222,18 @@ describe SecureHeaders do
   end
 
   describe "#set_x_xss_protection" do
+    it "does not set the header for xhr requests" do
+      request.stub(:xhr?).and_return(true)
+      should_not_assign_header
+      subject.set_x_xss_protection_header
+    end
+
+    it "does not set the header for APIish requests" do
+      subject.stub(:api_request?).and_return(true)
+      should_not_assign_header
+      subject.set_x_xss_protection_header
+    end
+
     it "sets the X-XSS-Protection header" do
       should_assign_header(X_XSS_PROTECTION_HEADER_NAME, SecureHeaders::XXssProtection::Constants::DEFAULT_VALUE)
       subject.set_x_xss_protection_header
@@ -220,6 +257,18 @@ describe SecureHeaders do
           stub_user_agent(USER_AGENTS[useragent])
         end
 
+        it "does not set the header for xhr requests" do
+          request.stub(:xhr?).and_return(true)
+          should_not_assign_header
+          subject.set_x_content_type_options_header
+        end
+
+        it "does not set the header for APIish requests" do
+          subject.stub(:api_request?).and_return(true)
+          should_not_assign_header
+          subject.set_x_content_type_options_header
+        end
+
         it "sets the X-Content-Type-Options header" do
           should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE)
           subject.set_x_content_type_options_header
@@ -234,6 +283,18 @@ describe SecureHeaders do
   end
 
   describe "#set_csp_header" do
+    it "does not set the header for xhr requests" do
+      request.stub(:xhr?).and_return(true)
+      should_not_assign_header
+      subject.set_csp_header
+    end
+
+    it "does not set the header for APIish requests" do
+      subject.stub(:api_request?).and_return(true)
+      should_not_assign_header
+      subject.set_csp_header
+    end
+
     context "when using Firefox" do
       it "sets CSP headers" do
         stub_user_agent(USER_AGENTS[:firefox])

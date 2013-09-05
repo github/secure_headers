@@ -59,6 +59,8 @@ module SecureHeaders
     # set_csp_header(+Hash+) - uses the request accessor and options from parameters
     # set_csp_header(+Rack::Request+, +Hash+)
     def set_csp_header(req = nil, options=nil)
+      return if api_request?
+      return if request.xhr?
       return if broken_implementation?(brwsr)
 
       if req.is_a?(Hash)
@@ -81,15 +83,20 @@ module SecureHeaders
     end
 
     def set_x_frame_options_header(options=self.class.secure_headers_options[:x_frame_options])
+      return if request.xhr?
       set_a_header(:x_frame_options, XFrameOptions, options)
     end
 
     def set_x_content_type_options_header(options=self.class.secure_headers_options[:x_content_type_options])
+      return if api_request?
+      return if request.xhr?
       return unless brwsr.ie? || brwsr.chrome?
       set_a_header(:x_content_type_options, XContentTypeOptions, options)
     end
 
     def set_x_xss_protection_header(options=self.class.secure_headers_options[:x_xss_protection])
+      return if api_request?
+      return if request.xhr?
       set_a_header(:x_xss_protection, XXssProtection, options)
     end
 
@@ -99,6 +106,10 @@ module SecureHeaders
     end
 
     private
+
+    def api_request?
+      ['json', 'xml', 'atom', 'atom+xml', 'rss', 'rss+xml'].include?(params[:format])
+    end
 
     def set_a_header(name, klass, options=nil)
       options = self.class.options_for name, options
