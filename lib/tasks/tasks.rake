@@ -1,27 +1,21 @@
-INLINE_SCRIPT_REGEX = %r{(<script([ ]*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*[ ]*\/?>)(.*)<\/script>}
+INLINE_SCRIPT_REGEX = /(<script([ ]*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*[ ]*>)(.*?)(<\/script>)/mx
 SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
 
 namespace :secure_headers do
-  task :generate_hashes do
-    puts "Generating script-hash values"
-    puts "=" * 20
+  require File.expand_path(File.join('..','..','secure_Headers','script_hash.rb'), __FILE__)
+  include SecureHeaders::ScriptHashHelpers
+
+  task :generate_hashes, :debug do |t, args|
+    debug = !!args[:debug]
+
+    if debug
+      puts "Generating script-hash values"
+      puts "=" * 20
+    end
 
     script_hashes = {}
     Dir.glob("app/{views,templates}/**/*.{erb,mustache}") do |filename|
-      file = File.read(filename)
-      hashes = []
-      file.scan(INLINE_SCRIPT_REGEX) do |match|
-        inline_script = match.last
-        if (filename =~ /\.mustache\Z/ && inline_script =~ /\{\{.*\}\}/) || (filename =~ /\.erb\Z/ && inline_script =~ /<%.*%>/)
-          puts "Looks like there's some dynamic content inside of a script tag :-/"
-          puts "That pretty much means the hash value will never match."
-          puts "Code: " + inline_script
-          puts "=" * 20
-        end
-
-        hashes << Digest::SHA256.base64digest(match.last)
-      end
-
+      hashes = generate_inline_script_hashes(filename, debug)
       if hashes.any?
         script_hashes[filename] = hashes
       end
