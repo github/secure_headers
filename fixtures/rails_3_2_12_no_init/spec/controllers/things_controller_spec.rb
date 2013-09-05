@@ -7,8 +7,31 @@ require 'spec_helper'
 describe ThingsController do
   describe "headers" do
     before(:each) do
-        # Chrome
-        request.env['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.56 Safari/536.5'
+      # Chrome 19
+      request.env['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.56 Safari/536.5'
+      request.env['HTTPS'] = 'on'
+    end
+
+    it "doesn't set some headers for API requests" do
+      get :index, :format => :json
+      response.headers['X-XSS-Protection'].should == nil
+      response.headers['X-WebKit-CSP'].should == nil
+      response.headers['X-Content-Type-Options'].should == nil
+      response.headers['X-WebKit-CSP-Report-Only'].should == nil
+      response.headers['X-Content-Security-Policy'].should == nil
+      response.headers['X-Content-Security-Policy-Report-Only'].should == nil
+      response.headers['Strict-Transport-Security'].should == SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE
+    end
+
+    it "only sets hsts for xhr requests" do
+      get :index, :format => :json
+      response.headers['X-XSS-Protection'].should == nil
+      response.headers['X-WebKit-CSP'].should == nil
+      response.headers['X-Content-Type-Options'].should == nil
+      response.headers['X-WebKit-CSP-Report-Only'].should == nil
+      response.headers['X-Content-Security-Policy'].should == nil
+      response.headers['X-Content-Security-Policy-Report-Only'].should == nil
+      response.headers['Strict-Transport-Security'].should == SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE
     end
 
     it "sets the X-XSS-Protection header" do
