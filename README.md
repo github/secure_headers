@@ -84,10 +84,10 @@ ensure_security_headers
 Or simply add it to application controller
 
 ```ruby
-ensure_security_headers
+ensure_security_headers(
   :hsts => {:include_subdomains, :x_frame_options => false},
   :x_frame_options => 'DENY',
-  :csp => false
+  :csp => false)
 ```
 
 ## Options for ensure\_security\_headers
