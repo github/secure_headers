@@ -6,7 +6,7 @@ namespace :secure_headers do
   include SecureHeaders::ScriptHashHelpers
 
   task :generate_hashes, :debug do |t, args|
-    debug = args[:debug].any?
+    debug = args[:debug] == 'true'
 
     if debug
       puts "Generating script-hash values"
