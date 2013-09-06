@@ -43,7 +43,7 @@ module SecureHeaders
       hashes = []
       file.gsub(INLINE_SCRIPT_REGEX) do
         inline_script = Regexp.last_match.captures[-2]
-        puts "Value to be hashed ====\n" + inline_script + "\n==== Hashing" if debug
+        puts "\n<<< hashing\n" + inline_script + "\nHashing>>>\n" if debug
         if (filename =~ /\.mustache\Z/ && inline_script =~ /\{\{.*\}\}/) || (filename =~ /\.erb\Z/ && inline_script =~ /<%.*%>/)
           puts "Looks like there's some dynamic content inside of a script tag :-/"
           puts "That pretty much means the hash value will never match."
@@ -79,7 +79,6 @@ module SecureHeaders
 
       raise "Base64 values do not match!!! '#{base64}' != '#{openssl_base64}'" unless base64 == openssl_base64
       raise "Hex values do not match!!! '#{hex}' != '#{openssl_hex}'" unless Regexp.new(hex) =~ openssl_hex
-      puts "Verified hash is compatible with open ssl"
     end
   end
 end
