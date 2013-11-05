@@ -49,11 +49,11 @@ The following methods are going to be called, unless they are provided in a `ski
 * `:set_x_xss_protection_header`
 * `:set_x_content_type_options_header`
 
-### Automagic
+### Bonus Features
 
 This gem makes a few assumptions about how you will use some features.  For example:
 
-* It fills any blank directives with the value in `:default_src`  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying `:disable_fill_missing => true`.
+* It fills any blank directives with the value in `:default_src`  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying `:disable_fill_missing => true`. This is referred to as the "effective-directive" in the spec, but is not well supported as of Nov 5, 2013.
 * Firefox does not support cross\-origin CSP reports.  If we are using Firefox, AND the value for `:report_uri` does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (`FF_CSP_ENDPOINT`).  This is also the case if `:report_uri` only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in `:forward_endpoint` without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
 
 
@@ -98,17 +98,14 @@ Each header configuration can take a hash, or a string, or both. If a string
 is provided, that value is inserted verbatim.  If a hash is supplied, a
 header will be constructed using the supplied options.
 
-### Widely supported
+### The Easy Headers
+
+This configuration will likely work for most applications without modification.
 
 ```ruby
-:hsts             => {:max_age => 631138519, :include_subdomains => true}
+:hsts             => {:max_age => 631138519, :include_subdomains => false}
 :x_frame_options  => {:value => 'SAMEORIGIN'}
 :x_xss_protection => {:value => 1, :mode => 'block'}  # set the :mode option to false to use "warning only" mode
-```
-
-### Only supported by to IE/Chrome
-
-```ruby
 :x_content_type_options => {:value => 'nosniff'}
 ```
 
