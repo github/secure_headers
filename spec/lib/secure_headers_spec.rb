@@ -92,15 +92,7 @@ describe SecureHeaders do
     USER_AGENTS.each do |name, useragent|
       it "sets all default headers for #{name} (smoke test)" do
         stub_user_agent(useragent)
-        number_of_headers = case name
-        when :ie, :chrome
-          5
-        when :ios5, :safari5, :safari5_1
-          3 # csp breaks these browsers
-        else
-          4
-        end
-
+        number_of_headers = 5
         subject.should_receive(:set_header).exactly(number_of_headers).times # a request for a given header
         subject.set_csp_header
         subject.set_x_frame_options_header
@@ -141,14 +133,6 @@ describe SecureHeaders do
       stub_user_agent(USER_AGENTS[:chrome])
       should_not_assign_header(STANDARD_HEADER_NAME)
       subject.set_csp_header(options_for(:csp).merge(:csp => false))
-    end
-
-    # apparently iOS5 safari with CSP in enforce mode causes nothing to render
-    # it has no effect in report-only mode (as in no report is sent)
-    it "does not set CSP header if using ios5" do
-      stub_user_agent(USER_AGENTS[:ios5])
-      subject.should_not_receive(:set_header)
-      subject.set_csp_header(options_for(:csp))
     end
 
     context "when disabled by configuration settings" do
@@ -214,7 +198,7 @@ describe SecureHeaders do
   end
 
   describe "#set_x_content_type_options" do
-    [:ie, :chrome].each do |useragent|
+    USER_AGENTS.each do |useragent|
       context "when using #{useragent}" do
         before(:each) do
           stub_user_agent(USER_AGENTS[useragent])

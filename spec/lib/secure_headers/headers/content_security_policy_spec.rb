@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'brwsr'
 
 module SecureHeaders
   describe ContentSecurityPolicy do

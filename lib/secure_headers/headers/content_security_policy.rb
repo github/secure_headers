@@ -1,5 +1,4 @@
 require 'uri'
-require 'brwsr'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
