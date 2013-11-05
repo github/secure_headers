@@ -19,7 +19,7 @@ describe OtherThingsController do
 
     it "sets the X-WebKit-CSP header" do
       get :index
-      response.headers['X-WebKit-CSP-Report-Only'].should == "default-src 'self'; img-src data:; report-uri somewhere;"
+      response.headers['Content-Security-Policy-Report-Only'].should == "default-src 'self'; img-src data:; report-uri somewhere;"
     end
 
     #mock ssl

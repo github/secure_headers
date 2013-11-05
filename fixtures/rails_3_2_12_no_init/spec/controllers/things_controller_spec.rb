@@ -23,7 +23,7 @@ describe ThingsController do
 
     it "sets the X-WebKit-CSP header" do
       get :index
-      response.headers['X-WebKit-CSP-Report-Only'].should == nil
+      response.headers['Content-Security-Policy-Report-Only'].should == nil
     end
 
     #mock ssl
