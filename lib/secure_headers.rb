@@ -48,6 +48,15 @@ module SecureHeaders
   end
 
   module InstanceMethods
+    # Re-added for backwards compat.
+    def set_security_headers(options = self.class.secure_headers_options)
+      set_csp_header(request, options[:csp])
+      set_hsts_header(options[:hsts])
+      set_x_frame_options_header(options[:x_frame_options])
+      set_x_xss_protection_header(options[:x_xss_protection])
+      set_x_content_type_options_header(options[:x_content_type_options])
+    end
+
     # backwards compatibility jank, to be removed in 1.0. Old API required a request
     # object when it didn't really need to.
     # set_csp_header - uses the request accessor and SecureHeader::Configuration settings
