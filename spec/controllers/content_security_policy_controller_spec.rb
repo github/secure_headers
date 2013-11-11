@@ -5,7 +5,7 @@ describe ContentSecurityPolicyController do
     {
       "csp-report" => {
         "document-uri" => "http://localhost:3001/csp","violated-directive" => "script-src 'none'",
-        "original-policy" => "default-src https://* 'unsafe-eval'; frame-src 'self'; img-src chrome-extension: https://*; report-uri http://localhost:3001/scribes/csp_report; script-src 'none'; style-src 'unsafe-inline' 'self';",
+        "original-policy" => "default-src https://* 'unsafe-eval'; frame-src 'self'; img-src https://*; report-uri http://localhost:3001/scribes/csp_report; script-src 'none'; style-src 'unsafe-inline' 'self';",
         "blocked-uri" => "http://localhost:3001/stuff.js"
       }
     }

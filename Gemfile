@@ -7,8 +7,11 @@ group :test do
   gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
   gem 'jdbc-sqlite3', :platform => :jruby
   gem 'rspec-rails'
-  gem 'guard-spork'
-  gem 'guard-rspec'
+  gem 'spork'
+  gem 'pry'
+  gem 'rspec'
+  gem 'guard-spork', :platform => :ruby_19
+  gem 'guard-rspec', :platform => :ruby_19
   gem 'growl'
   gem 'rb-fsevent'
   gem 'simplecov'

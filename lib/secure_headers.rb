@@ -48,8 +48,13 @@ module SecureHeaders
   end
 
   module InstanceMethods
-    def brwsr
-      @secure_headers_brwsr ||= Brwsr::Browser.new(:ua => request.env['HTTP_USER_AGENT'])
+    # Re-added for backwards compat.
+    def set_security_headers(options = self.class.secure_headers_options)
+      set_csp_header(request, options[:csp])
+      set_hsts_header(options[:hsts])
+      set_x_frame_options_header(options[:x_frame_options])
+      set_x_xss_protection_header(options[:x_xss_protection])
+      set_x_content_type_options_header(options[:x_content_type_options])
     end
 
     # backwards compatibility jank, to be removed in 1.0. Old API required a request
@@ -59,12 +64,9 @@ module SecureHeaders
     # set_csp_header(+Hash+) - uses the request accessor and options from parameters
     # set_csp_header(+Rack::Request+, +Hash+)
     def set_csp_header(req = nil, options=nil)
-      return if broken_implementation?(brwsr)
-
+      # hack to help generating headers statically
       if req.is_a?(Hash)
         options = req
-      elsif req
-        @secure_headers_brwsr = Brwsr::Browser.new(:ua => req.env['HTTP_USER_AGENT'])
       end
 
       options = self.class.secure_headers_options[:csp] if options.nil?
@@ -85,7 +87,6 @@ module SecureHeaders
     end
 
     def set_x_content_type_options_header(options=self.class.secure_headers_options[:x_content_type_options])
-      return unless brwsr.ie? || brwsr.chrome?
       set_a_header(:x_content_type_options, XContentTypeOptions, options)
     end
 
@@ -116,10 +117,6 @@ module SecureHeaders
         response.headers[name_or_header] = value
       end
     end
-
-    def broken_implementation?(browser)
-      return browser.ios5? || (browser.safari? && browser.version == '5')
-    end
   end
 end
 
@@ -127,13 +124,8 @@ end
 require "secure_headers/version"
 require "secure_headers/header"
 require "secure_headers/headers/content_security_policy"
-require "secure_headers/headers/content_security_policy/browser_strategy"
-require "secure_headers/headers/content_security_policy/firefox_browser_strategy"
-require "secure_headers/headers/content_security_policy/ie_browser_strategy"
-require "secure_headers/headers/content_security_policy/standard_browser_strategy"
 require "secure_headers/headers/x_frame_options"
 require "secure_headers/headers/strict_transport_security"
 require "secure_headers/headers/x_xss_protection"
 require "secure_headers/headers/x_content_type_options"
 require "secure_headers/railtie"
-require "brwsr"

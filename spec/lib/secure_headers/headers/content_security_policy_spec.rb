@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'brwsr'
 
 module SecureHeaders
   describe ContentSecurityPolicy do
@@ -32,17 +31,17 @@ module SecureHeaders
     describe "#name" do
       context "when supplying options to override request" do
         specify { ContentSecurityPolicy.new(default_opts, :ua => IE).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
-        specify { ContentSecurityPolicy.new(default_opts, :ua => FIREFOX).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(default_opts, :ua => FIREFOX).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :ua => FIREFOX_23).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
-        specify { ContentSecurityPolicy.new(default_opts, :ua => CHROME).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(default_opts, :ua => CHROME).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :ua => CHROME_25).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
       end
 
       context "when in report-only mode" do
         specify { ContentSecurityPolicy.new(default_opts, :request => request_for(IE)).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
-        specify { ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX)).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX)).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX_23)).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
-        specify { ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME)).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME)).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME_25)).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
       end
 
@@ -50,18 +49,18 @@ module SecureHeaders
         let(:opts) { default_opts.merge(:enforce => true)}
 
         specify { ContentSecurityPolicy.new(opts, :request => request_for(IE)).name.should == STANDARD_HEADER_NAME}
-        specify { ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX)).name.should == FIREFOX_CSP_HEADER_NAME}
+        specify { ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX)).name.should == STANDARD_HEADER_NAME}
         specify { ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX_23)).name.should == STANDARD_HEADER_NAME}
-        specify { ContentSecurityPolicy.new(opts, :request => request_for(CHROME)).name.should == WEBKIT_CSP_HEADER_NAME}
+        specify { ContentSecurityPolicy.new(opts, :request => request_for(CHROME)).name.should == STANDARD_HEADER_NAME}
         specify { ContentSecurityPolicy.new(opts, :request => request_for(CHROME_25)).name.should == STANDARD_HEADER_NAME}
       end
 
       context "when in experimental mode" do
         let(:opts) { default_opts.merge(:enforce => true).merge(:experimental => {})}
         specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(IE)}).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
-        specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(FIREFOX)}).name.should == FIREFOX_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(FIREFOX)}).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(FIREFOX_23)}).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
-        specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(CHROME)}).name.should == WEBKIT_CSP_HEADER_NAME + "-Report-Only"}
+        specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(CHROME)}).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
         specify { ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(CHROME_25)}).name.should == STANDARD_HEADER_NAME + "-Report-Only"}
       end
     end
@@ -74,43 +73,10 @@ module SecureHeaders
         @opts = default_opts
       end
 
-      context "X-Content-Security-Policy" do
-        it "converts the script values to their equivilents" do
-          csp = ContentSecurityPolicy.new(@opts, :request => request_for(FIREFOX))
-          csp.value.should include("script-src https://* data: 'self' 'none'")
-          csp.value.should include('options inline-script eval-script')
-        end
-      end
-
-      context "X-Webkit-CSP" do
+      context "Content-Security-Policy" do
         it "converts the script values to their equivilents" do
           csp = ContentSecurityPolicy.new(@opts, :request => request_for(CHROME))
-          csp.value.should include("script-src 'unsafe-inline' 'unsafe-eval' https://* data: 'self' 'none' chrome-extension")
-        end
-      end
-    end
-
-    describe "#build_impl_specific_directives" do
-      context "X-Content-Security-Policy" do
-        it "moves script-src inline and eval values to the options directive" do
-          opts = {
-            :default_src => 'https://*',
-            :script_src => "inline eval https://*"
-          }
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX))
-          browser_specific = csp.send :build_impl_specific_directives
-          browser_specific.should include('options inline-script eval-script;')
-        end
-
-        it "does not move values from style-src into options" do
-          opts = {
-            :default_src => 'https://*',
-            :style_src => "inline eval https://*"
-          }
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX))
-          browser_specific = csp.send :build_impl_specific_directives
-          browser_specific.should_not include('inline-script')
-          browser_specific.should_not include('eval-script')
+          csp.value.should include("script-src 'unsafe-inline' 'unsafe-eval' https://* data: 'self' 'none'")
         end
       end
     end
@@ -162,8 +128,6 @@ module SecureHeaders
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://anotherexample.com"))
         csp.send(:same_origin?).should be_false
       end
-
-
     end
 
     describe "#normalize_reporting_endpoint" do
@@ -252,7 +216,7 @@ module SecureHeaders
         csp.value.should == value
       end
 
-      it "sends the chrome csp header if an unknown browser is supplied" do
+      it "sends the standard csp header if an unknown browser is supplied" do
         csp = ContentSecurityPolicy.new(default_opts, :request => request_for(IE))
         csp.value.should match "default-src"
       end
@@ -260,30 +224,7 @@ module SecureHeaders
       context "Firefox" do
         it "builds a csp header for firefox" do
           csp = ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX))
-          csp.value.should == "allow https://*; options inline-script eval-script; img-src data:; script-src https://* data:; style-src https://* about:; report-uri /csp_report;"
-        end
-
-        it "does not append chrome-extension to directives" do
-          csp = ContentSecurityPolicy.new(default_opts.merge(:disable_chrome_extension => false), :request => request_for(FIREFOX))
-          csp.value.should_not match "chrome-extension:"
-        end
-
-        it "copies connect-src values to xhr_src values" do
-          opts = {
-            :default_src => 'http://twitter.com',
-            :connect_src => 'self http://*.localhost.com:*',
-            :disable_chrome_extension => true,
-            :disable_fill_missing => true
-          }
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX))
-          csp.value.should =~ /xhr-src 'self' http:/
-        end
-
-        context "Firefox >= 23" do
-          it "builds a csp header for firefox" do
-            csp = ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX_23))
-            csp.value.should == "default-src https://*; img-src data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;"
-          end
+          csp.value.should == "default-src https://*; img-src data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;"
         end
       end
 
@@ -296,20 +237,6 @@ module SecureHeaders
         it "ignores :forward_endpoint settings" do
           csp = ContentSecurityPolicy.new(@options_with_forwarding, :request => request_for(CHROME))
           csp.value.should =~ /report-uri #{@options_with_forwarding[:report_uri]};/
-        end
-
-        it "whitelists chrome_extensions by default" do
-          opts = {
-            :default_src => 'https://*',
-            :report_uri => '/csp_report',
-            :script_src => 'inline eval https://* data:',
-            :style_src => "inline https://* chrome-extension: about:"
-          }
-
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
-
-          # ignore the report-uri directive
-          csp.value.split(';')[0...-1].each{|directive| directive.should =~ /chrome-extension:/}
         end
       end
 
@@ -324,7 +251,6 @@ module SecureHeaders
           }
         }}
 
-        let(:header) {}
         it "returns the original value" do
           header = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
           header.value.should == "default-src 'self'; img-src data:; script-src https://*;"
@@ -384,21 +310,21 @@ module SecureHeaders
           # for comparison purposes, if not using the experimental header this would produce
           # "allow 'self'; script-src https://*" for https requests
           # and
-          # "allow 'self; script-src https://* http://*" for http requests
+          # "allow 'self'; script-src https://* http://*" for http requests
 
           it "uses the value in the experimental block over SSL" do
             csp = ContentSecurityPolicy.new(options, :experimental => true, :request => request_for(FIREFOX, '/', :ssl => true))
-            csp.value.should == "allow 'self'; img-src data:; script-src 'self';"
+            csp.value.should == "default-src 'self'; img-src data:; script-src 'self';"
           end
 
           it "detects the :ssl => true option" do
             csp = ContentSecurityPolicy.new(options, :experimental => true, :ua => FIREFOX, :ssl => true)
-            csp.value.should == "allow 'self'; img-src data:; script-src 'self';"
+            csp.value.should == "default-src 'self'; img-src data:; script-src 'self';"
           end
 
           it "merges the values from experimental/http_additions when not over SSL" do
             csp = ContentSecurityPolicy.new(options, :experimental => true, :request => request_for(FIREFOX))
-            csp.value.should == "allow 'self'; img-src data:; script-src 'self' https://mycdn.example.com;"
+            csp.value.should == "default-src 'self'; img-src data:; script-src 'self' https://mycdn.example.com;"
           end
         end
       end
@@ -412,11 +338,6 @@ module SecureHeaders
 
         it "uses the value in the X-Webkit-CSP" do
           csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          csp.value.should match "script-nonce random;"
-        end
-
-        it "uses the value in the X-Content-Security-Policy" do
-          csp = ContentSecurityPolicy.new(options, :request => request_for(FIREFOX))
           csp.value.should match "script-nonce random;"
         end
 

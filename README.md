@@ -49,13 +49,11 @@ The following methods are going to be called, unless they are provided in a `ski
 * `:set_x_xss_protection_header`
 * `:set_x_content_type_options_header`
 
-### Automagic
+### Bonus Features
 
 This gem makes a few assumptions about how you will use some features.  For example:
 
-* It adds 'chrome-extension:' to your CSP directives by default.  This helps drastically reduce the amount of reports, but you can also disable this feature by supplying `:disable_chrome_extension => true`.
-* It fills any blank directives with the value in `:default_src`  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying `:disable_fill_missing => true`.
-* It copies the connect\-src value to xhr\-src for AJAX requests when using Firefox.
+* It fills any blank directives with the value in `:default_src`  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying `:disable_fill_missing => true`. This is referred to as the "effective-directive" in the spec, but is not well supported as of Nov 5, 2013.
 * Firefox does not support cross\-origin CSP reports.  If we are using Firefox, AND the value for `:report_uri` does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (`FF_CSP_ENDPOINT`).  This is also the case if `:report_uri` only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in `:forward_endpoint` without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
 
 
@@ -77,8 +75,10 @@ This gem makes a few assumptions about how you will use some features.  For exam
   }
 end
 
-# and then simply include this in application_controller
-ensure_security_headers
+# and then simply include this in application_controller.rb
+class ApplicationController < ActionController::Base
+  ensure_security_headers
+end
 ```
 
 Or simply add it to application controller
@@ -98,12 +98,15 @@ Each header configuration can take a hash, or a string, or both. If a string
 is provided, that value is inserted verbatim.  If a hash is supplied, a
 header will be constructed using the supplied options.
 
-### Widely supported
+### The Easy Headers
+
+This configuration will likely work for most applications without modification.
 
 ```ruby
-:hsts             => {:max_age => 631138519, :include_subdomains => true}
+:hsts             => {:max_age => 631138519, :include_subdomains => false}
 :x_frame_options  => {:value => 'SAMEORIGIN'}
 :x_xss_protection => {:value => 1, :mode => 'block'}  # set the :mode option to false to use "warning only" mode
+:x_content_type_options => {:value => 'nosniff'}
 ```
 
 ### Content Security Policy (CSP)
@@ -159,28 +162,18 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
       :img_src => 'http://mycdn.example.com'
     }
   }
-  
+
   # script-nonce is an experimental feature of CSP 1.1 available in Chrome. It allows
   # you to whitelist inline script blocks. For more information, see
   # https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#script-nonce
-  :script_nonce => { 'abc123' }
-  
-  # you can also use lambdas to use dynamically generated nonces
-  :script_nonce => lambda { @script_nonce] = 'something' } 
+  :script_nonce => lambda { @script_nonce = SecureRandom.hex }
   # which can be used to whitelist a script block:
   # script_tag :nonce = @script_nonce { inline_script_call() }
 }
 ```
 
-### Only applied to IE
-
-```ruby
-:x_content_type_options => {:value => 'nosniff'}
-```
-
 ### Example CSP header config
 
-**Configure the CSP header as if it were the webkit-style header, no need to supply 'options' or 'allow' directives.**
 
 ```ruby
 # most basic example
@@ -188,20 +181,16 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
   :default_src => "https://* inline eval",
   :report_uri => '/uri-directive'
 }
-# Chrome
-> "default-src 'unsafe-inline' 'unsafe-eval' https://* chrome-extension:; report-uri /uri-directive;"
-# Firefox
-> "options inline-script eval-script; allow https://*; report-uri /uri-directive;"
+
+> "default-src 'unsafe-inline' 'unsafe-eval' https://*; report-uri /uri-directive;"
 
 # turn off inline scripting/eval
 :csp => {
   :default_src => 'https://*',
   :report_uri => '/uri-directive'
 }
-# Chrome
+
 > "default-src  https://*; report-uri /uri-directive;"
-# Firefox
-> "allow https://*; report-uri /uri-directive;"
 
 # Auction site wants to allow images from anywhere, plugin content from a list of trusted media providers (including a content distribution network), and scripts only from its server hosting sanitized JavaScript
 :csp => {
@@ -211,19 +200,14 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
   # alternatively (NOT csv) :object_src => 'media1.com media2.com *.cdn.com'
   :script_src => 'trustedscripts.example.com'
 }
-# Chrome
 "default-src  'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
-# Firefox
-"allow 'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
 ```
 
 ## Note on Firefox handling of CSP
 
 Currently, Firefox does not support the w3c draft standard.  So there are a few steps taken to make the two interchangeable.
 
-* inline\-script or eval\-script values in default/style/script\-src directives are moved to the options directive. Note: the style\-src directive is not fully supported in Firefox \- see https://bugzilla.mozilla.org/show_bug.cgi?id=763879.
 * CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the `forward_endpoint` value in the CSP section if you need to post cross origin for firefox. The internal endpoint that receives the initial request will forward the request to `forward_endpoint`
-* Firefox adds port numbers to each /https?/ value which can make local development tricky with mocked services. Add environment specific code to configure this.
 
 ### Adding the Firefox report forwarding endpoint
 
