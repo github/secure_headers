@@ -317,7 +317,7 @@ end
 
 ## Similar libraries
 
-* Node.js (express) [helmet](https://github.com/evilpacket/helmet) and [hood](https://npmjs.org/package/hood)
+* Node.js (express) [helmet](https://github.com/evilpacket/helmet) and [hood](https://github.com/seanmonstar/hood)
 * J2EE Servlet >= 3.0 [highlines](https://github.com/sourceclear/headlines)
 * ASP.NET - [NWebsec](http://nwebsec.codeplex.com/)
 * Python - [django-csp](https://github.com/mozilla/django-csp/tree/master/csp) + [commonware](https://github.com/jsocol/commonware/tree/master/commonware/request)
