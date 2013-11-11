@@ -1,3 +1,11 @@
+1.1.0
+======
+
+- Remove brwsr dependency (no more runtime dependencies)
+- Stop serving X- prefixed CSP headers
+
+This change means that all requests get all headers, even if the browser doesn't grok it.
+
 1.0.0
 ======
 
