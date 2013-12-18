@@ -27,6 +27,11 @@ class ContentSecurityPolicyController < ActionController::Base
       use_ssl(http)
     end
 
+    if request.content_type == "application/csp-report"
+      request.body.rewind
+      params.merge!(ActiveSupport::JSON.decode(request.body.read))
+    end
+
     ua = request.user_agent
     xff = forwarded_for
 
