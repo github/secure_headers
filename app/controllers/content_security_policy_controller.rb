@@ -27,6 +27,11 @@ class ContentSecurityPolicyController < ActionController::Base
       use_ssl(http)
     end
 
+    if request.content_type == "application/csp-report"
+      request.body.rewind
+      params.merge!(ActiveSupport::JSON.decode(request.body.read))
+    end
+
     request = Net::HTTP::Post.new(uri.to_s)
     request.body = params.to_json
 
