@@ -12,6 +12,7 @@ describe ContentSecurityPolicyController do
   }
 
   class FakeRequest
+<<<<<<< HEAD
     def user_agent
       "Foo"
     end
@@ -21,6 +22,8 @@ describe ContentSecurityPolicyController do
     def remote_ip
       "123.12.45.67"
     end
+=======
+>>>>>>> fixes the spec by adding a fake request with content_type
     def content_type
       "application/json"
     end
