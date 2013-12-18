@@ -11,6 +11,21 @@ describe ContentSecurityPolicyController do
     }
   }
 
+  class FakeRequest
+    def user_agent
+      "Foo"
+    end
+    def env
+      {"HTTP_X_FORWARDED_FOR" => ""}
+    end
+    def remote_ip
+      "123.12.45.67"
+    end
+    def content_type
+      "application/json"
+    end
+  end
+
   describe "#csp" do
     let(:request) { double().as_null_object }
     let(:endpoint) { "https://example.com" }
@@ -20,6 +35,7 @@ describe ContentSecurityPolicyController do
       SecureHeaders::Configuration.stub(:csp).and_return({:report_uri => endpoint, :forward_endpoint => secondary_endpoint})
       subject.should_receive :head
       subject.stub(:params).and_return(params)
+      subject.stub(:request).and_return(FakeRequest.new)
       Net::HTTP.any_instance.stub(:request)
     end
 

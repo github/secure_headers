@@ -27,7 +27,15 @@ class ContentSecurityPolicyController < ActionController::Base
       use_ssl(http)
     end
 
+    ua = request.user_agent
+    xff = forwarded_for
+
     request = Net::HTTP::Post.new(uri.to_s)
+    request.initialize_http_header({
+      'User-Agent' => ua,
+      'X-Forwarded-For' => xff,
+      'Content-Type' => 'application/json',
+    })
     request.body = params.to_json
 
     # fire and forget
@@ -35,6 +43,15 @@ class ContentSecurityPolicyController < ActionController::Base
       http.delay.request(request)
     else
       http.request(request)
+    end
+  end
+
+  def forwarded_for
+    req_xff = request.env["HTTP_X_FORWARDED_FOR"]
+    if req_xff && req_xff != ""
+      "#{req_xff}, #{request.remote_ip}"
+    else
+      request.remote_ip
     end
   end
 
