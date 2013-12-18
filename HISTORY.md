@@ -1,3 +1,10 @@
+1.1.1
+======
+
+Bug fix release.
+- Parsing of CSP reports was busted.
+- Forwarded reports did not include the original referer, ip, UA
+
 1.1.0
 ======
 
