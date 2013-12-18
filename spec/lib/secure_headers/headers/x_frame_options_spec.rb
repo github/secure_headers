@@ -13,19 +13,18 @@ module SecureHeaders
         it "allows SAMEORIGIN" do
           lambda {
             XFrameOptions.new("SAMEORIGIN").value
-          }.should_not raise_error(XFOBuildError)
+          }.should_not raise_error
         end
 
         it "allows DENY" do
           lambda {
             XFrameOptions.new("DENY").value
-          }.should_not raise_error(XFOBuildError)
-        end
+          }.should_not raise_error        end
 
         it "allows ALLOW-FROM*" do
           lambda {
             XFrameOptions.new("ALLOW-FROM: example.com").value
-          }.should_not raise_error(XFOBuildError)
+          }.should_not raise_error
         end
         it "does not allow garbage" do
           lambda {
