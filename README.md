@@ -85,7 +85,7 @@ Or simply add it to application controller
 
 ```ruby
 ensure_security_headers(
-  :hsts => {:include_subdomains, :x_frame_options => false},
+  :hsts => {:include_subdomains => true, :x_frame_options => false},
   :x_frame_options => 'DENY',
   :csp => false)
 ```
