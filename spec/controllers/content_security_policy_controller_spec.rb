@@ -32,58 +32,58 @@ describe ContentSecurityPolicyController do
     let(:secondary_endpoint) { "https://internal.example.com" }
 
     before(:each) do
-      SecureHeaders::Configuration.stub(:csp).and_return({:report_uri => endpoint, :forward_endpoint => secondary_endpoint})
-      subject.should_receive :head
-      subject.stub(:params).and_return(params)
-      subject.stub(:request).and_return(FakeRequest.new)
-      Net::HTTP.any_instance.stub(:request)
+      allow(SecureHeaders::Configuration).to receive(:csp).and_return({:report_uri => endpoint, :forward_endpoint => secondary_endpoint})
+      expect(subject).to receive :head
+      allow(subject).to receive(:params).and_return(params)
+      allow(subject).to receive(:request).and_return(FakeRequest.new)
+      allow_any_instance_of(Net::HTTP).to receive(:request)
     end
 
     context "delivery endpoint" do
       it "posts over ssl" do
-        subject.should_receive(:use_ssl)
+        expect(subject).to receive(:use_ssl)
         subject.scribe
       end
 
       it "posts over plain http" do
-        SecureHeaders::Configuration.stub(:csp).and_return(:report_uri => 'http://example.com')
-        subject.should_not_receive(:use_ssl)
+        allow(SecureHeaders::Configuration).to receive(:csp).and_return(:report_uri => 'http://example.com')
+        expect(subject).not_to receive(:use_ssl)
         subject.scribe
       end
     end
 
     it "makes a POST request" do
-      Net::HTTP.stub(:new).and_return(request)
-      request.should_receive(:request).with(instance_of(::Net::HTTP::Post))
-      params.stub(:to_json)
+      allow(Net::HTTP).to receive(:new).and_return(request)
+      expect(request).to receive(:request).with(instance_of(::Net::HTTP::Post))
+      allow(params).to receive(:to_json)
       subject.scribe
     end
 
     it "POSTs to the configured forward_endpoint" do
-      Net::HTTP::Post.should_receive(:new).with(secondary_endpoint).and_return(request)
+      expect(Net::HTTP::Post).to receive(:new).with(secondary_endpoint).and_return(request)
       subject.scribe
     end
 
     it "does not POST if there is no forwarder configured" do
-      SecureHeaders::Configuration.stub(:csp).and_return({})
-      Net::HTTP::Post.should_not_receive(:new)
+      allow(SecureHeaders::Configuration).to receive(:csp).and_return({})
+      expect(Net::HTTP::Post).not_to receive(:new)
       subject.scribe
     end
 
     it "eliminates known phony CSP reports" do
-      SecureHeaders::Configuration.stub(:csp).and_return(:report_uri => nil)
-      Net::HTTP::Post.should_not_receive :new
+      allow(SecureHeaders::Configuration).to receive(:csp).and_return(:report_uri => nil)
+      expect(Net::HTTP::Post).not_to receive :new
       subject.scribe
     end
 
     it "logs errors when it cannot forward the CSP report" do
       class Rails; def logger; end; end
       logger = double(:repond_to? => true)
-      Rails.stub(:logger).and_return(logger)
+      allow(Rails).to receive(:logger).and_return(logger)
 
-      SecureHeaders::Configuration.stub(:csp).and_raise(StandardError)
+      allow(SecureHeaders::Configuration).to receive(:csp).and_raise(StandardError)
 
-      logger.should_receive(:warn)
+      expect(logger).to receive(:warn)
       subject.scribe
     end
   end
