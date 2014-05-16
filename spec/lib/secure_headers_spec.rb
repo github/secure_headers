@@ -13,9 +13,9 @@ describe SecureHeaders do
 
   before(:each) do
     stub_user_agent(nil)
-    headers.stub(:[])
-    subject.stub(:response).and_return(response)
-    subject.stub(:request).and_return(request)
+    allow(headers).to receive(:[])
+    allow(subject).to receive(:response).and_return(response)
+    allow(subject).to receive(:request).and_return(request)
   end
 
   ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection].map{|header| [header, false]}]
@@ -32,11 +32,11 @@ describe SecureHeaders do
   }
 
   def should_assign_header name, value
-    response.headers.should_receive(:[]=).with(name, value)
+    expect(response.headers).to receive(:[]=).with(name, value)
   end
 
   def should_not_assign_header name
-    response.headers.should_not_receive(:[]=).with(name, anything)
+    expect(response.headers).not_to receive(:[]=).with(name, anything)
   end
 
   def stub_user_agent val
@@ -68,7 +68,7 @@ describe SecureHeaders do
   describe "#ensure_security_headers" do
     it "sets a before filter" do
       options = {}
-      DummyClass.should_receive(:before_filter).exactly(5).times
+      expect(DummyClass).to receive(:before_filter).exactly(5).times
       DummyClass.ensure_security_headers(options)
     end
   end
@@ -87,13 +87,13 @@ describe SecureHeaders do
 
   describe "#set_security_headers" do
     before(:each) do
-      SecureHeaders::ContentSecurityPolicy.stub(:new).and_return(double.as_null_object)
+      allow(SecureHeaders::ContentSecurityPolicy).to receive(:new).and_return(double.as_null_object)
     end
     USER_AGENTS.each do |name, useragent|
       it "sets all default headers for #{name} (smoke test)" do
         stub_user_agent(useragent)
         number_of_headers = 5
-        subject.should_receive(:set_header).exactly(number_of_headers).times # a request for a given header
+        expect(subject).to receive(:set_header).exactly(number_of_headers).times # a request for a given header
         subject.set_csp_header
         subject.set_x_frame_options_header
         subject.set_hsts_header
@@ -144,7 +144,7 @@ describe SecureHeaders do
           config.x_xss_protection = false
           config.csp = false
         end
-        subject.should_not_receive(:set_header)
+        expect(subject).not_to receive(:set_header)
         set_security_headers(subject)
         reset_config
       end
