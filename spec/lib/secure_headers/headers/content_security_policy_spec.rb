@@ -86,47 +86,47 @@ module SecureHeaders
 
       it "matches when host, scheme, and port match" do
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://example.com"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://example.com:443"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com:123'}, :request => request_for(FIREFOX, "https://example.com:123"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com:80'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com:80"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
       end
 
       it "does not match port mismatches" do
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com:81"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match host mismatches" do
         csp = ContentSecurityPolicy.new({:report_uri => 'http://twitter.com'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match host mismatches because of subdomains" do
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://sub.example.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match scheme mismatches" do
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "ftp://example.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match on substring collisions" do
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://anotherexample.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
     end
 

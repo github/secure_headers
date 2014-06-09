@@ -40,7 +40,7 @@ describe SecureHeaders do
   end
 
   def stub_user_agent val
-    request.stub_chain(:env, :[]).and_return(val)
+    allow(request).to receive_message_chain(:env, :[]).and_return(val)
   end
 
   def options_for header
@@ -124,7 +124,7 @@ describe SecureHeaders do
     end
 
     it "does not set the HSTS header if request is over HTTP" do
-      subject.stub_chain(:request, :ssl?).and_return(false)
+      allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
       should_not_assign_header(HSTS_HEADER_NAME)
       subject.set_hsts_header({:include_subdomains => true})
     end
