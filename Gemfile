@@ -10,7 +10,6 @@ group :test do
   gem 'spork'
   gem 'pry'
   gem 'rspec'
-  gem 'guard-spork', :platform => :ruby_19
   gem 'guard-rspec', :platform => :ruby_19
   gem 'growl'
   gem 'rb-fsevent'
