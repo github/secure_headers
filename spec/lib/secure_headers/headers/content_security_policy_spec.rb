@@ -78,6 +78,25 @@ module SecureHeaders
           csp = ContentSecurityPolicy.new(@opts, :request => request_for(CHROME))
           expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https://* data: 'self' 'none'")
         end
+
+        it "accepts procs for report-uris" do
+          opts = {
+            :default_src => 'self',
+            :report_uri => lambda { "http://lambda/result" }
+          }
+
+          csp = ContentSecurityPolicy.new(opts)
+          expect(csp.report_uri).to eq("http://lambda/result")
+        end
+
+        it "accepts procs for other fields" do
+          opts = {
+            :default_src => lambda { "http://lambda/result" }
+          }
+
+          csp = ContentSecurityPolicy.new(opts).value
+          expect(csp).to match("default-src http://lambda/result")
+        end
       end
     end
 

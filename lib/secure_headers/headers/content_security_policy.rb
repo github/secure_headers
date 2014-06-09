@@ -58,8 +58,6 @@ module SecureHeaders
         self.send("#{meta}=", @config.delete(meta))
       end
 
-      @report_uri = @config.delete(:report_uri)
-
       normalize_csp_options
       normalize_reporting_endpoint
       fill_directives unless disable_fill_missing?
@@ -122,11 +120,14 @@ module SecureHeaders
 
     def normalize_csp_options
       @config.each do |k,v|
-        @config[k] = v.split if v.is_a? String
+        @config[k] = v.call if v.respond_to?(:call)
+        @config[k] = @config[k].split if @config[k].is_a? String
         @config[k] = @config[k].map do |val|
           translate_dir_value(val)
         end
       end
+
+      @report_uri = @config.delete(:report_uri).join(" ") if @config[:report_uri]
     end
 
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
