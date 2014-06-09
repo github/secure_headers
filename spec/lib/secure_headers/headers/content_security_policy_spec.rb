@@ -328,33 +328,6 @@ module SecureHeaders
           end
         end
       end
-
-      context "when supplying a script nonce callback" do
-        let(:options) {
-          default_opts.merge({
-            :script_nonce => "random",
-          })
-        }
-
-        it "uses the value in the X-Webkit-CSP" do
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(csp.value).to match "script-nonce random;"
-        end
-
-        it "runs a dynamic nonce generator" do
-          options[:script_nonce] = lambda { 'something' }
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(csp.value).to match "script-nonce something;"
-        end
-
-        it "runs against the given controller context" do
-          fake_params = {}
-          options[:script_nonce] = lambda { params[:script_nonce] = 'something' }
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME), :controller => double(:params => fake_params))
-          expect(csp.value).to match "script-nonce something;"
-          expect(fake_params).to eq({:script_nonce => 'something'})
-        end
-      end
     end
   end
 end

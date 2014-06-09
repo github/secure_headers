@@ -59,7 +59,6 @@ module SecureHeaders
       end
 
       @report_uri = @config.delete(:report_uri)
-      @script_nonce = @config.delete(:script_nonce)
 
       normalize_csp_options
       normalize_reporting_endpoint
@@ -92,8 +91,7 @@ module SecureHeaders
         # ensure default-src is first
         build_directive(:default_src),
         generic_directives(@config),
-        report_uri_directive,
-        script_nonce_directive,
+        report_uri_directive
       ].join
 
       #store the value for next time
@@ -178,18 +176,6 @@ module SecureHeaders
       end
 
       "report-uri #{@report_uri};"
-    end
-
-    def script_nonce_directive
-      return '' if @script_nonce.nil?
-      nonce_value = if @script_nonce.is_a?(String)
-                      @script_nonce
-                    elsif @controller
-                      @controller.instance_exec(&@script_nonce)
-                    else
-                      @script_nonce.call
-                    end
-      "script-nonce #{nonce_value};"
     end
 
     def generic_directives(config)
