@@ -119,12 +119,20 @@ module SecureHeaders
     end
 
     def normalize_csp_options
-      @config.each do |k,v|
-        @config[k] = v.call if v.respond_to?(:call)
-        @config[k] = @config[k].split if @config[k].is_a? String
-        @config[k] = @config[k].map do |val|
+      @config = @config.inject({}) do |hash, (k, v)|
+        config_val = if v.respond_to?(:call)
+          v.call
+        else
+          v
+        end
+
+        config_val = config_val.split if config_val.is_a? String
+        config_val = config_val.map do |val|
           translate_dir_value(val)
         end
+
+        hash[k] = config_val
+        hash
       end
 
       @report_uri = @config.delete(:report_uri).join(" ") if @config[:report_uri]
