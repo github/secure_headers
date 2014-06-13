@@ -163,13 +163,6 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
       :img_src => 'http://mycdn.example.com'
     }
   }
-
-  # script-nonce is an experimental feature of CSP 1.1 available in Chrome. It allows
-  # you to whitelist inline script blocks. For more information, see
-  # https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#script-nonce
-  :script_nonce => lambda { @script_nonce = SecureRandom.hex }
-  # which can be used to whitelist a script block:
-  # script_tag :nonce = @script_nonce { inline_script_call() }
 }
 ```
 

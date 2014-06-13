@@ -9,7 +9,6 @@ unless Spork.using_spork?
 end
 
 Spork.prefork do
-  require 'pry'
   require 'rspec'
 end
 

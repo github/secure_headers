@@ -78,6 +78,25 @@ module SecureHeaders
           csp = ContentSecurityPolicy.new(@opts, :request => request_for(CHROME))
           expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https://* data: 'self' 'none'")
         end
+
+        it "accepts procs for report-uris" do
+          opts = {
+            :default_src => 'self',
+            :report_uri => lambda { "http://lambda/result" }
+          }
+
+          csp = ContentSecurityPolicy.new(opts)
+          expect(csp.report_uri).to eq("http://lambda/result")
+        end
+
+        it "accepts procs for other fields" do
+          opts = {
+            :default_src => lambda { "http://lambda/result" }
+          }
+
+          csp = ContentSecurityPolicy.new(opts).value
+          expect(csp).to match("default-src http://lambda/result")
+        end
       end
     end
 
@@ -86,47 +105,47 @@ module SecureHeaders
 
       it "matches when host, scheme, and port match" do
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://example.com"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://example.com:443"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com:123'}, :request => request_for(FIREFOX, "https://example.com:123"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com:80'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
 
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com:80"))
-        expect(csp.send(:same_origin?)).to be_true
+        expect(csp.send(:same_origin?)).to be true
       end
 
       it "does not match port mismatches" do
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com:81"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match host mismatches" do
         csp = ContentSecurityPolicy.new({:report_uri => 'http://twitter.com'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match host mismatches because of subdomains" do
         csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://sub.example.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match scheme mismatches" do
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "ftp://example.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
 
       it "does not match on substring collisions" do
         csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://anotherexample.com"))
-        expect(csp.send(:same_origin?)).to be_false
+        expect(csp.send(:same_origin?)).to be false
       end
     end
 
@@ -326,33 +345,6 @@ module SecureHeaders
             csp = ContentSecurityPolicy.new(options, :experimental => true, :request => request_for(FIREFOX))
             expect(csp.value).to eq("default-src 'self'; img-src data:; script-src 'self' https://mycdn.example.com;")
           end
-        end
-      end
-
-      context "when supplying a script nonce callback" do
-        let(:options) {
-          default_opts.merge({
-            :script_nonce => "random",
-          })
-        }
-
-        it "uses the value in the X-Webkit-CSP" do
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(csp.value).to match "script-nonce random;"
-        end
-
-        it "runs a dynamic nonce generator" do
-          options[:script_nonce] = lambda { 'something' }
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(csp.value).to match "script-nonce something;"
-        end
-
-        it "runs against the given controller context" do
-          fake_params = {}
-          options[:script_nonce] = lambda { params[:script_nonce] = 'something' }
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME), :controller => double(:params => fake_params))
-          expect(csp.value).to match "script-nonce something;"
-          expect(fake_params).to eq({:script_nonce => 'something'})
         end
       end
     end

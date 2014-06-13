@@ -58,9 +58,6 @@ module SecureHeaders
         self.send("#{meta}=", @config.delete(meta))
       end
 
-      @report_uri = @config.delete(:report_uri)
-      @script_nonce = @config.delete(:script_nonce)
-
       normalize_csp_options
       normalize_reporting_endpoint
       fill_directives unless disable_fill_missing?
@@ -92,8 +89,7 @@ module SecureHeaders
         # ensure default-src is first
         build_directive(:default_src),
         generic_directives(@config),
-        report_uri_directive,
-        script_nonce_directive,
+        report_uri_directive
       ].join
 
       #store the value for next time
@@ -123,12 +119,23 @@ module SecureHeaders
     end
 
     def normalize_csp_options
-      @config.each do |k,v|
-        @config[k] = v.split if v.is_a? String
-        @config[k] = @config[k].map do |val|
+      @config = @config.inject({}) do |hash, (k, v)|
+        config_val = if v.respond_to?(:call)
+          v.call
+        else
+          v
+        end
+
+        config_val = config_val.split if config_val.is_a? String
+        config_val = config_val.map do |val|
           translate_dir_value(val)
         end
+
+        hash[k] = config_val
+        hash
       end
+
+      @report_uri = @config.delete(:report_uri).join(" ") if @config[:report_uri]
     end
 
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
@@ -178,18 +185,6 @@ module SecureHeaders
       end
 
       "report-uri #{@report_uri};"
-    end
-
-    def script_nonce_directive
-      return '' if @script_nonce.nil?
-      nonce_value = if @script_nonce.is_a?(String)
-                      @script_nonce
-                    elsif @controller
-                      @controller.instance_exec(&@script_nonce)
-                    else
-                      @script_nonce.call
-                    end
-      "script-nonce #{nonce_value};"
     end
 
     def generic_directives(config)
