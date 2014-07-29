@@ -164,6 +164,8 @@ module SecureHeaders
       origin = URI.parse(request_uri)
       uri = URI.parse(report_uri)
       uri.host == origin.host && origin.port == uri.port && origin.scheme == uri.scheme
+    rescue URI::InvalidURIError
+      true
     end
 
     def report_uri_directive
