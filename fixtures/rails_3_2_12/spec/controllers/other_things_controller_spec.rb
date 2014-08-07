@@ -14,7 +14,7 @@ describe OtherThingsController, :type => :controller do
 
     it "sets the X-WebKit-CSP header" do
       get :index
-      expect(response.headers['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; img-src data:; report-uri somewhere;")
+      expect(response.headers['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; img-src 'self' data:; report-uri somewhere;")
     end
 
     #mock ssl
