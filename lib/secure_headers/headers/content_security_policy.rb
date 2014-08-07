@@ -1,4 +1,5 @@
 require 'uri'
+require 'base64'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -28,8 +29,11 @@ module SecureHeaders
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
+      @nonce ||= Base64.encode64(SecureRandom.hex).chomp
+
       @experimental = !!options.delete(:experimental)
       @controller = options.delete(:controller)
+      @controller.instance_variable_set(:@content_security_policy_nonce, @nonce)
       if options[:request]
         parse_request(options[:request])
       else
@@ -145,6 +149,8 @@ module SecureHeaders
         # self/none are special sources/src-dir-values and need to be quoted in chrome
       elsif %{self none}.include?(val)
         "'#{val}'"
+      elsif val == 'nonce'
+        "'nonce-#{@nonce}'"
       else
         val
       end

@@ -197,9 +197,34 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 "default-src  'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
 ```
 
-## Note on Firefox handling of CSP
+### CSP Level 2 features
 
-Currently, Firefox does not support the w3c draft standard.  So there are a few steps taken to make the two interchangeable.
+script/style-nonce can be used to whitelist inline content. To do this, add "nonce" to your script/style-src configuration, then set the nonce attributes on the various tags.
+
+```ruby
+:csp => {
+  :default_src => 'self',
+  :script_src => 'self nonce'
+}
+```
+
+> content-security-policy: default-src 'self'; script-src 'self' 'nonce-abc123'
+
+```erb
+<script nonce="<%= @content_security_policy_nonce %>">
+  console.log("whitelisted, will execute")
+</script>
+
+<script nonce="lol">
+  console.log("won't execute, not whitelisted")
+</script>
+
+<script>
+  console.log("won't execute, not whitelisted")
+</script>
+```
+
+## Note on Firefox handling of CSP
 
 * CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the `forward_endpoint` value in the CSP section if you need to post cross origin for firefox. The internal endpoint that receives the initial request will forward the request to `forward_endpoint`
 

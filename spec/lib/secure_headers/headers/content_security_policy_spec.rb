@@ -259,6 +259,18 @@ module SecureHeaders
         end
       end
 
+      context "when using a nonce" do
+        it "adds a nonce to the script-src value" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(CHROME))
+          expect(header.value).to match(/script-src 'self' 'nonce-[a-zA-Z0-9\+\/=]{44}'/)
+        end
+
+        it "adds a nonce to the style-src value" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "self nonce"), :request => request_for(CHROME))
+          expect(header.value).to match(/style-src 'self' 'nonce-[a-zA-Z0-9\+\/=]{44}'/)
+        end
+      end
+
       context "when supplying a experimental values" do
         let(:options) {{
           :disable_chrome_extension => true,
