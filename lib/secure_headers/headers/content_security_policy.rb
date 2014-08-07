@@ -191,7 +191,7 @@ module SecureHeaders
       header_value = ''
       if config[:img_src]
         config[:img_src] = config[:img_src] + ['data:'] unless config[:img_src].include?('data:')
-      elsif
+      else
         config[:img_src] = config[:default_src] + ['data:']
       end
 
