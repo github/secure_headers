@@ -92,15 +92,9 @@ module SecureHeaders
       raise "Expected to find default_src directive value" unless @config[:default_src]
       append_http_additions unless ssl_request?
       header_value = [
-        # ensure default-src is first
-        build_directive(:default_src),
         generic_directives(@config),
         report_uri_directive
-      ].join
-
-      #store the value for next time
-      @config = header_value
-      header_value.strip
+      ].join.strip
     rescue StandardError => e
       raise ContentSecurityPolicyBuildError.new("Couldn't build CSP header :( #{e}")
     end
@@ -197,10 +191,11 @@ module SecureHeaders
       header_value = ''
       if config[:img_src]
         config[:img_src] = config[:img_src] + ['data:'] unless config[:img_src].include?('data:')
-      else
-        config[:img_src] = ['data:']
+      elsif
+        config[:img_src] = config[:default_src] + ['data:']
       end
 
+      header_value = build_directive(:default_src)
       config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
         header_value += build_directive(k)
       end
