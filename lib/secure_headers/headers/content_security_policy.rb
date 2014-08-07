@@ -8,7 +8,7 @@ module SecureHeaders
       STANDARD_HEADER_NAME = "Content-Security-Policy"
       FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
       DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
-      META = [:enforce, :http_additions, :disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
+      META = [:disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
     end
     include Constants
 
@@ -54,18 +54,24 @@ module SecureHeaders
         @config.merge!(experimental_config)
       end
 
+      # http_additions will be the only field that still doesn't support
+      # lambdas because it's an ugly api that's showing it's age.
+      @http_additions = @config.delete(:http_additions)
+
+      normalize_csp_options
+
       META.each do |meta|
         self.send("#{meta}=", @config.delete(meta))
       end
 
-      normalize_csp_options
+      @enforce = @config.delete(:enforce)
       normalize_reporting_endpoint
       fill_directives unless disable_fill_missing?
     end
 
     def name
       base = STANDARD_HEADER_NAME
-      if !enforce || experimental
+      if !@enforce || experimental
         base += "-Report-Only"
       end
       base
@@ -111,27 +117,27 @@ module SecureHeaders
     end
 
     def append_http_additions
-      return unless http_additions
-      http_additions.each do |k, v|
+      return unless @http_additions
+      @http_additions.each do |k, v|
         @config[k] ||= []
         @config[k] << v
       end
     end
 
     def normalize_csp_options
-      @config = @config.inject({}) do |hash, (k, v)|
-        config_val = if v.respond_to?(:call)
-          v.call
-        else
-          v
-        end
-
+      @config = @config.inject({}) do |hash, (key, value)|
+        # lambdas
+        config_val = value.respond_to?(:call) ? value.call : value
+        # space-delimeted strings
         config_val = config_val.split if config_val.is_a? String
-        config_val = config_val.map do |val|
-          translate_dir_value(val)
+        # array of strings
+        if config_val.respond_to?(:map)
+          config_val = config_val.map do |val|
+            translate_dir_value(val)
+          end
         end
 
-        hash[k] = config_val
+        hash[key] = config_val
         hash
       end
 
