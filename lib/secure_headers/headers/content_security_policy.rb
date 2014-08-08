@@ -29,11 +29,9 @@ module SecureHeaders
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
-      @nonce = Base64.encode64(SecureRandom.hex).chomp
-
       @experimental = !!options.delete(:experimental)
       @controller = options.delete(:controller)
-      @controller.instance_variable_set(:@content_security_policy_nonce, @nonce)
+
       if options[:request]
         parse_request(options[:request])
       else
@@ -47,6 +45,10 @@ module SecureHeaders
       end
 
       configure(config) if config
+    end
+
+    def nonce
+      @nonce ||= SecureRandom.base64(32).chomp
     end
 
     def configure(config)
@@ -150,7 +152,8 @@ module SecureHeaders
       elsif %{self none}.include?(val)
         "'#{val}'"
       elsif val == 'nonce'
-        "'nonce-#{@nonce}'"
+        @controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+        "'nonce-#{nonce}'"
       else
         val
       end
