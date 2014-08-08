@@ -1,4 +1,5 @@
 require 'uri'
+require 'base64'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -30,6 +31,7 @@ module SecureHeaders
     def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
       @controller = options.delete(:controller)
+
       if options[:request]
         parse_request(options[:request])
       else
@@ -43,6 +45,10 @@ module SecureHeaders
       end
 
       configure(config) if config
+    end
+
+    def nonce
+      @nonce ||= SecureRandom.base64(32).chomp
     end
 
     def configure(config)
@@ -125,10 +131,10 @@ module SecureHeaders
         # space-delimeted strings
         config_val = config_val.split if config_val.is_a? String
         # array of strings
-        if config_val.respond_to?(:map)
+        if config_val.respond_to?(:map) #skip booleans
           config_val = config_val.map do |val|
             translate_dir_value(val)
-          end
+          end.flatten.uniq
         end
 
         hash[key] = config_val
@@ -145,6 +151,9 @@ module SecureHeaders
         # self/none are special sources/src-dir-values and need to be quoted in chrome
       elsif %{self none}.include?(val)
         "'#{val}'"
+      elsif val == 'nonce'
+        @controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+        ["'nonce-#{nonce}'", "'unsafe-inline'"]
       else
         val
       end
