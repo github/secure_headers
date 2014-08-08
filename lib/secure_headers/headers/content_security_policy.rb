@@ -135,7 +135,7 @@ module SecureHeaders
         config_val = config_val.split if config_val.is_a? String
         config_val = config_val.map do |val|
           translate_dir_value(val)
-        end
+        end.flatten.uniq
 
         hash[k] = config_val
         hash
@@ -153,7 +153,7 @@ module SecureHeaders
         "'#{val}'"
       elsif val == 'nonce'
         @controller.instance_variable_set(:@content_security_policy_nonce, nonce)
-        "'nonce-#{nonce}'"
+        ["'nonce-#{nonce}'", "'unsafe-inline'"]
       else
         val
       end

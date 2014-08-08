@@ -201,6 +201,8 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
 script/style-nonce can be used to whitelist inline content. To do this, add "nonce" to your script/style-src configuration, then set the nonce attributes on the various tags.
 
+*setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
+
 ```ruby
 :csp => {
   :default_src => 'self',
@@ -208,7 +210,7 @@ script/style-nonce can be used to whitelist inline content. To do this, add "non
 }
 ```
 
-> content-security-policy: default-src 'self'; script-src 'self' 'nonce-abc123'
+> content-security-policy: default-src 'self'; script-src 'self' 'nonce-abc123' 'unsafe-inline'
 
 ```erb
 <script nonce="<%= @content_security_policy_nonce %>">
