@@ -259,6 +259,30 @@ module SecureHeaders
         end
       end
 
+      context "when using a nonce" do
+        it "adds a nonce and unsafe-inline to the script-src value" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(CHROME))
+          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
+        end
+
+        it "adds a nonce and unsafe-inline to the style-src value" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "self nonce"), :request => request_for(CHROME))
+          expect(header.value).to include("style-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
+        end
+
+        it "adds an identical nonce to the style and script-src directives" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "self nonce", :script_src => "self nonce"), :request => request_for(CHROME))
+          nonce = header.nonce
+          expect(header.value).to include("style-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
+          expect(header.value).to include("script-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
+        end
+
+        it "does not add 'unsafe-inline' twice" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce inline"), :request => request_for(CHROME))
+          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline';")
+        end
+      end
+
       context "when supplying a experimental values" do
         let(:options) {{
           :disable_chrome_extension => true,

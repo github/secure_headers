@@ -5,6 +5,7 @@
   config.x_xss_protection = {:value => 1, :mode => 'block'}
   csp = {
     :default_src => "self",
+    :script_src => "self nonce",
     :disable_chrome_extension => true,
     :disable_fill_missing => true,
     :report_uri => 'somewhere',

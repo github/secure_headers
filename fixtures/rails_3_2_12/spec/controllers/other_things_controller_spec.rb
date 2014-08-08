@@ -12,12 +12,13 @@ describe OtherThingsController, :type => :controller do
       expect(response.headers['X-Frame-Options']).to eq('SAMEORIGIN')
     end
 
-    it "sets the X-WebKit-CSP header" do
+    it "sets the CSP header with a local reference to a nonce" do
       get :index
-      expect(response.headers['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; img-src data:; report-uri somewhere;")
+      nonce = controller.instance_exec { @content_security_policy_nonce }
+      expect(nonce).to match /[a-zA-Z0-9\+\/=]{44}/
+      expect(response.headers['Content-Security-Policy-Report-Only']).to match(/default-src 'self'; img-src data:; script-src 'self' 'nonce-[a-zA-Z0-9\+\/=]{44}' 'unsafe-inline'; report-uri somewhere;/)
     end
 
-    #mock ssl
     it "sets the Strict-Transport-Security header" do
       request.env['HTTPS'] = 'on'
       get :index
