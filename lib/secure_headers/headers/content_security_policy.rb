@@ -29,7 +29,7 @@ module SecureHeaders
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
-      @nonce ||= Base64.encode64(SecureRandom.hex).chomp
+      @nonce = Base64.encode64(SecureRandom.hex).chomp
 
       @experimental = !!options.delete(:experimental)
       @controller = options.delete(:controller)
