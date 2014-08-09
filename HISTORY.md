@@ -1,10 +1,14 @@
-1.2.0
+1.3.0
 ======
 
 - CSP nonce support was added back and is compliant.
 - Bugs:
 -- enforce, disable_fill_missing, and disable_chrome_extension did not accept lambdas for no good reason
 -- IF a default-src was specified, and an img-src was not, and disable_fill_missing was true, the img-src value would be :data
+
+1.2.0
+======
+- Allow procs to be used as config values.
 
 1.1.1
 ======
