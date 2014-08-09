@@ -91,11 +91,14 @@ module SecureHeaders
 
         it "accepts procs for other fields" do
           opts = {
-            :default_src => lambda { "http://lambda/result" }
+            :default_src => lambda { "http://lambda/result" },
+            :enforce => lambda { true },
+            :disable_fill_missing => lambda { true }
           }
 
-          csp = ContentSecurityPolicy.new(opts).value
-          expect(csp).to match("default-src http://lambda/result")
+          csp = ContentSecurityPolicy.new(opts)
+          expect(csp.value).to eq("default-src http://lambda/result; img-src http://lambda/result data:;")
+          expect(csp.name).to match("Content-Security-Policy")
         end
       end
     end
@@ -219,7 +222,7 @@ module SecureHeaders
       context "auto-whitelists data: uris for img-src" do
         it "sets the value if no img-src specified" do
           csp = ContentSecurityPolicy.new({:default_src => 'self', :disable_fill_missing => true, :disable_chrome_extension => true}, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src 'self'; img-src data:;")
+          expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "appends the value if img-src is specified" do
@@ -243,14 +246,14 @@ module SecureHeaders
       context "Firefox" do
         it "builds a csp header for firefox" do
           csp = ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX))
-          expect(csp.value).to eq("default-src https://*; img-src data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;")
+          expect(csp.value).to eq("default-src https://*; img-src https://* data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;")
         end
       end
 
       context "Chrome" do
         it "builds a csp header for chrome" do
           csp = ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src https://*; img-src data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;")
+          expect(csp.value).to eq("default-src https://*; img-src https://* data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;")
         end
 
         it "ignores :forward_endpoint settings" do
@@ -273,8 +276,9 @@ module SecureHeaders
         it "adds an identical nonce to the style and script-src directives" do
           header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "self nonce", :script_src => "self nonce"), :request => request_for(CHROME))
           nonce = header.nonce
-          expect(header.value).to include("style-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
-          expect(header.value).to include("script-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
+          value = header.value
+          expect(value).to include("style-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
+          expect(value).to include("script-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
         end
 
         it "does not add 'unsafe-inline' twice" do
@@ -296,7 +300,7 @@ module SecureHeaders
 
         it "returns the original value" do
           header = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(header.value).to eq("default-src 'self'; img-src data:; script-src https://*;")
+          expect(header.value).to eq("default-src 'self'; img-src 'self' data:; script-src https://*;")
         end
 
         it "it returns the experimental value if requested" do
@@ -357,17 +361,17 @@ module SecureHeaders
 
           it "uses the value in the experimental block over SSL" do
             csp = ContentSecurityPolicy.new(options, :experimental => true, :request => request_for(FIREFOX, '/', :ssl => true))
-            expect(csp.value).to eq("default-src 'self'; img-src data:; script-src 'self';")
+            expect(csp.value).to eq("default-src 'self'; img-src 'self' data:; script-src 'self';")
           end
 
           it "detects the :ssl => true option" do
             csp = ContentSecurityPolicy.new(options, :experimental => true, :ua => FIREFOX, :ssl => true)
-            expect(csp.value).to eq("default-src 'self'; img-src data:; script-src 'self';")
+            expect(csp.value).to eq("default-src 'self'; img-src 'self' data:; script-src 'self';")
           end
 
           it "merges the values from experimental/http_additions when not over SSL" do
             csp = ContentSecurityPolicy.new(options, :experimental => true, :request => request_for(FIREFOX))
-            expect(csp.value).to eq("default-src 'self'; img-src data:; script-src 'self' https://mycdn.example.com;")
+            expect(csp.value).to eq("default-src 'self'; img-src 'self' data:; script-src 'self' https://mycdn.example.com;")
           end
         end
       end
