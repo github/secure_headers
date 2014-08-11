@@ -177,8 +177,13 @@ module SecureHeaders
     def same_origin?
       return unless report_uri && request_uri
 
-      origin = URI.parse(request_uri)
-      uri = URI.parse(report_uri)
+      begin
+        origin = URI.parse(request_uri)
+        uri = URI.parse(report_uri)
+      rescue URI::InvalidURIError
+        return false
+      end
+
       uri.host == origin.host && origin.port == uri.port && origin.scheme == uri.scheme
     end
 
