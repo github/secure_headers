@@ -197,7 +197,7 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 "default-src  'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
 ```
 
-### Tagging Reuqests
+### Tagging Requests
 
 It's often valuable to send extra information in the report uri that is not available in the reports themselves. Namely, "was the policy enforced" and "where did the report come from"
 
