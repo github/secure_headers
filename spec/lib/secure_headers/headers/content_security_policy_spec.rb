@@ -79,6 +79,18 @@ module SecureHeaders
           expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https://* data: 'self' 'none'")
         end
 
+        it "adds a @enforce and @app_name variables to the report uri" do
+          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => 'twitter')
+          csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
+          expect(csp.value).to include("/csp_report?enforce=true&app_name=twitter")
+        end
+
+        it "does not add an empty @app_name variable to the report uri" do
+          opts = @opts.merge(:tag_report_uri => true, :enforce => true)
+          csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
+          expect(csp.value).to include("/csp_report?enforce=true")
+        end
+
         it "accepts procs for report-uris" do
           opts = {
             :default_src => 'self',

@@ -60,9 +60,9 @@ module SecureHeaders
         @config.merge!(experimental_config)
       end
 
-      # http_additions will be the only field that still doesn't support
-      # lambdas because it's an ugly api that's showing it's age.
+      # these values don't support lambdas because this needs to be rewritten
       @http_additions = @config.delete(:http_additions)
+      @app_name = @config.delete(:app_name)
 
       normalize_csp_options
 
@@ -70,7 +70,9 @@ module SecureHeaders
         self.send("#{meta}=", @config.delete(meta))
       end
 
-      @enforce = @config.delete(:enforce)
+      @enforce = !!@config.delete(:enforce)
+      @tag_report_uri = @config.delete(:tag_report_uri)
+
       normalize_reporting_endpoint
       fill_directives unless disable_fill_missing?
     end
@@ -171,6 +173,11 @@ module SecureHeaders
         if forward_endpoint
           @report_uri = FF_CSP_ENDPOINT
         end
+      end
+
+      if @tag_report_uri
+        @report_uri = "#{@report_uri}?enforce=#{@enforce}"
+        @report_uri += "&app_name=#{@app_name}" if @app_name
       end
     end
 
