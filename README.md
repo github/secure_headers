@@ -197,6 +197,24 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 "default-src  'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
 ```
 
+### Tagging Reuqests
+
+It's often valuable to send extra information in the report uri that is not available in the reports themselves. Namely, "was the policy enforced" and "where did the report come from"
+
+```ruby
+{
+  :tag_report_uri => true,
+  :enforce => true,
+  :app_name => 'twitter',
+  :report_uri => 'csp_reports'
+}
+```
+
+Results in
+```
+report-uri csp_reports?enforce=true&app_name=twitter
+```
+
 ### CSP Level 2 features
 
 script/style-nonce can be used to whitelist inline content. To do this, add "nonce" to your script/style-src configuration, then set the nonce attributes on the various tags.

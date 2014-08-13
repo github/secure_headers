@@ -1,3 +1,19 @@
+1.3.2
+======
+
+Adds the ability to "tag" requests and a new config value: :app_name
+
+{
+  :tag_report_uri => true,
+  :enforce => true,
+  :app_name => 'twitter',
+  :report_uri => 'csp_reports'
+}
+
+Results in
+report-uri csp_reports?enforce=true&app_name=twitter
+
+
 1.3.1
 ======
 
