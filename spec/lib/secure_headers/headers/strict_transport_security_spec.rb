@@ -10,6 +10,7 @@ module SecureHeaders
       specify { expect(StrictTransportSecurity.new(:max_age => '1234').value).to eq("max-age=1234")}
       specify { expect(StrictTransportSecurity.new(:max_age => 1234).value).to eq("max-age=1234")}
       specify { expect(StrictTransportSecurity.new(:max_age => HSTS_MAX_AGE, :include_subdomains => true).value).to eq("max-age=#{HSTS_MAX_AGE}; includeSubdomains")}
+      specify { expect(StrictTransportSecurity.new(:max_age => HSTS_MAX_AGE, :include_subdomains => true, :preload => true).value).to eq("max-age=#{HSTS_MAX_AGE}; includeSubdomains; preload")}
 
       context "with an invalid configuration" do
         context "with a hash argument" do

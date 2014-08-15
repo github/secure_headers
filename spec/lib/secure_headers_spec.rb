@@ -178,6 +178,11 @@ describe SecureHeaders do
       should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains")
       subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true)
     end
+
+    it "allows you to specify preload" do
+      should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains; preload")
+      subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true, :preload => true)
+    end
   end
 
   describe "#set_x_xss_protection" do
