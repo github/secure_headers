@@ -1,3 +1,10 @@
+1.3.3
+======
+
+@agl just made a new option for HSTS representing confirmation that a site wants to be included in a browser's preload list (https://hstspreload.appspot.com).
+
+This just adds a new 'preload' option to the HSTS settings to specify that option.
+
 1.3.2
 ======
 
