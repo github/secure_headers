@@ -6,7 +6,7 @@ module SecureHeaders
       HSTS_HEADER_NAME = 'Strict-Transport-Security'
       HSTS_MAX_AGE = "631138519"
       DEFAULT_VALUE = "max-age=" + HSTS_MAX_AGE
-      VALID_STS_HEADER = /\Amax-age=\d+(; includeSubdomains)?\z/i
+      VALID_STS_HEADER = /\Amax-age=\d+(; includeSubdomains)?(; preload)?\z/i
       MESSAGE = "The config value supplied for the HSTS header was invalid."
     end
     include Constants
@@ -31,6 +31,7 @@ module SecureHeaders
       max_age = @config.fetch(:max_age, HSTS_MAX_AGE)
       value = "max-age=" + max_age.to_s
       value += "; includeSubdomains" if @config[:include_subdomains]
+      value += "; preload" if @config[:preload]
 
       value
     end
