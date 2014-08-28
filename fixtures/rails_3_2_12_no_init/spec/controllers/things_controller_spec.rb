@@ -28,6 +28,11 @@ describe ThingsController, :type => :controller do
       expect(response.headers['Strict-Transport-Security']).to eq(SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
     end
 
+    it "sets the X-Download-Options header" do
+      get :index
+      expect(response.headers['X-Download-Options']).to eq(SecureHeaders::XDownloadOptions::Constants::DEFAULT_VALUE)
+    end
+
     it "sets the X-Content-Type-Options header" do
       get :index
       expect(response.headers['X-Content-Type-Options']).to eq(SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE)

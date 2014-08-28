@@ -8,3 +8,4 @@ include ::SecureHeaders::ContentSecurityPolicy::Constants
 include ::SecureHeaders::XFrameOptions::Constants
 include ::SecureHeaders::XXssProtection::Constants
 include ::SecureHeaders::XContentTypeOptions::Constants
+include ::SecureHeaders::XDownloadOptions::Constants
