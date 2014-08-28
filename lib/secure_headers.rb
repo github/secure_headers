@@ -2,7 +2,7 @@ module SecureHeaders
   module Configuration
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
-        :x_xss_protection, :csp
+        :x_xss_protection, :csp, :x_download_options
 
       def configure &block
         instance_eval &block
@@ -38,6 +38,7 @@ module SecureHeaders
       before_filter :set_csp_header
       before_filter :set_x_xss_protection_header
       before_filter :set_x_content_type_options_header
+      before_filter :set_x_download_options_header
     end
 
     # we can't use ||= because I'm overloading false => disable, nil => default
@@ -55,6 +56,7 @@ module SecureHeaders
       set_x_frame_options_header(options[:x_frame_options])
       set_x_xss_protection_header(options[:x_xss_protection])
       set_x_content_type_options_header(options[:x_content_type_options])
+      set_x_download_options_header(options[:x_download_options])
     end
 
     # backwards compatibility jank, to be removed in 1.0. Old API required a request
@@ -99,6 +101,10 @@ module SecureHeaders
       set_a_header(:hsts, StrictTransportSecurity, options)
     end
 
+    def set_x_download_options_header(options=self.class.secure_headers_options[:x_download_options])
+      set_a_header(:x_download_options, XDownloadOptions, options)
+    end
+
     private
 
     def set_a_header(name, klass, options=nil)
@@ -128,4 +134,5 @@ require "secure_headers/headers/x_frame_options"
 require "secure_headers/headers/strict_transport_security"
 require "secure_headers/headers/x_xss_protection"
 require "secure_headers/headers/x_content_type_options"
+require "secure_headers/headers/x_download_options"
 require "secure_headers/railtie"

@@ -54,6 +54,7 @@ describe SecureHeaders do
       config.x_content_type_options = nil
       config.x_xss_protection = nil
       config.csp = nil
+      config.x_download_options = nil
     end
   end
 
@@ -63,12 +64,13 @@ describe SecureHeaders do
     subject.set_x_frame_options_header
     subject.set_x_content_type_options_header
     subject.set_x_xss_protection_header
+    subject.set_x_download_options_header
   end
 
   describe "#ensure_security_headers" do
     it "sets a before filter" do
       options = {}
-      expect(DummyClass).to receive(:before_filter).exactly(5).times
+      expect(DummyClass).to receive(:before_filter).exactly(6).times
       DummyClass.ensure_security_headers(options)
     end
   end
@@ -92,13 +94,14 @@ describe SecureHeaders do
     USER_AGENTS.each do |name, useragent|
       it "sets all default headers for #{name} (smoke test)" do
         stub_user_agent(useragent)
-        number_of_headers = 5
+        number_of_headers = 6
         expect(subject).to receive(:set_header).exactly(number_of_headers).times # a request for a given header
         subject.set_csp_header
         subject.set_x_frame_options_header
         subject.set_hsts_header
         subject.set_x_xss_protection_header
         subject.set_x_content_type_options_header
+        subject.set_x_download_options_header
       end
     end
 
@@ -111,6 +114,11 @@ describe SecureHeaders do
     it "does not set the X-XSS-Protection header if disabled" do
       should_not_assign_header(X_XSS_PROTECTION_HEADER_NAME)
       subject.set_x_xss_protection_header(false)
+    end
+
+    it "does not set the X-Download-Options header if disabled" do
+      should_not_assign_header(XDO_HEADER_NAME)
+      subject.set_x_download_options_header(false)
     end
 
     it "does not set the X-Frame-Options header if disabled" do
@@ -143,6 +151,7 @@ describe SecureHeaders do
           config.x_content_type_options = false
           config.x_xss_protection = false
           config.csp = false
+          config.x_download_options = false
         end
         expect(subject).not_to receive(:set_header)
         set_security_headers(subject)
@@ -160,6 +169,18 @@ describe SecureHeaders do
     it "allows a custom X-Frame-Options header" do
       should_assign_header(XFO_HEADER_NAME, "DENY")
       subject.set_x_frame_options_header(:value => 'DENY')
+    end
+  end
+
+  describe "#set_x_download_options_header" do
+    it "sets the X-Download-Options header" do
+      should_assign_header(XDO_HEADER_NAME, SecureHeaders::XDownloadOptions::Constants::DEFAULT_VALUE)
+      subject.set_x_download_options_header
+    end
+
+    it "allows a custom X-Download-Options header" do
+      should_assign_header(XDO_HEADER_NAME, "noopen")
+      subject.set_x_download_options_header(:value => 'noopen')
     end
   end
 

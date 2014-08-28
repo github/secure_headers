@@ -25,6 +25,11 @@ describe OtherThingsController, :type => :controller do
       expect(response.headers['Strict-Transport-Security']).to eq("max-age=315576000")
     end
 
+    it "sets the X-Download-Options header" do
+      get :index
+      expect(response.headers['X-Download-Options']).to eq('noopen')
+    end
+
     it "sets the X-Content-Type-Options header" do
       get :index
       expect(response.headers['X-Content-Type-Options']).to eq("nosniff")
