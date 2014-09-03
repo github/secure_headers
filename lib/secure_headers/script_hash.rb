@@ -32,7 +32,7 @@ module SecureHeaders
 
       # need to settle on stuffs
     def hash_source_expression(hashes, format = "sha256", delimeter = "-", hash_delimeter = " ", wrapper = "'")
-      wrapper + format + delimeter + hashes.join(hash_delimeter) + wrapper
+      hashes.map { |hash| wrapper + format + delimeter + hash + wrapper }
     end
   end
 
