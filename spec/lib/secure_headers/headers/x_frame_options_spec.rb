@@ -2,35 +2,34 @@ require 'spec_helper'
 
 module SecureHeaders
   describe XFrameOptions do
-    specify{ XFrameOptions.new.name.should == "X-Frame-Options" }
+    specify{ expect(XFrameOptions.new.name).to eq("X-Frame-Options") }
 
     describe "#value" do
-      specify { XFrameOptions.new.value.should == XFrameOptions::Constants::DEFAULT_VALUE}
-      specify { XFrameOptions.new("SAMEORIGIN").value.should == "SAMEORIGIN"}
-      specify { XFrameOptions.new(:value => 'DENY').value.should == "DENY"}
+      specify { expect(XFrameOptions.new.value).to eq(XFrameOptions::Constants::DEFAULT_VALUE)}
+      specify { expect(XFrameOptions.new("SAMEORIGIN").value).to eq("SAMEORIGIN")}
+      specify { expect(XFrameOptions.new(:value => 'DENY').value).to eq("DENY")}
 
       context "with invalid configuration" do
         it "allows SAMEORIGIN" do
-          lambda {
+          expect {
             XFrameOptions.new("SAMEORIGIN").value
-          }.should_not raise_error(XFOBuildError)
+          }.not_to raise_error
         end
 
         it "allows DENY" do
-          lambda {
+          expect {
             XFrameOptions.new("DENY").value
-          }.should_not raise_error(XFOBuildError)
-        end
+          }.not_to raise_error        end
 
         it "allows ALLOW-FROM*" do
-          lambda {
+          expect {
             XFrameOptions.new("ALLOW-FROM: example.com").value
-          }.should_not raise_error(XFOBuildError)
+          }.not_to raise_error
         end
         it "does not allow garbage" do
-          lambda {
+          expect {
             XFrameOptions.new("I like turtles").value
-          }.should raise_error(XFOBuildError)
+          }.to raise_error(XFOBuildError)
         end
       end
     end

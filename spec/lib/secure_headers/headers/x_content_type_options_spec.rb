@@ -1,33 +1,33 @@
 module SecureHeaders
   describe XContentTypeOptions do
-    specify{ XContentTypeOptions.new.name.should == "X-Content-Type-Options" }
+    specify{ expect(XContentTypeOptions.new.name).to eq("X-Content-Type-Options") }
 
     describe "#value" do
-      specify { XContentTypeOptions.new.value.should == XContentTypeOptions::Constants::DEFAULT_VALUE}
-      specify { XContentTypeOptions.new("nosniff").value.should == "nosniff"}
-      specify { XContentTypeOptions.new(:value => 'nosniff').value.should == "nosniff"}
+      specify { expect(XContentTypeOptions.new.value).to eq(XContentTypeOptions::Constants::DEFAULT_VALUE)}
+      specify { expect(XContentTypeOptions.new("nosniff").value).to eq("nosniff")}
+      specify { expect(XContentTypeOptions.new(:value => 'nosniff').value).to eq("nosniff")}
 
       context "invalid configuration values" do
         it "accepts nosniff" do
-          lambda {
+          expect {
             XContentTypeOptions.new("nosniff")
-          }.should_not raise_error
+          }.not_to raise_error
 
-          lambda {
+          expect {
             XContentTypeOptions.new(:value => "nosniff")
-          }.should_not raise_error
+          }.not_to raise_error
         end
 
         it "accepts nil" do
-          lambda {
+          expect {
             XContentTypeOptions.new
-          }.should_not raise_error
+          }.not_to raise_error
         end
 
         it "doesn't accept anything besides no-sniff" do
-          lambda {
+          expect {
             XContentTypeOptions.new("donkey")
-          }.should raise_error(XContentTypeOptionsBuildError)
+          }.to raise_error
         end
       end
     end

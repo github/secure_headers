@@ -13,9 +13,9 @@ describe SecureHeaders do
 
   before(:each) do
     stub_user_agent(nil)
-    headers.stub(:[])
-    subject.stub(:response).and_return(response)
-    subject.stub(:request).and_return(request)
+    allow(headers).to receive(:[])
+    allow(subject).to receive(:response).and_return(response)
+    allow(subject).to receive(:request).and_return(request)
   end
 
   ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection].map{|header| [header, false]}]
@@ -32,15 +32,15 @@ describe SecureHeaders do
   }
 
   def should_assign_header name, value
-    response.headers.should_receive(:[]=).with(name, value)
+    expect(response.headers).to receive(:[]=).with(name, value)
   end
 
   def should_not_assign_header name
-    response.headers.should_not_receive(:[]=).with(name, anything)
+    expect(response.headers).not_to receive(:[]=).with(name, anything)
   end
 
   def stub_user_agent val
-    request.stub_chain(:env, :[]).and_return(val)
+    allow(request).to receive_message_chain(:env, :[]).and_return(val)
   end
 
   def options_for header
@@ -54,6 +54,7 @@ describe SecureHeaders do
       config.x_content_type_options = nil
       config.x_xss_protection = nil
       config.csp = nil
+      config.x_download_options = nil
     end
   end
 
@@ -63,12 +64,13 @@ describe SecureHeaders do
     subject.set_x_frame_options_header
     subject.set_x_content_type_options_header
     subject.set_x_xss_protection_header
+    subject.set_x_download_options_header
   end
 
   describe "#ensure_security_headers" do
     it "sets a before filter" do
       options = {}
-      DummyClass.should_receive(:before_filter).exactly(6).times
+      expect(DummyClass).to receive(:before_filter).exactly(7).times
       DummyClass.ensure_security_headers(options)
     end
   end
@@ -87,26 +89,19 @@ describe SecureHeaders do
 
   describe "#set_security_headers" do
     before(:each) do
-      SecureHeaders::ContentSecurityPolicy.stub(:new).and_return(double.as_null_object)
+      allow(SecureHeaders::ContentSecurityPolicy).to receive(:new).and_return(double.as_null_object)
     end
     USER_AGENTS.each do |name, useragent|
       it "sets all default headers for #{name} (smoke test)" do
         stub_user_agent(useragent)
-        number_of_headers = case name
-        when :ie, :chrome
-          5
-        when :ios5, :safari5, :safari5_1
-          3 # csp breaks these browsers
-        else
-          4
-        end
-
-        subject.should_receive(:set_header).exactly(number_of_headers).times # a request for a given header
+        number_of_headers = 6
+        expect(subject).to receive(:set_header).exactly(number_of_headers).times # a request for a given header
         subject.set_csp_header
         subject.set_x_frame_options_header
         subject.set_hsts_header
         subject.set_x_xss_protection_header
         subject.set_x_content_type_options_header
+        subject.set_x_download_options_header
       end
     end
 
@@ -121,6 +116,11 @@ describe SecureHeaders do
       subject.set_x_xss_protection_header(false)
     end
 
+    it "does not set the X-Download-Options header if disabled" do
+      should_not_assign_header(XDO_HEADER_NAME)
+      subject.set_x_download_options_header(false)
+    end
+
     it "does not set the X-Frame-Options header if disabled" do
       should_not_assign_header(XFO_HEADER_NAME)
       subject.set_x_frame_options_header(false)
@@ -132,23 +132,15 @@ describe SecureHeaders do
     end
 
     it "does not set the HSTS header if request is over HTTP" do
-      subject.stub_chain(:request, :ssl?).and_return(false)
+      allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
       should_not_assign_header(HSTS_HEADER_NAME)
       subject.set_hsts_header({:include_subdomains => true})
     end
 
     it "does not set the CSP header if disabled" do
       stub_user_agent(USER_AGENTS[:chrome])
-      should_not_assign_header(WEBKIT_CSP_HEADER_NAME)
+      should_not_assign_header(STANDARD_HEADER_NAME)
       subject.set_csp_header(options_for(:csp).merge(:csp => false))
-    end
-
-    # apparently iOS5 safari with CSP in enforce mode causes nothing to render
-    # it has no effect in report-only mode (as in no report is sent)
-    it "does not set CSP header if using ios5" do
-      stub_user_agent(USER_AGENTS[:ios5])
-      subject.should_not_receive(:set_header)
-      subject.set_csp_header(options_for(:csp))
     end
 
     context "when disabled by configuration settings" do
@@ -159,8 +151,9 @@ describe SecureHeaders do
           config.x_content_type_options = false
           config.x_xss_protection = false
           config.csp = false
+          config.x_download_options = false
         end
-        subject.should_not_receive(:set_header)
+        expect(subject).not_to receive(:set_header)
         set_security_headers(subject)
         reset_config
       end
@@ -179,6 +172,18 @@ describe SecureHeaders do
     end
   end
 
+  describe "#set_x_download_options_header" do
+    it "sets the X-Download-Options header" do
+      should_assign_header(XDO_HEADER_NAME, SecureHeaders::XDownloadOptions::Constants::DEFAULT_VALUE)
+      subject.set_x_download_options_header
+    end
+
+    it "allows a custom X-Download-Options header" do
+      should_assign_header(XDO_HEADER_NAME, "noopen")
+      subject.set_x_download_options_header(:value => 'noopen')
+    end
+  end
+
   describe "#set_strict_transport_security" do
     it "sets the Strict-Transport-Security header" do
       should_assign_header(HSTS_HEADER_NAME, SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
@@ -193,6 +198,11 @@ describe SecureHeaders do
     it "allows you to specify includeSubdomains" do
       should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains")
       subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true)
+    end
+
+    it "allows you to specify preload" do
+      should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains; preload")
+      subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true, :preload => true)
     end
   end
 
@@ -214,7 +224,7 @@ describe SecureHeaders do
   end
 
   describe "#set_x_content_type_options" do
-    [:ie, :chrome].each do |useragent|
+    USER_AGENTS.each do |useragent|
       context "when using #{useragent}" do
         before(:each) do
           stub_user_agent(USER_AGENTS[useragent])
@@ -237,7 +247,7 @@ describe SecureHeaders do
     context "when using Firefox" do
       it "sets CSP headers" do
         stub_user_agent(USER_AGENTS[:firefox])
-        should_assign_header(FIREFOX_CSP_HEADER_NAME + "-Report-Only", FIREFOX_CSP_HEADER)
+        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
         subject.set_csp_header
       end
     end
@@ -245,7 +255,7 @@ describe SecureHeaders do
     context "when using Chrome" do
       it "sets default CSP header" do
         stub_user_agent(USER_AGENTS[:chrome])
-        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", WEBKIT_CSP_HEADER)
+        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
         subject.set_csp_header
       end
     end
@@ -253,7 +263,7 @@ describe SecureHeaders do
     context "when using a browser besides chrome/firefox" do
       it "sets the CSP header" do
         stub_user_agent(USER_AGENTS[:opera])
-        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", WEBKIT_CSP_HEADER)
+        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
         subject.set_csp_header
       end
     end
@@ -273,14 +283,14 @@ describe SecureHeaders do
 
       it "does not set the header in enforce mode if experimental is supplied, but enforce is disabled" do
         opts = @opts.merge(:enforce => false)
-        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", anything)
-        should_not_assign_header(WEBKIT_CSP_HEADER_NAME)
+        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", anything)
+        should_not_assign_header(STANDARD_HEADER_NAME)
         subject.set_csp_header(opts)
       end
 
       it "sets a header in enforce mode as well as report-only mode" do
-        should_assign_header(WEBKIT_CSP_HEADER_NAME, anything)
-        should_assign_header(WEBKIT_CSP_HEADER_NAME + "-Report-Only", anything)
+        should_assign_header(STANDARD_HEADER_NAME, anything)
+        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", anything)
         subject.set_csp_header(@opts)
       end
     end

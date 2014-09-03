@@ -1,3 +1,58 @@
+1.3.3
+======
+
+@agl just made a new option for HSTS representing confirmation that a site wants to be included in a browser's preload list (https://hstspreload.appspot.com).
+
+This just adds a new 'preload' option to the HSTS settings to specify that option.
+
+1.3.2
+======
+
+Adds the ability to "tag" requests and a new config value: :app_name
+
+{
+  :tag_report_uri => true,
+  :enforce => true,
+  :app_name => 'twitter',
+  :report_uri => 'csp_reports'
+}
+
+Results in
+report-uri csp_reports?enforce=true&app_name=twitter
+
+
+1.3.1
+======
+
+Bugfix release: same-origin detection would error out when the URL containined invalid values (like |)
+
+1.3.0
+======
+
+- CSP nonce support was added back and is compliant.
+- Bugs:
+-- enforce, disable_fill_missing, and disable_chrome_extension did not accept lambdas for no good reason
+-- IF a default-src was specified, and an img-src was not, and disable_fill_missing was true, the img-src value would be :data
+
+1.2.0
+======
+- Allow procs to be used as config values.
+
+1.1.1
+======
+
+Bug fix release.
+- Parsing of CSP reports was busted.
+- Forwarded reports did not include the original referer, ip, UA
+
+1.1.0
+======
+
+- Remove brwsr dependency (no more runtime dependencies)
+- Stop serving X- prefixed CSP headers
+
+This change means that all requests get all headers, even if the browser doesn't grok it.
+
 1.0.0
 ======
 
