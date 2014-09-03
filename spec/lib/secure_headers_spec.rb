@@ -16,6 +16,7 @@ describe SecureHeaders do
     allow(headers).to receive(:[])
     allow(subject).to receive(:response).and_return(response)
     allow(subject).to receive(:request).and_return(request)
+    allow(request).to receive_message_chain(:env, :[]=)
   end
 
   ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection].map{|header| [header, false]}]
@@ -40,7 +41,7 @@ describe SecureHeaders do
   end
 
   def stub_user_agent val
-    allow(request).to receive_message_chain(:env, :[]).and_return(val)
+    allow(request).to receive_message_chain(:env, :[]).with('HTTP_USER_AGENT').and_return(val)
   end
 
   def options_for header
@@ -76,11 +77,6 @@ describe SecureHeaders do
   end
 
   describe "#set_header" do
-    it "accepts name/value pairs" do
-      should_assign_header("X-Hipster-Ipsum", "kombucha")
-      subject.send(:set_header, "X-Hipster-Ipsum", "kombucha")
-    end
-
     it "accepts header objects" do
       should_assign_header("Strict-Transport-Security", SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
       subject.send(:set_header, SecureHeaders::StrictTransportSecurity.new)
@@ -139,12 +135,14 @@ describe SecureHeaders do
 
     it "does not set the CSP header if disabled" do
       stub_user_agent(USER_AGENTS[:chrome])
+
       should_not_assign_header(STANDARD_HEADER_NAME)
       subject.set_csp_header(options_for(:csp).merge(:csp => false))
     end
 
     context "when disabled by configuration settings" do
       it "does not set any headers when disabled" do
+
         ::SecureHeaders::Configuration.configure do |config|
           config.hsts = false
           config.x_frame_options = false

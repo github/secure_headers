@@ -11,28 +11,19 @@ module SecureHeaders
       script_hashes = env['script_hashes']
 
       if headers["Content-Type"] && headers["Content-Type"].include?("text/html") && script_hashes.present?
-        # jank to make sure we're messing w/ the right header
-        header_name = ContentSecurityPolicy.new(nil, :ua => env["HTTP_USER_AGENT"]).name
-
-        csp = headers[header_name]
-        source_expression = hash_source_expression(script_hashes)
-
-        # nice and dirty. probably should just pass the ContentSecurityPolicy object
-        # and set the value from here rather than string substition after the fact :P
-        if csp =~ /script-src/
-          csp.sub!(/script-src/, 'script-src ' + source_expression)
-        else
-          csp += "script-src 'none' " + source_expression
+        ['Content-Security-Policy-Report-Only', 'Content-Security-Policy'].each do |header_name|
+          if csp = env[header_name]
+            csp.config[:script_src] = csp.config[:script_src] + script_hashes.map {|hash| hash_source_value(hash)}
+            headers[header_name] = csp.value
+          end
         end
-
-        headers['Content-Security-Policy-Report-Only'] = csp
       end
+
       [status, headers, response]
     end
 
-      # need to settle on stuffs
-    def hash_source_expression(hashes, format = "sha256", delimeter = "-", hash_delimeter = " ", wrapper = "'")
-      hashes.map { |hash| wrapper + format + delimeter + hash + wrapper }
+    def hash_source_value(hash, format = "sha256", delimeter = "-", wrapper = "'")
+      wrapper + format + delimeter + hash + wrapper
     end
   end
 

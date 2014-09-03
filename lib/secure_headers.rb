@@ -113,10 +113,10 @@ module SecureHeaders
       return if options == false
 
       csp_header = ContentSecurityPolicy.new(options, :request => request, :controller => self)
-      set_header(csp_header)
+      set_header(csp_header, :save_to_env => true)
       if options && options[:experimental] && options[:enforce]
         experimental_header = ContentSecurityPolicy.new(options, :experimental => true, :request => request, :controller => self)
-        set_header(experimental_header)
+        set_header(experimental_header, :save_to_env => true)
       end
     end
 
@@ -151,13 +151,11 @@ module SecureHeaders
       set_header(header)
     end
 
-    def set_header(name_or_header, value=nil)
-      if name_or_header.is_a?(Header)
-        header = name_or_header
-        response.headers[header.name] = header.value
-      else
-        response.headers[name_or_header] = value
+    def set_header(header, options={})
+      if options[:save_to_env]
+        request.env[header.name] = header
       end
+      response.headers[header.name] = header.value
     end
   end
 end
