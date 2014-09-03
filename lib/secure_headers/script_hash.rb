@@ -28,13 +28,11 @@ module SecureHeaders
   end
 
   module ScriptHashHelpers
-    def generate_inline_script_hashes(filename, debug=false)
-      puts("Checking " + filename) if debug
+    def generate_inline_script_hashes(filename)
       file = File.read(filename)
       hashes = []
       file.gsub(INLINE_SCRIPT_REGEX) do
         inline_script = Regexp.last_match.captures[-2]
-        puts "\n<<< hashing\n" + inline_script + "\nHashing>>>\n" if debug
         if (filename =~ /\.mustache\Z/ && inline_script =~ /\{\{.*\}\}/) || (filename =~ /\.erb\Z/ && inline_script =~ /<%.*%>/)
           puts "Looks like there's some dynamic content inside of a script tag :-/"
           puts "That pretty much means the hash value will never match."
@@ -42,7 +40,6 @@ module SecureHeaders
           puts "=" * 20
         end
 
-        verify(inline_script) if debug
         hashes << sha256_base64_digest(inline_script)
       end
 
@@ -53,23 +50,6 @@ module SecureHeaders
       # doesn't work on 1.8.7 :(
       # base64_193 = Digest::SHA256.base64digest(inline_script)
       [[Digest::SHA256.hexdigest(inline_script)].pack("H*")].pack("m").chomp
-    end
-
-    def verify(inline_script)
-      base64 = sha256_base64_digest(inline_script)
-      hex = Digest::SHA256.hexdigest(inline_script)
-
-      tmp_file = Tempfile.new("hash.tmp")
-      tmp_file.write(inline_script)
-      tmp_file.close
-
-      openssl_base64 = `openssl dgst -sha256 -binary #{tmp_file.path} | base64`.chomp
-      openssl_hex = `openssl dgst -sha256 #{tmp_file.path}`.chomp
-
-      tmp_file.unlink
-
-      raise "Base64 values do not match!!! '#{base64}' != '#{openssl_base64}'" unless base64 == openssl_base64
-      raise "Hex values do not match!!! '#{hex}' != '#{openssl_hex}'" unless Regexp.new(hex) =~ openssl_hex
     end
   end
 end

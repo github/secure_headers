@@ -5,17 +5,10 @@ namespace :secure_headers do
   require File.expand_path(File.join('..','..','secure_Headers','script_hash.rb'), __FILE__)
   include SecureHeaders::ScriptHashHelpers
 
-  task :generate_hashes, :debug do |t, args|
-    debug = args[:debug] == 'true'
-
-    if debug
-      puts "Generating script-hash values"
-      puts "=" * 20
-    end
-
+  task :generate_hashes do |t, args|
     script_hashes = {}
     Dir.glob("app/{views,templates}/**/*.{erb,mustache}") do |filename|
-      hashes = generate_inline_script_hashes(filename, debug)
+      hashes = generate_inline_script_hashes(filename)
       if hashes.any?
         script_hashes[filename] = hashes
       end
