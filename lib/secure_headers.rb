@@ -67,7 +67,7 @@ module SecureHeaders
     # set_csp_header(+Rack::Request+, +Hash+)
     def set_csp_header(req = nil, options=nil)
       # hack to help generating headers statically
-      if req.is_a?(Hash)
+      if req.is_a?(Hash) || req.is_a?(FalseClass)
         options = req
       end
 
@@ -76,12 +76,11 @@ module SecureHeaders
 
       return if options == false
 
-      csp_header = ContentSecurityPolicy.new(options, :request => request, :controller => self)
-      set_header(csp_header)
-      if options && options[:experimental] && options[:enforce]
-        experimental_header = ContentSecurityPolicy.new(options, :experimental => true, :request => request, :controller => self)
-        set_header(experimental_header)
-      end
+      # Save the options for later. We will actually set the header later in a
+      # middleware, in order to allow mutating the value of the header based on
+      # actions taken while rendering a response (i.e., to support script
+      # hashes).
+      ContentSecurityPolicy.add_to_env(request, self, options)
     end
 
     def set_x_frame_options_header(options=self.class.secure_headers_options[:x_frame_options])
@@ -130,6 +129,7 @@ end
 require "secure_headers/version"
 require "secure_headers/header"
 require "secure_headers/headers/content_security_policy"
+require "secure_headers/headers/content_security_policy/middleware"
 require "secure_headers/headers/x_frame_options"
 require "secure_headers/headers/strict_transport_security"
 require "secure_headers/headers/x_xss_protection"

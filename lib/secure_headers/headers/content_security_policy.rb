@@ -10,8 +10,37 @@ module SecureHeaders
       FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
       DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
       META = [:disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
+      ENV_KEY = 'secure_headers.content_security_policy'
     end
     include Constants
+
+    class << self
+      def add_to_env(request, controller, config)
+        options = options_from_request(request).merge(:controller => controller)
+        request.env[ENV_KEY] = {
+          :config => config,
+          :options => options,
+        }
+      end
+
+      def options_from_request(request)
+        {
+          :ssl => request.ssl?,
+          :ua => request.env['HTTP_USER_AGENT'],
+          :request_uri => request_uri_from_request(request),
+        }
+      end
+
+      def request_uri_from_request(request)
+        if request.respond_to?(:original_url)
+          # rails 3.1+
+          request.original_url
+        else
+          # rails 2/3.0
+          request.url
+        end
+      end
+    end
 
     attr_accessor *META
     attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental
@@ -33,16 +62,16 @@ module SecureHeaders
       @controller = options.delete(:controller)
 
       if options[:request]
-        parse_request(options[:request])
-      else
-        @ua = options[:ua]
-        # fails open, assumes http. Bad idea? Will always include http additions.
-        # could also fail if not supplied.
-        @ssl_request = !!options.delete(:ssl)
-        # a nil value here means we always assume we are not on the same host,
-        # which causes all FF csp reports to go through the forwarder
-        @request_uri = options.delete(:request_uri)
+        options = options.merge(self.class.options_from_request(options[:request]))
       end
+
+      @ua = options[:ua]
+      # fails open, assumes http. Bad idea? Will always include http additions.
+      # could also fail if not supplied.
+      @ssl_request = !!options.delete(:ssl)
+      # a nil value here means we always assume we are not on the same host,
+      # which causes all FF csp reports to go through the forwarder
+      @request_uri = options.delete(:request_uri)
 
       configure(config) if config
     end
@@ -231,18 +260,6 @@ module SecureHeaders
 
     def symbol_to_hyphen_case sym
       sym.to_s.gsub('_', '-')
-    end
-
-    def parse_request request
-      @ssl_request = request.ssl?
-      @ua = request.env['HTTP_USER_AGENT']
-      @request_uri = if request.respond_to?(:original_url)
-        # rails 3.1+
-        request.original_url
-      else
-        # rails 2/3.0
-        request.url
-      end
     end
   end
 end
