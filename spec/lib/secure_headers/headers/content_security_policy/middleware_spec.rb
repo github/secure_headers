@@ -19,14 +19,6 @@ module SecureHeaders
       }
     end
 
-    def should_assign_header name, value
-      expect(headers).to receive(:[]=).with(name, value)
-    end
-
-    def should_not_assign_header name
-      expect(headers).not_to receive(:[]=).with(name, anything)
-    end
-
     def call_middleware(config = {}, options = {})
       config = default_config.merge(config)
       options = {

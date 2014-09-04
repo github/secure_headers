@@ -21,14 +21,6 @@ describe SecureHeaders do
 
   ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection].map{|header| [header, false]}]
 
-  def should_assign_header name, value
-    expect(response.headers).to receive(:[]=).with(name, value)
-  end
-
-  def should_not_assign_header name
-    expect(response.headers).not_to receive(:[]=).with(name, anything)
-  end
-
   def should_add_csp_to_env options
     expect(SecureHeaders::ContentSecurityPolicy).to receive(:add_to_env).
       with(subject.request, subject, options)
