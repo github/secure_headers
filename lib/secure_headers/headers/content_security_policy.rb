@@ -17,7 +17,7 @@ module SecureHeaders
     class << self
       def add_to_env(request, controller, config)
         options = options_from_request(request).merge(:controller => controller)
-        request.env[ENV_KEY] = {
+        request.env[Constants::ENV_KEY] = {
           :config => config,
           :options => options,
         }
