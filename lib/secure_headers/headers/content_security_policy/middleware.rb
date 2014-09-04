@@ -19,7 +19,6 @@ module SecureHeaders
           csp_header = ContentSecurityPolicy.new(report_only_config, options)
           headers[csp_header.name] = csp_header.value
 
-          # TODO: Only set one header or the other, not both in enforce mode?
           if config[:experimental] && config[:enforce]
             experimental_header = ContentSecurityPolicy.new(config, options)
             headers[experimental_header.name] = experimental_header.value
