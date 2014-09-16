@@ -4,7 +4,7 @@ module SecureHeaders
     module Constants
       X_XSS_PROTECTION_HEADER_NAME = 'X-XSS-Protection'
       DEFAULT_VALUE = "1"
-      VALID_X_XSS_HEADER = /\A[01](; mode=block)?\z/i
+      VALID_X_XSS_HEADER = /\A[01](; mode=block)?(; report=.*)?\z/i
     end
     include Constants
 
@@ -26,6 +26,7 @@ module SecureHeaders
       else
         value = @config[:value].to_s
         value += "; mode=#{@config[:mode]}" if @config[:mode]
+        value += "; report=#{@config[:report_uri]}" if @config[:report_uri]
         value
       end
     end
