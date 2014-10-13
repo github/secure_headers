@@ -1,3 +1,5 @@
+require 'yaml'
+
 module SecureHeaders
   module Configuration
     class << self
@@ -21,6 +23,7 @@ module SecureHeaders
 
   module ClassMethods
     attr_writer :secure_headers_options
+    attr_writer :script_hashes
     def secure_headers_options
       if @secure_headers_options
         @secure_headers_options
@@ -31,8 +34,24 @@ module SecureHeaders
       end
     end
 
+    def script_hashes
+      if @script_hashes
+        @script_hashes
+      elsif superclass.respond_to?(:script_hashes) # stop at application_controller
+        superclass.script_hashes
+      else
+        {}
+      end
+    end
+
     def ensure_security_headers options = {}
+      begin
+        self.script_hashes = ::YAML::load_file('config/script_hashes.yml')
+      rescue Errno::ENOENT => e
+        puts "WARN: no script hash file."
+      end
       self.secure_headers_options = options
+      before_filter :prep_script_hash
       before_filter :set_hsts_header
       before_filter :set_x_frame_options_header
       before_filter :set_csp_header
@@ -59,6 +78,23 @@ module SecureHeaders
       set_x_download_options_header(options[:x_download_options])
     end
 
+    def prep_script_hash
+      ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
+        save_hash_for_later payload
+      end
+
+      ActiveSupport::Notifications.subscribe("render_template.action_view") do |event_name, start_at, end_at, id, payload|
+        save_hash_for_later payload
+      end
+    end
+
+    def save_hash_for_later payload
+      matching_hashes = self.class.script_hashes[payload[:identifier].gsub(Rails.root.to_s + "/", "")]
+      if matching_hashes
+        request.env['script_hashes'] = ((request.env['script_hashes'] || []) << matching_hashes).flatten
+      end
+    end
+
     # backwards compatibility jank, to be removed in 1.0. Old API required a request
     # object when it didn't really need to.
     # set_csp_header - uses the request accessor and SecureHeader::Configuration settings
@@ -77,10 +113,10 @@ module SecureHeaders
       return if options == false
 
       csp_header = ContentSecurityPolicy.new(options, :request => request, :controller => self)
-      set_header(csp_header)
+      set_header(csp_header, :save_to_env => true)
       if options && options[:experimental] && options[:enforce]
         experimental_header = ContentSecurityPolicy.new(options, :experimental => true, :request => request, :controller => self)
-        set_header(experimental_header)
+        set_header(experimental_header, :save_to_env => true)
       end
     end
 
@@ -115,19 +151,18 @@ module SecureHeaders
       set_header(header)
     end
 
-    def set_header(name_or_header, value=nil)
-      if name_or_header.is_a?(Header)
-        header = name_or_header
-        response.headers[header.name] = header.value
-      else
-        response.headers[name_or_header] = value
+    def set_header(header, options={})
+      if options[:save_to_env]
+        request.env[header.name] = header
       end
+      response.headers[header.name] = header.value
     end
   end
 end
 
 
 require "secure_headers/version"
+require "secure_headers/script_hash"
 require "secure_headers/header"
 require "secure_headers/headers/content_security_policy"
 require "secure_headers/headers/x_frame_options"

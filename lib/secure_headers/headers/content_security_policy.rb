@@ -1,5 +1,6 @@
 require 'uri'
 require 'base64'
+require 'securerandom'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -14,6 +15,7 @@ module SecureHeaders
     include Constants
 
     attr_accessor *META
+    attr_accessor :config
     attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental
 
     alias :disable_chrome_extension? :disable_chrome_extension
@@ -48,7 +50,7 @@ module SecureHeaders
     end
 
     def nonce
-      @nonce ||= SecureRandom.base64(32).chomp
+      @nonce ||= ::SecureRandom.base64(32).chomp
     end
 
     def configure(config)
@@ -143,7 +145,7 @@ module SecureHeaders
         hash
       end
 
-      @report_uri = @config.delete(:report_uri).join(" ") if @config[:report_uri]
+      @report_uri = @config[:report_uri].join(" ") if @config[:report_uri]
     end
 
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
@@ -217,7 +219,7 @@ module SecureHeaders
       end
 
       header_value = build_directive(:default_src)
-      config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
+      config.keys.reject {|k| [:default_src, :report_uri].include?(k)}.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
         header_value += build_directive(k)
       end
 
@@ -226,7 +228,7 @@ module SecureHeaders
 
     # build and deletes the directive
     def build_directive(key)
-      "#{symbol_to_hyphen_case(key)} #{@config.delete(key).join(" ")}; "
+      "#{symbol_to_hyphen_case(key)} #{@config[key].join(" ")}; "
     end
 
     def symbol_to_hyphen_case sym
