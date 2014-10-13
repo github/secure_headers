@@ -4,6 +4,7 @@ module SecureHeaders
     specify { expect(XXssProtection.new.value).to eq("1")}
     specify { expect(XXssProtection.new("0").value).to eq("0")}
     specify { expect(XXssProtection.new(:value => 1, :mode => 'block').value).to eq('1; mode=block') }
+    specify { expect(XXssProtection.new(:value => 1, :mode => 'block', :report_uri => 'https://www.secure.com/reports').value).to eq('1; mode=block; report=https://www.secure.com/reports') }
 
     context "with invalid configuration" do
       it "should raise an error when providing a string that is not valid" do

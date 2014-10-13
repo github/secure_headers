@@ -1,3 +1,10 @@
+1.3.4
+======
+
+* Adds X-Download-Options support
+* Adds support for X-XSS-Protection reporting
+* Defers loading of rails engine for faster boot times
+
 1.3.3
 ======
 
