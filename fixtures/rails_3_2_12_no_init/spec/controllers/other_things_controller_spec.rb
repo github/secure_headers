@@ -14,7 +14,8 @@ describe OtherThingsController, :type => :controller do
 
     it "sets the X-WebKit-CSP header" do
       get :index
-      expect(response.headers['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; img-src 'self' data:;")
+      nonce = controller.instance_exec { @content_security_policy_nonce }
+      expect(nonce).to match /[a-zA-Z0-9\+\/=]{44}/
     end
 
     #mock ssl

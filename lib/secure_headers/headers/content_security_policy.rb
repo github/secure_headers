@@ -17,9 +17,16 @@ module SecureHeaders
     class << self
       def add_to_env(request, controller, config)
         options = options_from_request(request).merge(:controller => controller)
+
+        if config.is_a?(Hash) && [config[:script_src], config[:style_src]].any? {|directive| !!directive && directive.include?('nonce')}
+          nonce = SecureRandom.base64(32).chomp
+          controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+          options.merge!(:nonce => nonce)
+        end
+
         request.env[Constants::ENV_KEY] = {
           :config => config,
-          :options => options,
+          :options => options
         }
       end
 
@@ -43,7 +50,7 @@ module SecureHeaders
     end
 
     attr_accessor *META
-    attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental
+    attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental, :nonce
 
     alias :disable_chrome_extension? :disable_chrome_extension
     alias :disable_fill_missing? :disable_fill_missing
@@ -55,11 +62,15 @@ module SecureHeaders
     # :request_uri used to determine if firefox should send the report directly
     # or use the forwarding endpoint
     # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
+    # :nonce to be used if specified in the config
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
       @controller = options.delete(:controller)
+      @nonce = options.delete(:nonce)
+
+      puts "HAS NONCE" if @nonce
 
       if options[:request]
         options = options.merge(self.class.options_from_request(options[:request]))
@@ -74,10 +85,6 @@ module SecureHeaders
       @request_uri = options.delete(:request_uri)
 
       configure(config) if config
-    end
-
-    def nonce
-      @nonce ||= SecureRandom.base64(32).chomp
     end
 
     def configure(config)
@@ -183,8 +190,7 @@ module SecureHeaders
       elsif %{self none}.include?(val)
         "'#{val}'"
       elsif val == 'nonce'
-        @controller.instance_variable_set(:@content_security_policy_nonce, nonce)
-        ["'nonce-#{nonce}'", "'unsafe-inline'"]
+        ["'nonce-#{@nonce}'", "'unsafe-inline'"]
       else
         val
       end

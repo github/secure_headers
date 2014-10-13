@@ -12,15 +12,11 @@ module SecureHeaders
         if !metadata.nil?
           config, options = metadata.values_at(:config, :options)
 
-          report_only_config = config.dup
-          report_only_config.delete(:experimental)
-          report_only_config.delete(:enforce)
-
-          csp_header = ContentSecurityPolicy.new(report_only_config, options)
+          csp_header = ContentSecurityPolicy.new(config, options)
           headers[csp_header.name] = csp_header.value
 
           if config[:experimental] && config[:enforce]
-            experimental_header = ContentSecurityPolicy.new(config, options)
+            experimental_header = ContentSecurityPolicy.new(config, options.merge(:experimental => true))
             headers[experimental_header.name] = experimental_header.value
           end
         end

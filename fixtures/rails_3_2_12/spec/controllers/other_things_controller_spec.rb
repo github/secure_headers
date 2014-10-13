@@ -16,7 +16,6 @@ describe OtherThingsController, :type => :controller do
       get :index
       nonce = controller.instance_exec { @content_security_policy_nonce }
       expect(nonce).to match /[a-zA-Z0-9\+\/=]{44}/
-      expect(response.headers['Content-Security-Policy-Report-Only']).to match(/default-src 'self'; img-src 'self' data:; script-src 'self' 'nonce-[a-zA-Z0-9\+\/=]{44}' 'unsafe-inline'; report-uri somewhere;/)
     end
 
     it "sets the Strict-Transport-Security header" do

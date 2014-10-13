@@ -23,11 +23,11 @@ module SecureHeaders
       config = default_config.merge(config)
       options = {
         :ua => USER_AGENTS[:chrome],
-        :controller => controller,
+        :controller => controller
       }.merge(options)
       expect(env).to receive(:[]).with(ENV_KEY).and_return(
         :config => config,
-        :options => options,
+        :options => options
       )
       ContentSecurityPolicy::Middleware.new(app).call(env)
     end
@@ -59,7 +59,7 @@ module SecureHeaders
           :enforce => true,
           :experimental => {
             :script_src => 'self',
-          },
+          }
         )
       end
 
