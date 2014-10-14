@@ -1,5 +1,6 @@
 require 'uri'
 require 'base64'
+require 'securerandom'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -19,8 +20,7 @@ module SecureHeaders
         options = options_from_request(request).merge(:controller => controller)
 
         if config.is_a?(Hash) && [config[:script_src], config[:style_src]].any? {|directive| !!directive && directive.include?('nonce')}
-          nonce = SecureRandom.base64(32).chomp
-          controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+          nonce = get_or_create_nonce(controller)
           options.merge!(:nonce => nonce)
         end
 
@@ -28,6 +28,15 @@ module SecureHeaders
           :config => config,
           :options => options
         }
+      end
+
+      def get_or_create_nonce(controller)
+        nonce = controller.instance_variable_get(:@content_security_policy_nonce)
+        unless nonce
+          nonce = ::SecureRandom.base64(32).chomp
+          controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+        end
+        nonce
       end
 
       def options_from_request(request)
@@ -68,9 +77,7 @@ module SecureHeaders
     def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
       @controller = options.delete(:controller)
-      @nonce = options.delete(:nonce)
-
-      puts "HAS NONCE" if @nonce
+      @nonce = options.delete(:nonce) || self.class.get_or_create_nonce(@controller)
 
       if options[:request]
         options = options.merge(self.class.options_from_request(options[:request]))
