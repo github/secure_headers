@@ -8,14 +8,28 @@ module SecureHeaders
     module Constants
       DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src data:"
       STANDARD_HEADER_NAME = "Content-Security-Policy"
-      FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
-      DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
-      META = [:disable_fill_missing]
+      DIRECTIVES = [
+        # :base_uri, disabled because this doesn't use the default-src value if empty
+        # :child_src, disabled because this doesn't use the default-src value if empty
+        :connect_src,
+        :default_src,
+        :font_src,
+        # :form_action, disabled because this doesn't use the default-src value if empty
+        :frame_src,
+        # :frame_ancestors, disabled because this doesn't use the default-src value if empty
+        :img_src,
+        :media_src,
+        :object_src,
+        # :plugin_types, disabled because this doesn't use the default-src value if empty
+        # :referrer, disabled because this doesn't use the default-src value if empty
+        # :reflected_xss, disabled because this doesn't use the default-src value if empty
+        :script_src,
+        :style_src
+      ]
     end
     include Constants
 
     attr_reader :disable_fill_missing, :ssl_request, :experimental
-
     alias :disable_fill_missing? :disable_fill_missing
     alias :ssl_request? :ssl_request
 
