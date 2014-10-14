@@ -4,7 +4,6 @@ module SecureHeaders
   describe ContentSecurityPolicy do
     let(:default_opts) do
       {
-        :disable_chrome_extension => true,
         :disable_fill_missing => true,
         :default_src => 'https://*',
         :report_uri => '/csp_report',
@@ -67,7 +66,6 @@ module SecureHeaders
 
     describe "#normalize_csp_options" do
       before(:each) do
-        default_opts.delete(:disable_chrome_extension)
         default_opts.delete(:disable_fill_missing)
         default_opts[:script_src] << ' self none'
         @opts = default_opts
@@ -98,7 +96,7 @@ module SecureHeaders
           }
 
           csp = ContentSecurityPolicy.new(opts)
-          expect(csp.report_uri).to eq("http://lambda/result")
+          expect(csp.value).to match("report-uri http://lambda/result")
         end
 
         it "accepts procs for other fields" do
@@ -115,130 +113,22 @@ module SecureHeaders
       end
     end
 
-    describe "#same_origin?" do
-      let(:origin) {"https://example.com:123"}
-
-      it "matches when host, scheme, and port match" do
-        csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://example.com"))
-        expect(csp.send(:same_origin?)).to be true
-
-        csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://example.com:443"))
-        expect(csp.send(:same_origin?)).to be true
-
-        csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com:123'}, :request => request_for(FIREFOX, "https://example.com:123"))
-        expect(csp.send(:same_origin?)).to be true
-
-        csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be true
-
-        csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com:80'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be true
-
-        csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com:80"))
-        expect(csp.send(:same_origin?)).to be true
-      end
-
-      it "does not match port mismatches" do
-        csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://example.com:81"))
-        expect(csp.send(:same_origin?)).to be false
-      end
-
-      it "does not match host mismatches" do
-        csp = ContentSecurityPolicy.new({:report_uri => 'http://twitter.com'}, :request => request_for(FIREFOX, "http://example.com"))
-        expect(csp.send(:same_origin?)).to be false
-      end
-
-      it "does not match host mismatches because of subdomains" do
-        csp = ContentSecurityPolicy.new({:report_uri => 'http://example.com'}, :request => request_for(FIREFOX, "http://sub.example.com"))
-        expect(csp.send(:same_origin?)).to be false
-      end
-
-      it "does not match scheme mismatches" do
-        csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "ftp://example.com"))
-        expect(csp.send(:same_origin?)).to be false
-      end
-
-      it "does not match on substring collisions" do
-        csp = ContentSecurityPolicy.new({:report_uri => 'https://example.com'}, :request => request_for(FIREFOX, "https://anotherexample.com"))
-        expect(csp.send(:same_origin?)).to be false
-      end
-    end
-
-    describe "#normalize_reporting_endpoint" do
-      let(:opts) {{:report_uri => 'https://example.com/csp', :forward_endpoint => anything}}
-
-      context "when using firefox" do
-        it "updates the report-uri when posting to a different host" do
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX, "https://anexample.com"))
-          expect(csp.report_uri).to eq(FF_CSP_ENDPOINT)
-        end
-
-        it "doesn't change report-uri if a path supplied" do
-          csp = ContentSecurityPolicy.new({:report_uri => "/csp_reports"}, :request => request_for(FIREFOX, "https://anexample.com"))
-          expect(csp.report_uri).to eq("/csp_reports")
-        end
-
-        it "forwards if the request_uri is set to a non-matching value" do
-          csp = ContentSecurityPolicy.new({:report_uri => "https://another.example.com", :forward_endpoint => '/somewhere'}, :ua => "Firefox", :request_uri => "https://anexample.com")
-          expect(csp.report_uri).to eq(FF_CSP_ENDPOINT)
-        end
-      end
-
-      it "does not update the URI is the report_uri is on the same origin" do
-        opts = {:report_uri => 'https://example.com/csp', :forward_endpoint => 'https://anotherexample.com'}
-        csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX, "https://example.com/somewhere"))
-        expect(csp.report_uri).to eq('https://example.com/csp')
-      end
-
-      it "does not update the report-uri when using a non-firefox browser" do
-        csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
-        expect(csp.report_uri).to eq('https://example.com/csp')
-      end
-
-      context "when using a protocol-relative value for report-uri" do
-        let(:opts) {
-          {
-            :default_src => 'self',
-            :report_uri => '//example.com/csp'
-          }
-        }
-
-        it "uses the current protocol" do
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX, '/', :ssl => true))
-          expect(csp.value).to match(%r{report-uri https://example.com/csp;})
-
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX))
-          expect(csp.value).to match(%r{report-uri http://example.com/csp;})
-        end
-
-        it "uses the pre-configured https protocol" do
-          csp = ContentSecurityPolicy.new(opts, :ua => "Firefox", :ssl => true)
-          expect(csp.value).to match(%r{report-uri https://example.com/csp;})
-        end
-
-        it "uses the pre-configured http protocol" do
-          csp = ContentSecurityPolicy.new(opts, :ua => "Firefox", :ssl => false)
-          expect(csp.value).to match(%r{report-uri http://example.com/csp;})
-        end
-      end
-    end
-
     describe "#value" do
       it "raises an exception when default-src is missing" do
         csp = ContentSecurityPolicy.new({:script_src => 'anything'}, :request => request_for(CHROME))
         expect {
           csp.value
-        }.to raise_error(ContentSecurityPolicyBuildError, "Couldn't build CSP header :( Expected to find default_src directive value")
+        }.to raise_error(RuntimeError)
       end
 
       context "auto-whitelists data: uris for img-src" do
         it "sets the value if no img-src specified" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :disable_fill_missing => true, :disable_chrome_extension => true}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => 'self', :disable_fill_missing => true}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "appends the value if img-src is specified" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_fill_missing => true, :disable_chrome_extension => true}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_fill_missing => true}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
       end
@@ -301,7 +191,6 @@ module SecureHeaders
 
       context "when supplying a experimental values" do
         let(:options) {{
-          :disable_chrome_extension => true,
           :disable_fill_missing => true,
           :default_src => 'self',
           :script_src => 'https://*',
@@ -352,7 +241,6 @@ module SecureHeaders
           # report only tag will allow scripts from self over ssl, and
           # from a secure CDN over non-ssl
           let(:options) {{
-            :disable_chrome_extension => true,
             :disable_fill_missing => true,
             :default_src => 'self',
             :script_src => 'https://*',
