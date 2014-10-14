@@ -55,7 +55,6 @@ describe OtherThingsController, :type => :controller do
 
     context "using IE" do
       it "sets the X-Content-Type-Options header" do
-        debugger
         get '/'
         expect(@env['X-Content-Type-Options']).to eq("nosniff")
       end
