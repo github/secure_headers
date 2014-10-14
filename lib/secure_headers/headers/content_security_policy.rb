@@ -1,5 +1,6 @@
 require 'uri'
 require 'base64'
+require 'securerandom'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -9,28 +10,24 @@ module SecureHeaders
       STANDARD_HEADER_NAME = "Content-Security-Policy"
       FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
       DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
-      META = [:disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
+      META = [:disable_fill_missing]
     end
     include Constants
 
-    attr_accessor *META
-    attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental
+    attr_reader :disable_fill_missing, :ssl_request, :experimental
 
-    alias :disable_chrome_extension? :disable_chrome_extension
     alias :disable_fill_missing? :disable_fill_missing
     alias :ssl_request? :ssl_request
 
     # +options+ param contains
     # :experimental use experimental block for config
     # :ssl_request used to determine if http_additions should be used
-    # :request_uri used to determine if firefox should send the report directly
-    # or use the forwarding endpoint
     # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
-      @experimental = !!options.delete(:experimental)
-      @controller = options.delete(:controller)
+      @experimental = !!options[:experimental]
+      @controller = options[:controller]
 
       if options[:request]
         parse_request(options[:request])
@@ -38,10 +35,10 @@ module SecureHeaders
         @ua = options[:ua]
         # fails open, assumes http. Bad idea? Will always include http additions.
         # could also fail if not supplied.
-        @ssl_request = !!options.delete(:ssl)
+        @ssl_request = !!options[:ssl]
         # a nil value here means we always assume we are not on the same host,
         # which causes all FF csp reports to go through the forwarder
-        @request_uri = options.delete(:request_uri)
+        @request_uri = options[:request_uri]
       end
 
       configure(config) if config
@@ -64,16 +61,12 @@ module SecureHeaders
       @http_additions = @config.delete(:http_additions)
       @app_name = @config.delete(:app_name)
 
-      normalize_csp_options
+      normalize_csp_config
 
-      META.each do |meta|
-        self.send("#{meta}=", @config.delete(meta))
-      end
-
+      @disable_fill_missing = @config.delete(:disable_fill_missing)
       @enforce = !!@config.delete(:enforce)
       @tag_report_uri = @config.delete(:tag_report_uri)
 
-      normalize_reporting_endpoint
       fill_directives unless disable_fill_missing?
     end
 
@@ -103,8 +96,6 @@ module SecureHeaders
         generic_directives(@config),
         report_uri_directive
       ].join.strip
-    rescue StandardError => e
-      raise ContentSecurityPolicyBuildError.new("Couldn't build CSP header :( #{e}")
     end
 
     def fill_directives
@@ -126,7 +117,7 @@ module SecureHeaders
       end
     end
 
-    def normalize_csp_options
+    def normalize_csp_config
       @config = @config.inject({}) do |hash, (key, value)|
         # lambdas
         config_val = value.respond_to?(:call) ? value.call : value
@@ -161,39 +152,6 @@ module SecureHeaders
       end
     end
 
-    # if we have a forwarding endpoint setup and we are not on the same origin as our report_uri
-    # or only a path was supplied (in which case we assume cross-host)
-    # we need to forward the request for Firefox.
-    def normalize_reporting_endpoint
-      if @ua && @ua =~ /Firefox/
-        if same_origin? || report_uri.nil? || URI.parse(report_uri).host.nil?
-          return
-        end
-
-        if forward_endpoint
-          @report_uri = FF_CSP_ENDPOINT
-        end
-      end
-
-      if @tag_report_uri
-        @report_uri = "#{@report_uri}?enforce=#{@enforce}"
-        @report_uri += "&app_name=#{@app_name}" if @app_name
-      end
-    end
-
-    def same_origin?
-      return unless report_uri && request_uri
-
-      begin
-        origin = URI.parse(request_uri)
-        uri = URI.parse(report_uri)
-      rescue URI::InvalidURIError
-        return false
-      end
-
-      uri.host == origin.host && origin.port == uri.port && origin.scheme == uri.scheme
-    end
-
     def report_uri_directive
       return '' if @report_uri.nil?
 
@@ -203,6 +161,11 @@ module SecureHeaders
                       else
                         "http:" + @report_uri
                       end
+      end
+
+      if @tag_report_uri
+        @report_uri = "#{@report_uri}?enforce=#{@enforce}"
+        @report_uri += "&app_name=#{@app_name}" if @app_name
       end
 
       "report-uri #{@report_uri};"

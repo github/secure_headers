@@ -54,8 +54,6 @@ The following methods are going to be called, unless they are provided in a `ski
 This gem makes a few assumptions about how you will use some features.  For example:
 
 * It fills any blank directives with the value in `:default_src`  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying `:disable_fill_missing => true`. This is referred to as the "effective-directive" in the spec, but is not well supported as of Nov 5, 2013.
-* Firefox does not support cross\-origin CSP reports.  If we are using Firefox, AND the value for `:report_uri` does not satisfy the same\-origin requirements, we will instead forward to an internal endpoint (`FF_CSP_ENDPOINT`).  This is also the case if `:report_uri` only contains a path, which we assume will be cross host. This endpoint will in turn forward the request to the value in `:forward_endpoint` without restriction. More information can be found in the "Note on Firefox handling of CSP" section.
-
 
 ## Configuration
 
@@ -124,11 +122,6 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 
   # Where reports are sent. Use protocol relative URLs if you are posting to the same domain (TLD+1). Use paths if you are posting to the application serving the header
   :report_uri  => '//mysite.example.com',
-
-  # Send reports that cannot be sent across host here. These requests are sent
-  # the server, not the browser. If no value is supplied, it will default to
-  # the value in report_uri. Use this if you cannot use relative protocols mentioned above due to host mismatches.
-  :forward_endpoint => 'https://internal.mylogaggregator.example.com'
 
   # these directives all take 'none', 'self', or a globbed pattern
   :img_src     => nil,
@@ -244,28 +237,6 @@ script/style-nonce can be used to whitelist inline content. To do this, add "non
 </script>
 ```
 
-## Note on Firefox handling of CSP
-
-* CSP reports will not POST cross\-origin.  This sets up an internal endpoint in the application that will forward the request. Set the `forward_endpoint` value in the CSP section if you need to post cross origin for firefox. The internal endpoint that receives the initial request will forward the request to `forward_endpoint`
-
-### Adding the Firefox report forwarding endpoint
-
-**You need to add the following line to the TOP of confib/routes.rb**
-**This is an unauthenticated, unauthorized endpoint. Only do this if your report\-uri is not on the same origin as your application!!!**
-
-#### Rails 2
-
-```ruby
-map.csp_endpoint
-```
-
-#### Rails 3
-
-If the csp reporting endpoint is clobbered by another route, add:
-
-```ruby
-post SecureHeaders::ContentSecurityPolicy::FF_CSP_ENDPOINT => "content_security_policy#scribe"
-```
 ### Using with Sinatra
 
 Here's an example using SecureHeaders for Sinatra applications:
