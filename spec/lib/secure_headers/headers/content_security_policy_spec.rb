@@ -388,5 +388,48 @@ module SecureHeaders
         end
       end
     end
+
+    describe "class methods" do
+      let(:ua) { CHROME }
+      let(:env) do
+        double.tap do |env|
+          allow(env).to receive(:[]).with('HTTP_USER_AGENT').and_return(ua)
+        end
+      end
+      let(:request) do
+        double(
+          :ssl? => true,
+          :url => 'https://example.com',
+          :env => env
+        )
+      end
+
+      describe ".add_to_env" do
+        let(:controller) { double }
+        let(:config) { {:default_src => 'self'} }
+        let(:options) { {:controller => controller} }
+
+        it "adds metadata to env" do
+          metadata = {
+            :config => config,
+            :options => options
+          }
+          expect(ContentSecurityPolicy).to receive(:options_from_request).and_return(options)
+          expect(env).to receive(:[]=).with(ContentSecurityPolicy::ENV_KEY, metadata)
+          ContentSecurityPolicy.add_to_env(request, controller, config)
+        end
+      end
+
+      describe ".options_from_request" do
+        it "extracts options from request" do
+          options = ContentSecurityPolicy.options_from_request(request)
+          expect(options).to eql({
+            :ua => ua,
+            :ssl => true,
+            :request_uri => 'https://example.com'
+          })
+        end
+      end
+    end
   end
 end

@@ -1,5 +1,6 @@
 require 'uri'
 require 'base64'
+require 'securerandom'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -10,11 +11,55 @@ module SecureHeaders
       FF_CSP_ENDPOINT = "/content_security_policy/forward_report"
       DIRECTIVES = [:default_src, :script_src, :frame_src, :style_src, :img_src, :media_src, :font_src, :object_src, :connect_src]
       META = [:disable_chrome_extension, :disable_fill_missing, :forward_endpoint]
+      ENV_KEY = 'secure_headers.content_security_policy'
     end
     include Constants
 
+    class << self
+      def add_to_env(request, controller, config)
+        options = options_from_request(request).merge(:controller => controller)
+
+        if config.is_a?(Hash) && [config[:script_src], config[:style_src]].any? {|directive| !!directive && directive.include?('nonce')}
+          nonce = get_or_create_nonce(controller)
+          options.merge!(:nonce => nonce)
+        end
+
+        request.env[Constants::ENV_KEY] = {
+          :config => config,
+          :options => options
+        }
+      end
+
+      def get_or_create_nonce(controller)
+        nonce = controller.instance_variable_get(:@content_security_policy_nonce)
+        unless nonce
+          nonce = ::SecureRandom.base64(32).chomp
+          controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+        end
+        nonce
+      end
+
+      def options_from_request(request)
+        {
+          :ssl => request.ssl?,
+          :ua => request.env['HTTP_USER_AGENT'],
+          :request_uri => request_uri_from_request(request),
+        }
+      end
+
+      def request_uri_from_request(request)
+        if request.respond_to?(:original_url)
+          # rails 3.1+
+          request.original_url
+        else
+          # rails 2/3.0
+          request.url
+        end
+      end
+    end
+
     attr_accessor *META
-    attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental
+    attr_reader :browser, :ssl_request, :report_uri, :request_uri, :experimental, :nonce
 
     alias :disable_chrome_extension? :disable_chrome_extension
     alias :disable_fill_missing? :disable_fill_missing
@@ -26,29 +71,27 @@ module SecureHeaders
     # :request_uri used to determine if firefox should send the report directly
     # or use the forwarding endpoint
     # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
+    # :nonce to be used if specified in the config
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
       @controller = options.delete(:controller)
+      @nonce = options.delete(:nonce) || self.class.get_or_create_nonce(@controller)
 
       if options[:request]
-        parse_request(options[:request])
-      else
-        @ua = options[:ua]
-        # fails open, assumes http. Bad idea? Will always include http additions.
-        # could also fail if not supplied.
-        @ssl_request = !!options.delete(:ssl)
-        # a nil value here means we always assume we are not on the same host,
-        # which causes all FF csp reports to go through the forwarder
-        @request_uri = options.delete(:request_uri)
+        options = options.merge(self.class.options_from_request(options[:request]))
       end
 
-      configure(config) if config
-    end
+      @ua = options[:ua]
+      # fails open, assumes http. Bad idea? Will always include http additions.
+      # could also fail if not supplied.
+      @ssl_request = !!options.delete(:ssl)
+      # a nil value here means we always assume we are not on the same host,
+      # which causes all FF csp reports to go through the forwarder
+      @request_uri = options.delete(:request_uri)
 
-    def nonce
-      @nonce ||= SecureRandom.base64(32).chomp
+      configure(config) if config
     end
 
     def configure(config)
@@ -154,8 +197,7 @@ module SecureHeaders
       elsif %{self none}.include?(val)
         "'#{val}'"
       elsif val == 'nonce'
-        @controller.instance_variable_set(:@content_security_policy_nonce, nonce)
-        ["'nonce-#{nonce}'", "'unsafe-inline'"]
+        ["'nonce-#{@nonce}'", "'unsafe-inline'"]
       else
         val
       end
@@ -231,18 +273,6 @@ module SecureHeaders
 
     def symbol_to_hyphen_case sym
       sym.to_s.gsub('_', '-')
-    end
-
-    def parse_request request
-      @ssl_request = request.ssl?
-      @ua = request.env['HTTP_USER_AGENT']
-      @request_uri = if request.respond_to?(:original_url)
-        # rails 3.1+
-        request.original_url
-      else
-        # rails 2/3.0
-        request.url
-      end
     end
   end
 end

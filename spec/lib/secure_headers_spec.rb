@@ -16,27 +16,18 @@ describe SecureHeaders do
     allow(headers).to receive(:[])
     allow(subject).to receive(:response).and_return(response)
     allow(subject).to receive(:request).and_return(request)
+    allow(request).to receive_message_chain(:env, :[]=)
   end
 
   ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection].map{|header| [header, false]}]
-  USER_AGENTS = {
-    :firefox => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1',
-    :chrome => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.56 Safari/536.5',
-    :ie => 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/5.0)',
-    :opera => 'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00',
-    :ios5 => "Mozilla/5.0 (iPhone; CPU iPhone OS 5_0 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9A334 Safari/7534.48.3",
-    :ios6 => "Mozilla/5.0 (iPhone; CPU iPhone OS 614 like Mac OS X) AppleWebKit/536.26 (KHTML like Gecko) Version/6.0 Mobile/10B350 Safari/8536.25",
-    :safari5 => "Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko ) Version/5.1 Mobile/9B176 Safari/7534.48.3",
-    :safari5_1 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/534.55.3 (KHTML, like Gecko) Version/5.1.3 Safari/534.53.10",
-    :safari6 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/536.30.1 (KHTML like Gecko) Version/6.0.5 Safari/536.30.1"
-  }
 
-  def should_assign_header name, value
-    expect(response.headers).to receive(:[]=).with(name, value)
+  def should_add_csp_to_env options
+    expect(SecureHeaders::ContentSecurityPolicy).to receive(:add_to_env).
+      with(subject.request, subject, options)
   end
 
-  def should_not_assign_header name
-    expect(response.headers).not_to receive(:[]=).with(name, anything)
+  def should_not_add_csp_to_env
+    expect(SecureHeaders::ContentSecurityPolicy).not_to receive(:add_to_env)
   end
 
   def stub_user_agent val
@@ -94,7 +85,9 @@ describe SecureHeaders do
     USER_AGENTS.each do |name, useragent|
       it "sets all default headers for #{name} (smoke test)" do
         stub_user_agent(useragent)
-        number_of_headers = 6
+        # This is only 5 because `set_csp_header` does not actually set a header;
+        # it adds metadata to ENV that is used to set a header later by a middleware.
+        number_of_headers = 5
         expect(subject).to receive(:set_header).exactly(number_of_headers).times # a request for a given header
         subject.set_csp_header
         subject.set_x_frame_options_header
@@ -244,54 +237,19 @@ describe SecureHeaders do
   end
 
   describe "#set_csp_header" do
-    context "when using Firefox" do
-      it "sets CSP headers" do
-        stub_user_agent(USER_AGENTS[:firefox])
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
-        subject.set_csp_header
+    context "when enabled" do
+      it "adds CSP metadata to env" do
+        options = {:ua => 'foo'}
+        should_add_csp_to_env(options)
+        subject.set_csp_header(options)
       end
     end
 
-    context "when using Chrome" do
-      it "sets default CSP header" do
-        stub_user_agent(USER_AGENTS[:chrome])
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
-        subject.set_csp_header
-      end
-    end
-
-    context "when using a browser besides chrome/firefox" do
-      it "sets the CSP header" do
-        stub_user_agent(USER_AGENTS[:opera])
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
-        subject.set_csp_header
-      end
-    end
-
-    context "when using the experimental key" do
-      before(:each) do
-        stub_user_agent(USER_AGENTS[:chrome])
-        @opts = {
-          :enforce => true,
-          :default_src => 'self',
-          :script_src => 'https://mycdn.example.com',
-          :experimental => {
-            :script_src => 'self',
-          }
-        }
-      end
-
-      it "does not set the header in enforce mode if experimental is supplied, but enforce is disabled" do
-        opts = @opts.merge(:enforce => false)
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", anything)
-        should_not_assign_header(STANDARD_HEADER_NAME)
-        subject.set_csp_header(opts)
-      end
-
-      it "sets a header in enforce mode as well as report-only mode" do
-        should_assign_header(STANDARD_HEADER_NAME, anything)
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", anything)
-        subject.set_csp_header(@opts)
+    context "when not enabled" do
+      it "does not ad CSP metadata to env" do
+        options = false
+        should_not_add_csp_to_env
+        subject.set_csp_header(options)
       end
     end
   end

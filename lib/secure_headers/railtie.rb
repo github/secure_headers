@@ -8,6 +8,10 @@ if defined?(Rails::Railtie)
           include ::SecureHeaders
         end
       end
+
+      initializer "secure_headers.add_middleware" do |app|
+        app.middleware.use SecureHeaders::ContentSecurityPolicy::Middleware
+      end
     end
   end
 else
