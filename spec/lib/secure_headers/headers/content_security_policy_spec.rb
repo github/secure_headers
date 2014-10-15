@@ -53,15 +53,6 @@ module SecureHeaders
         specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME)).name).to eq(STANDARD_HEADER_NAME)}
         specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME_25)).name).to eq(STANDARD_HEADER_NAME)}
       end
-
-      context "when in experimental mode" do
-        let(:opts) { default_opts.merge(:enforce => true).merge(:experimental => {})}
-        specify { expect(ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(IE)}).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(FIREFOX)}).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(FIREFOX_23)}).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(CHROME)}).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(opts, {:experimental => true, :request => request_for(CHROME_25)}).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-      end
     end
 
     describe "#normalize_csp_options" do
@@ -189,27 +180,6 @@ module SecureHeaders
         end
       end
 
-      context "when supplying a experimental values" do
-        let(:options) {{
-          :disable_fill_missing => true,
-          :default_src => 'self',
-          :script_src => 'https://*',
-          :experimental => {
-            :script_src => 'self'
-          }
-        }}
-
-        it "returns the original value" do
-          header = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(header.value).to eq("default-src 'self'; img-src 'self' data:; script-src https://*;")
-        end
-
-        it "it returns the experimental value if requested" do
-          header = ContentSecurityPolicy.new(options, {:request => request_for(CHROME), :experimental => true})
-          expect(header.value).not_to match(/https/)
-        end
-      end
-
       context "when supplying additional http directive values" do
         let(:options) {
           default_opts.merge({
@@ -233,46 +203,6 @@ module SecureHeaders
         it "does not add the directive values if requesting https" do
           csp = ContentSecurityPolicy.new(options, :ua => "Chrome", :ssl => true)
           expect(csp.value).not_to match(/http:/)
-        end
-
-        context "when supplying an experimental block" do
-          # this simulates the situation where we are enforcing that scripts
-          # only come from http[s]? depending if we're on ssl or not. The
-          # report only tag will allow scripts from self over ssl, and
-          # from a secure CDN over non-ssl
-          let(:options) {{
-            :disable_fill_missing => true,
-            :default_src => 'self',
-            :script_src => 'https://*',
-            :http_additions => {
-              :script_src => 'http://*'
-            },
-            :experimental => {
-              :script_src => 'self',
-              :http_additions => {
-                :script_src => 'https://mycdn.example.com'
-              }
-            }
-          }}
-          # for comparison purposes, if not using the experimental header this would produce
-          # "allow 'self'; script-src https://*" for https requests
-          # and
-          # "allow 'self'; script-src https://* http://*" for http requests
-
-          it "uses the value in the experimental block over SSL" do
-            csp = ContentSecurityPolicy.new(options, :experimental => true, :request => request_for(FIREFOX, '/', :ssl => true))
-            expect(csp.value).to eq("default-src 'self'; img-src 'self' data:; script-src 'self';")
-          end
-
-          it "detects the :ssl => true option" do
-            csp = ContentSecurityPolicy.new(options, :experimental => true, :ua => FIREFOX, :ssl => true)
-            expect(csp.value).to eq("default-src 'self'; img-src 'self' data:; script-src 'self';")
-          end
-
-          it "merges the values from experimental/http_additions when not over SSL" do
-            csp = ContentSecurityPolicy.new(options, :experimental => true, :request => request_for(FIREFOX))
-            expect(csp.value).to eq("default-src 'self'; img-src 'self' data:; script-src 'self' https://mycdn.example.com;")
-          end
         end
       end
     end

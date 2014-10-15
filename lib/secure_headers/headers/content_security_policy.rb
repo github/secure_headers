@@ -29,18 +29,16 @@ module SecureHeaders
     end
     include Constants
 
-    attr_reader :disable_fill_missing, :ssl_request, :experimental
+    attr_reader :disable_fill_missing, :ssl_request
     alias :disable_fill_missing? :disable_fill_missing
     alias :ssl_request? :ssl_request
 
     # +options+ param contains
-    # :experimental use experimental block for config
     # :ssl_request used to determine if http_additions should be used
     # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
-      @experimental = !!options[:experimental]
       @controller = options[:controller]
 
       if options[:request]
@@ -64,13 +62,6 @@ module SecureHeaders
 
     def configure(config)
       @config = config.dup
-
-      experimental_config = @config.delete(:experimental)
-      if @experimental && experimental_config
-        @config[:http_additions] = experimental_config[:http_additions]
-        @config.merge!(experimental_config)
-      end
-
       # these values don't support lambdas because this needs to be rewritten
       @http_additions = @config.delete(:http_additions)
       @app_name = @config.delete(:app_name)
@@ -86,7 +77,7 @@ module SecureHeaders
 
     def name
       base = STANDARD_HEADER_NAME
-      if !@enforce || experimental
+      if !@enforce
         base += "-Report-Only"
       end
       base

@@ -267,32 +267,5 @@ describe SecureHeaders do
         subject.set_csp_header
       end
     end
-
-    context "when using the experimental key" do
-      before(:each) do
-        stub_user_agent(USER_AGENTS[:chrome])
-        @opts = {
-          :enforce => true,
-          :default_src => 'self',
-          :script_src => 'https://mycdn.example.com',
-          :experimental => {
-            :script_src => 'self',
-          }
-        }
-      end
-
-      it "does not set the header in enforce mode if experimental is supplied, but enforce is disabled" do
-        opts = @opts.merge(:enforce => false)
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", anything)
-        should_not_assign_header(STANDARD_HEADER_NAME)
-        subject.set_csp_header(opts)
-      end
-
-      it "sets a header in enforce mode as well as report-only mode" do
-        should_assign_header(STANDARD_HEADER_NAME, anything)
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", anything)
-        subject.set_csp_header(@opts)
-      end
-    end
   end
 end

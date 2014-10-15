@@ -78,10 +78,6 @@ module SecureHeaders
 
       csp_header = ContentSecurityPolicy.new(options, :request => request, :controller => self)
       set_header(csp_header)
-      if options && options[:experimental] && options[:enforce]
-        experimental_header = ContentSecurityPolicy.new(options, :experimental => true, :request => request, :controller => self)
-        set_header(experimental_header)
-      end
     end
 
     def set_x_frame_options_header(options=self.class.secure_headers_options[:x_frame_options])
