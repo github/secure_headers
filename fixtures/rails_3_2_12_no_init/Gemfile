@@ -3,9 +3,3 @@ source 'https://rubygems.org'
 gem 'rails', '3.2.12'
 gem 'rspec-rails', '>= 2.0.0'
 gem 'secure_headers', :path => '../..'
-gem 'debugger', :platform => :ruby_19
-gem 'ruby-debug', :platform => :ruby_18
-gem 'guard-rspec'
-gem 'rb-fsevent'
-gem 'growl'
-
