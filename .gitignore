@@ -1,4 +1,5 @@
 *.gem
+*.DS_STORE
 *.rbc
 .bundle
 .config
@@ -15,12 +16,7 @@ rdoc
 spec/reports
 test/tmp
 test/version_tmp
-tmp
-
-/fixtures/rails_3_2_12/log/test.log
-/fixtures/rails_3_2_12_no_init/log/test.log
+*tmp
 *.sqlite3
-test.sqlite3
-*test.sqlite3
-/fixtures/rails_3_2_12_no_init/db/test.sqlite3
-/fixtures/rails_3_2_12/db/test.sqlite3
+fixtures/rails_3_2_12_no_init/log
+fixtures/rails_3_2_12/log
