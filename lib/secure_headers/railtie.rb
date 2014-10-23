@@ -3,6 +3,7 @@ if defined?(Rails::Railtie)
   module SecureHeaders
     class Railtie < Rails::Engine
       isolate_namespace ::SecureHeaders if defined? isolate_namespace # rails 3.0
+      config.eager_load_paths = [] if ['test', 'development'].include?(Rails.env)
       initializer "secure_headers.action_controller" do
         ActiveSupport.on_load(:action_controller) do
           include ::SecureHeaders
