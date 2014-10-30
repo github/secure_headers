@@ -6,7 +6,7 @@ module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
   class ContentSecurityPolicy < Header
     module Constants
-      DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src data:"
+      DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https: about: javascript:; img-src data:"
       HEADER_NAME = "Content-Security-Policy"
       DIRECTIVES = [
         # :base_uri, disabled because this doesn't use the default-src value if empty

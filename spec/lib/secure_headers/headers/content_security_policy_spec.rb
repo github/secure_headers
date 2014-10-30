@@ -5,10 +5,10 @@ module SecureHeaders
     let(:default_opts) do
       {
         :disable_fill_missing => true,
-        :default_src => 'https://*',
+        :default_src => 'https:',
         :report_uri => '/csp_report',
-        :script_src => 'inline eval https://* data:',
-        :style_src => "inline https://* about:"
+        :script_src => 'inline eval https: data:',
+        :style_src => "inline https: about:"
       }
     end
 
@@ -65,7 +65,7 @@ module SecureHeaders
       context "Content-Security-Policy" do
         it "converts the script values to their equivilents" do
           csp = ContentSecurityPolicy.new(@opts, :request => request_for(CHROME))
-          expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https://* data: 'self' 'none'")
+          expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https: data: 'self' 'none'")
         end
 
         it "adds a @enforce and @app_name variables to the report uri" do
@@ -127,7 +127,7 @@ module SecureHeaders
       it "fills in directives without values with default-src value" do
         options = default_opts.merge(:disable_fill_missing => false)
         csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-        value = "default-src https://*; connect-src https://*; font-src https://*; frame-src https://*; img-src https://* data:; media-src https://*; object-src https://*; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;"
+        value = "default-src https:; connect-src https:; font-src https:; frame-src https:; img-src https: data:; media-src https:; object-src https:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;"
         expect(csp.value).to eq(value)
       end
 
@@ -139,14 +139,14 @@ module SecureHeaders
       context "Firefox" do
         it "builds a csp header for firefox" do
           csp = ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX))
-          expect(csp.value).to eq("default-src https://*; img-src https://* data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;")
+          expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
         end
       end
 
       context "Chrome" do
         it "builds a csp header for chrome" do
           csp = ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src https://*; img-src https://* data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;")
+          expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
         end
 
         it "ignores :forward_endpoint settings" do
@@ -184,15 +184,15 @@ module SecureHeaders
         let(:options) {
           default_opts.merge({
             :http_additions => {
-              :frame_src => "http://*",
-              :img_src => "http://*"
+              :frame_src => "http:",
+              :img_src => "http:"
             }
           })
         }
 
         it "adds directive values for headers on http" do
           csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src https://*; frame-src http://*; img-src http://* data:; script-src 'unsafe-inline' 'unsafe-eval' https://* data:; style-src 'unsafe-inline' https://* about:; report-uri /csp_report;")
+          expect(csp.value).to eq("default-src https:; frame-src http:; img-src http: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
         end
 
         it "does not add the directive values if requesting https" do
