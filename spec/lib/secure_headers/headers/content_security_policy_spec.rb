@@ -69,7 +69,7 @@ module SecureHeaders
         end
 
         it "adds a @enforce and @app_name variables to the report uri" do
-          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => 'twitter')
+          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => lambda { 'twitter' })
           csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
           expect(csp.value).to include("/csp_report?enforce=true&app_name=twitter")
         end
@@ -147,11 +147,6 @@ module SecureHeaders
         it "builds a csp header for chrome" do
           csp = ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
-        end
-
-        it "ignores :forward_endpoint settings" do
-          csp = ContentSecurityPolicy.new(@options_with_forwarding, :request => request_for(CHROME))
-          expect(csp.value).to match(/report-uri #{@options_with_forwarding[:report_uri]};/)
         end
       end
 

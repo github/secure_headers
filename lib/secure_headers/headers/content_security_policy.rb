@@ -34,11 +34,14 @@ module SecureHeaders
     alias :ssl_request? :ssl_request
 
     # +options+ param contains
+    # :controller used for setting instance variables for nonces/hashes
     # :ssl_request used to determine if http_additions should be used
     # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
     #
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
+      return unless config
+
       @controller = options[:controller]
 
       if options[:request]
@@ -53,26 +56,36 @@ module SecureHeaders
         @request_uri = options[:request_uri]
       end
 
-      configure(config) if config
-    end
+      @config = config.inject({}) do |hash, (key, value)|
+        # lambdas
+        config_val = value.respond_to?(:call) ? value.call : value
 
-    def nonce
-      @nonce ||= SecureRandom.base64(32).chomp
-    end
+        if DIRECTIVES.include?(key)
+          config_val = config_val.split if config_val.is_a? String
+          if config_val.is_a?(Array)
+            config_val = config_val.map do |val|
+              translate_dir_value(val)
+            end.flatten.uniq
+          end
+        end
 
-    def configure(config)
-      @config = config.dup
-      # these values don't support lambdas because this needs to be rewritten
+        hash[key] = config_val
+        hash
+      end
+
+      @report_uri = @config.delete(:report_uri) if @config[:report_uri]
+
       @http_additions = @config.delete(:http_additions)
       @app_name = @config.delete(:app_name)
-
-      normalize_csp_config
-
       @disable_fill_missing = @config.delete(:disable_fill_missing)
       @enforce = !!@config.delete(:enforce)
       @tag_report_uri = @config.delete(:tag_report_uri)
 
       fill_directives unless disable_fill_missing?
+    end
+
+    def nonce
+      @nonce ||= SecureRandom.base64(32).chomp
     end
 
     def name
@@ -120,26 +133,6 @@ module SecureHeaders
         @config[k] ||= []
         @config[k] << v
       end
-    end
-
-    def normalize_csp_config
-      @config = @config.inject({}) do |hash, (key, value)|
-        # lambdas
-        config_val = value.respond_to?(:call) ? value.call : value
-        # space-delimeted strings
-        config_val = config_val.split if config_val.is_a? String
-        # array of strings
-        if config_val.respond_to?(:map) #skip booleans
-          config_val = config_val.map do |val|
-            translate_dir_value(val)
-          end.flatten.uniq
-        end
-
-        hash[key] = config_val
-        hash
-      end
-
-      @report_uri = @config.delete(:report_uri).join(" ") if @config[:report_uri]
     end
 
     # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
