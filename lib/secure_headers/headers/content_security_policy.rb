@@ -33,6 +33,26 @@ module SecureHeaders
     alias :disable_fill_missing? :disable_fill_missing
     alias :ssl_request? :ssl_request
 
+    class << self
+      def options_from_request(request)
+        {
+          :ssl => request.ssl?,
+          :ua => request.env['HTTP_USER_AGENT'],
+          :request_uri => request_uri_from_request(request),
+        }
+      end
+
+      def request_uri_from_request(request)
+        if request.respond_to?(:original_url)
+          # rails 3.1+
+          request.original_url
+        else
+          # rails 2/3.0
+          request.url
+        end
+      end
+    end
+
     # +options+ param contains
     # :controller used for setting instance variables for nonces/hashes
     # :ssl_request used to determine if http_additions should be used
@@ -42,19 +62,18 @@ module SecureHeaders
     def initialize(config=nil, options={})
       return unless config
 
-      @controller = options[:controller]
-
       if options[:request]
-        parse_request(options[:request])
-      else
-        @ua = options[:ua]
-        # fails open, assumes http. Bad idea? Will always include http additions.
-        # could also fail if not supplied.
-        @ssl_request = !!options[:ssl]
-        # a nil value here means we always assume we are not on the same host,
-        # which causes all FF csp reports to go through the forwarder
-        @request_uri = options[:request_uri]
+        options = options.merge(self.class.options_from_request(options[:request]))
       end
+
+      @controller = options[:controller]
+      @ua = options[:ua]
+      # fails open, assumes http. Bad idea? Will always include http additions.
+      # could also fail if not supplied.
+      @ssl_request = !!options.delete(:ssl)
+      # a nil value here means we always assume we are not on the same host,
+      # which causes all FF csp reports to go through the forwarder
+      @request_uri = options.delete(:request_uri)
 
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
@@ -116,14 +135,13 @@ module SecureHeaders
     end
 
     def fill_directives
-      return unless @config[:default_src]
-      default = @config[:default_src]
-      DIRECTIVES.each do |directive|
-        unless @config[directive]
-          @config[directive] = default
+      if default = @config[:default_src]
+        DIRECTIVES.each do |directive|
+          unless @config[directive]
+            @config[directive] = default
+          end
         end
       end
-      @config
     end
 
     def append_http_additions
@@ -191,18 +209,6 @@ module SecureHeaders
 
     def symbol_to_hyphen_case sym
       sym.to_s.gsub('_', '-')
-    end
-
-    def parse_request request
-      @ssl_request = request.ssl?
-      @ua = request.env['HTTP_USER_AGENT']
-      @request_uri = if request.respond_to?(:original_url)
-        # rails 3.1+
-        request.original_url
-      else
-        # rails 2/3.0
-        request.url
-      end
     end
   end
 end
