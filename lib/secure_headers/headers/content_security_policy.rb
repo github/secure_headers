@@ -8,11 +8,12 @@ module SecureHeaders
     module Constants
       DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https: about: javascript:; img-src data:"
       HEADER_NAME = "Content-Security-Policy"
+      ENV_KEY = 'secure_headers.content_security_policy'
       DIRECTIVES = [
+        :default_src,
         # :base_uri, disabled because this doesn't use the default-src value if empty
         # :child_src, disabled because this doesn't use the default-src value if empty
         :connect_src,
-        :default_src,
         :font_src,
         # :form_action, disabled because this doesn't use the default-src value if empty
         :frame_src,
@@ -34,6 +35,23 @@ module SecureHeaders
     alias :ssl_request? :ssl_request
 
     class << self
+      def generate_nonce
+        SecureRandom.base64(32).chomp
+      end
+
+      def set_nonce(controller, nonce = generate_nonce)
+        controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+      end
+
+      def add_to_env(request, controller, config)
+        set_nonce(controller)
+        options = options_from_request(request).merge(:controller => controller)
+        request.env[Constants::ENV_KEY] = {
+          :config => config,
+          :options => options,
+        }
+      end
+
       def options_from_request(request)
         {
           :ssl => request.ssl?,
@@ -68,11 +86,7 @@ module SecureHeaders
 
       @controller = options[:controller]
       @ua = options[:ua]
-      # fails open, assumes http. Bad idea? Will always include http additions.
-      # could also fail if not supplied.
       @ssl_request = !!options.delete(:ssl)
-      # a nil value here means we always assume we are not on the same host,
-      # which causes all FF csp reports to go through the forwarder
       @request_uri = options.delete(:request_uri)
 
       # Config values can be string, array, or lamdba values
@@ -92,18 +106,21 @@ module SecureHeaders
         hash
       end
 
-      @report_uri = @config.delete(:report_uri) if @config[:report_uri]
       @http_additions = @config.delete(:http_additions)
       @app_name = @config.delete(:app_name)
-      @disable_fill_missing = @config.delete(:disable_fill_missing)
-      @enforce = !!@config.delete(:enforce)
-      @tag_report_uri = @config.delete(:tag_report_uri)
+      @report_uri = @config.delete(:report_uri)
 
+      @disable_fill_missing = !!@config.delete(:disable_fill_missing)
+      @enforce = !!@config.delete(:enforce)
+      @tag_report_uri = !!@config.delete(:tag_report_uri)
+      @script_hashes = @config.delete(:script_hashes) || []
+
+      add_script_hashes if @script_hashes.any?
       fill_directives unless disable_fill_missing?
     end
 
     def nonce
-      @nonce ||= SecureRandom.base64(32).chomp
+      @nonce ||= @controller.instance_variable_get(:@content_security_policy_nonce) || self.class.generate_nonce
     end
 
     def name
@@ -124,6 +141,10 @@ module SecureHeaders
     end
 
     private
+
+    def add_script_hashes
+      @config[:script_src] << @script_hashes.map {|hash| "'#{hash}'"} << ["'unsafe-inline'"]
+    end
 
     def build_value
       raise "Expected to find default_src directive value" unless @config[:default_src]
@@ -152,15 +173,14 @@ module SecureHeaders
       end
     end
 
-    # translates 'inline','self', 'none' and 'eval' to their respective impl-specific values.
     def translate_dir_value val
       if %w{inline eval}.include?(val)
         val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
-        # self/none are special sources/src-dir-values and need to be quoted in chrome
+        # self/none are special sources/src-dir-values and need to be quoted
       elsif %{self none}.include?(val)
         "'#{val}'"
       elsif val == 'nonce'
-        @controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+        self.class.set_nonce(@controller, nonce)
         ["'nonce-#{nonce}'", "'unsafe-inline'"]
       else
         val
@@ -194,15 +214,13 @@ module SecureHeaders
         config[:img_src] = config[:default_src] + ['data:']
       end
 
-      header_value = build_directive(:default_src)
-      config.reject { |k,v| k == :default_src }.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
-        header_value += build_directive(k)
+      DIRECTIVES.each do |directive_name|
+        header_value += build_directive(directive_name) if @config[directive_name]
       end
 
       header_value
     end
 
-    # build and deletes the directive
     def build_directive(key)
       "#{symbol_to_hyphen_case(key)} #{@config[key].join(" ")}; "
     end

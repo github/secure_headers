@@ -1,0 +1,5 @@
+---
+app/views/layouts/application.html.erb:
+- sha256-VjDxT7saxd2FgaUQQTWw/jsTnvonaoCP/ACWDBTpyhU=
+app/views/other_things/index.html.erb:
+- sha256-ZXAcP8a0y1pPMTJW8pUr43c+XBkgYQBwHOPvXk9mq5A=

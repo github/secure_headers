@@ -197,9 +197,13 @@ report-uri csp_reports?enforce=true&app_name=twitter
 
 ### CSP Level 2 features
 
+*NOTE: Currently, only erb is supported. Mustache support isn't far off. Hash sources are valid for inline style blocks but are not yet supported by secure_headers.*
+
+#### Nonce
+
 script/style-nonce can be used to whitelist inline content. To do this, add "nonce" to your script/style-src configuration, then set the nonce attributes on the various tags.
 
-*setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
+Setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
 
 ```ruby
 :csp => {
@@ -222,6 +226,98 @@ script/style-nonce can be used to whitelist inline content. To do this, add "non
 <script>
   console.log("won't execute, not whitelisted")
 </script>
+```
+You can use a view helper to automatically add nonces to script tags:
+```erb
+<%= nonced_javascript_tag do %>
+  console.log("nonced!")
+<% end %>
+<%= nonced_javascript_tag("nonced without a block!") %>
+```
+
+becomes:
+
+```html
+<script nonce="/jRAxuLJsDXAxqhNBB7gg7h55KETtDQBXe4ZL+xIXwI=">
+console.log("nonced!")
+</script>
+```
+
+#### Hash
+
+setting hash source values will also set 'unsafe-inline' for browsers that don't support hash sources for backwards compatibility. 'unsafe-inline' is ignored if a hash is present in a directive in compliant browsers.
+
+Hash source support works by taking the hash value of the contents of an inline script block and adding the hash "fingerprint" to the CSP header.
+
+If you only have a few hashes, you can hardcode them for the entire app:
+
+```ruby
+  config.csp = {
+    :default_src => "https:",
+    :script_src => 'self'
+    :script_hashes => ['sha1-abc', 'sha1-qwe']
+  }
+```
+
+The following will work as well, but may not be as clear:
+
+```ruby
+  config.csp = {
+    :default_src => "https:",
+    :script_src => "self 'sha1-qwe'"
+  }
+```
+
+If you find you have many hashes or the content of the script tags change frequently, you can apply these hashes in a more intelligent way. This method expects config/script_hashes.yml to contain a map of templates => [hashes]. When the individual templates, layouts, or partials are rendered the hash values for the script tags in those templates will be automatically added to the header. *Currently, only erb layouts are supported.* This requires the use of middleware:
+
+```ruby
+# config.ru
+require 'secure_headers/headers/content_security_policy/script_hash_middleware'
+use ::SecureHeaders::ContentSecurityPolicy::ScriptHashMiddleware
+```
+
+```ruby
+  config.csp = {
+    :default_src => "https:",
+    :script_src => 'self',
+    :script_hash_middleware => true
+  }
+```
+
+Hashes are stored in a yaml file with a mapping of Filename => [list of hashes] in config/script_hashes.yml. You can automatically populate this file by running the following rake task:
+
+```$ bundle exec rake secure_headers:generate_hashes```
+
+Which will generate something like:
+
+```yaml
+# config/script_hashes.yml
+app/views/layouts/application.html.erb:
+- sha256-l8OLjZqYRnKilpdE0VosRMvhdYArjXT4NZaK2p7QVvs=
+app/templates/articles/edit.html.erb:
+- sha256-+7mij1/uCwtCQRWrof2NmOln5qX+5WdVwTLMpi8nuoA=
+- sha256-Ny4TRIhhFpnYnSeKC274P6bfAz4TOkezLabavIAU4dA=
+- sha256-I5e58Gqbu4WpO9dck18QxO7aYOHKrELIi70it4jIPi0=
+- sha256-Po4LMynwnAJHxiTp3DQaQ3YDBj3paN/xrDoKl4OyxY4=
+```
+
+In this example, if we visit /articles/edit/[id], the above hashes will automatically be added to the CSP header's
+script-src value!
+
+You can use plain "script" tags or you can use a built-in helper:
+
+```erb
+<%= hashed_javascript_tag do %>
+console.log("hashed automatically!")
+<% end %>
+```
+
+By using the helper, hash values will be computed dynamically in development/test environments. If a dynamically computed hash value does not match what is expected to be found in config/script_hashes.yml a warning message will be printed to the console. If you want to raise exceptions instead, use:
+
+```erb
+<%= hashed_javascript_tag(raise_error_on_unrecognized_hash = true) do %>
+console.log("will raise an exception if not in script_hashes.yml!")
+<% end %>
 ```
 
 ### Using with Sinatra
