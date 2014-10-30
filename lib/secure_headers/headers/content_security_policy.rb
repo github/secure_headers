@@ -56,11 +56,11 @@ module SecureHeaders
         @request_uri = options[:request_uri]
       end
 
+      # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
-        # lambdas
         config_val = value.respond_to?(:call) ? value.call : value
 
-        if DIRECTIVES.include?(key)
+        if DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
@@ -74,7 +74,6 @@ module SecureHeaders
       end
 
       @report_uri = @config.delete(:report_uri) if @config[:report_uri]
-
       @http_additions = @config.delete(:http_additions)
       @app_name = @config.delete(:app_name)
       @disable_fill_missing = @config.delete(:disable_fill_missing)
@@ -178,7 +177,7 @@ module SecureHeaders
       end
 
       header_value = build_directive(:default_src)
-      config.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
+      config.reject { |k,v| k == :default_src }.keys.sort_by{|k| k.to_s}.each do |k| # ensure consistent ordering
         header_value += build_directive(k)
       end
 
@@ -187,7 +186,7 @@ module SecureHeaders
 
     # build and deletes the directive
     def build_directive(key)
-      "#{symbol_to_hyphen_case(key)} #{@config.delete(key).join(" ")}; "
+      "#{symbol_to_hyphen_case(key)} #{@config[key].join(" ")}; "
     end
 
     def symbol_to_hyphen_case sym
