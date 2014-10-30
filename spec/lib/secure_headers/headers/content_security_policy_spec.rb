@@ -29,29 +29,29 @@ module SecureHeaders
 
     describe "#name" do
       context "when supplying options to override request" do
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => IE).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => FIREFOX).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => FIREFOX_23).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => CHROME).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => CHROME_25).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => IE).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => FIREFOX).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => FIREFOX_23).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => CHROME).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => CHROME_25).name).to eq(HEADER_NAME + "-Report-Only")}
       end
 
       context "when in report-only mode" do
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(IE)).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX)).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX_23)).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME)).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME_25)).name).to eq(STANDARD_HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(IE)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX_23)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME_25)).name).to eq(HEADER_NAME + "-Report-Only")}
       end
 
       context "when in enforce mode" do
         let(:opts) { default_opts.merge(:enforce => true)}
 
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(IE)).name).to eq(STANDARD_HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX)).name).to eq(STANDARD_HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX_23)).name).to eq(STANDARD_HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME)).name).to eq(STANDARD_HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME_25)).name).to eq(STANDARD_HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(IE)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX_23)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME_25)).name).to eq(HEADER_NAME)}
       end
     end
 

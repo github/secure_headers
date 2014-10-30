@@ -7,7 +7,7 @@ module SecureHeaders
   class ContentSecurityPolicy < Header
     module Constants
       DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https://* about: javascript:; img-src data:"
-      STANDARD_HEADER_NAME = "Content-Security-Policy"
+      HEADER_NAME = "Content-Security-Policy"
       DIRECTIVES = [
         # :base_uri, disabled because this doesn't use the default-src value if empty
         # :child_src, disabled because this doesn't use the default-src value if empty
@@ -76,7 +76,7 @@ module SecureHeaders
     end
 
     def name
-      base = STANDARD_HEADER_NAME
+      base = HEADER_NAME
       if !@enforce
         base += "-Report-Only"
       end

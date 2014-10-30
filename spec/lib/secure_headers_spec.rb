@@ -139,7 +139,7 @@ describe SecureHeaders do
 
     it "does not set the CSP header if disabled" do
       stub_user_agent(USER_AGENTS[:chrome])
-      should_not_assign_header(STANDARD_HEADER_NAME)
+      should_not_assign_header(HEADER_NAME)
       subject.set_csp_header(options_for(:csp).merge(:csp => false))
     end
 
@@ -247,7 +247,7 @@ describe SecureHeaders do
     context "when using Firefox" do
       it "sets CSP headers" do
         stub_user_agent(USER_AGENTS[:firefox])
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
+        should_assign_header(HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
         subject.set_csp_header
       end
     end
@@ -255,7 +255,7 @@ describe SecureHeaders do
     context "when using Chrome" do
       it "sets default CSP header" do
         stub_user_agent(USER_AGENTS[:chrome])
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
+        should_assign_header(HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
         subject.set_csp_header
       end
     end
@@ -263,7 +263,7 @@ describe SecureHeaders do
     context "when using a browser besides chrome/firefox" do
       it "sets the CSP header" do
         stub_user_agent(USER_AGENTS[:opera])
-        should_assign_header(STANDARD_HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
+        should_assign_header(HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
         subject.set_csp_header
       end
     end
