@@ -66,9 +66,9 @@ This gem makes a few assumptions about how you will use some features.  For exam
   config.x_content_type_options = "nosniff"
   config.x_xss_protection = {:value => 1, :mode => 'block'}
   config.csp = {
-    :default_src => "https://* self",
-    :frame_src => "https://* http://*.twimg.com http://itunes.apple.com",
-    :img_src => "https://*",
+    :default_src => "https: self",
+    :frame_src => "https: http:.twimg.com http://itunes.apple.com",
+    :img_src => "https:",
     :report_uri => '//example.com/uri-directive'
   }
 end
@@ -137,10 +137,10 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
   # over http, relaxing the policy
   # e.g.
   # :csp => {
-  #   :img_src => 'https://*',
-  #   :http_additions => {:img_src => 'http//*'}
+  #   :img_src => 'https:',
+  #   :http_additions => {:img_src => 'http'}
   # }
-  # would produce the directive: "img-src https://* http://*;"
+  # would produce the directive: "img-src https: http:;"
   # when over http, ignored for https requests
   :http_additions => {}
 }
@@ -152,19 +152,19 @@ and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specificat
 ```ruby
 # most basic example
 :csp => {
-  :default_src => "https://* inline eval",
+  :default_src => "https: inline eval",
   :report_uri => '/uri-directive'
 }
 
-> "default-src 'unsafe-inline' 'unsafe-eval' https://*; report-uri /uri-directive;"
+> "default-src 'unsafe-inline' 'unsafe-eval' https:; report-uri /uri-directive;"
 
 # turn off inline scripting/eval
 :csp => {
-  :default_src => 'https://*',
+  :default_src => 'https:',
   :report_uri => '/uri-directive'
 }
 
-> "default-src  https://*; report-uri /uri-directive;"
+> "default-src  https:; report-uri /uri-directive;"
 
 # Auction site wants to allow images from anywhere, plugin content from a list of trusted media providers (including a content distribution network), and scripts only from its server hosting sanitized JavaScript
 :csp => {
@@ -240,10 +240,10 @@ require 'secure_headers'
   config.x_content_type_options = "nosniff"
   config.x_xss_protection = {:value => 1, :mode => false}
   config.csp = {
-    :default_src => "https://* inline eval",
+    :default_src => "https: inline eval",
     :report_uri => '//example.com/uri-directive',
-    :img_src => "https://* data:",
-    :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
+    :img_src => "https: data:",
+    :frame_src => "https: http:.twimg.com http://itunes.apple.com"
   }
 end
 
@@ -295,10 +295,10 @@ def before_load
     config.x_content_type_options = "nosniff"
     config.x_xss_protection       = {:value   => '1', :mode => false}
     config.csp                    = {
-      :default_src => "https://* inline eval",
+      :default_src => "https: inline eval",
       :report_uri => '//example.com/uri-directive',
-      :img_src => "https://* data:",
-      :frame_src => "https://* http://*.twimg.com http://itunes.apple.com"
+      :img_src => "https: data:",
+      :frame_src => "https: http:.twimg.com http://itunes.apple.com"
     }
   end
 end
