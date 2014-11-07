@@ -1,4 +1,4 @@
-INLINE_SCRIPT_REGEX = /(<script([ ]*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*[ ]*>)(.*?)<\/script>/mx
+INLINE_SCRIPT_REGEX = /(<script(\s*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*\s*>)(.*?)<\/script>/mx
 INLINE_HASH_HELPER_REGEX = /<%=\s?hashed_javascript_tag(.*?)\s+do\s?%>(.*?)<%\s*end\s*%>/mx
 SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
 
