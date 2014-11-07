@@ -1,6 +1,11 @@
 module SecureHeaders
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
   HASHES_ENV_KEY = 'secure_headers.script_hashes'
+  mattr_accessor :script_hashes
+
+  if File.exists?(SCRIPT_HASH_CONFIG_FILE)
+    SecureHeaders.script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
+  end
 
   module Configuration
     class << self
@@ -86,8 +91,8 @@ module SecureHeaders
 
 
     def prep_script_hash
-      if File.exists?(SCRIPT_HASH_CONFIG_FILE)
-        @script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
+      if SecureHeaders.script_hashes
+        @script_hashes = SecureHeaders.script_hashes.dup
         ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
           save_hash_for_later payload
         end
@@ -103,7 +108,9 @@ module SecureHeaders
 
       if payload[:layout]
         # We're assuming an html.erb layout for now. Will need to handle mustache too, just not sure of the best way to do this
-        matching_hashes << @script_hashes[File.join("app", "views", payload[:layout]) + '.html.erb']
+        layout_hashes = @script_hashes[File.join("app", "views", payload[:layout]) + '.html.erb']
+
+        matching_hashes << layout_hashes if layout_hashes
       end
 
       if matching_hashes.any?
