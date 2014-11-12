@@ -25,19 +25,30 @@ module SecureHeaders
         file_path = File.join('app', 'views', self.instance_variable_get(:@virtual_path) + '.html.erb')
         script_hashes = controller.instance_variable_get(:@script_hashes)[file_path]
         unless script_hashes && script_hashes.include?(hash_value)
+          message = unexpected_hash_error_message(file_path, hash_value, content)
           if raise_error_on_unrecognized_hash
-            raise UnexpectedHashedScriptException.new("Unknown script hash value (#{hash_value}). Run #{SECURE_HEADERS_RAKE_TASK}. #{file_path}:\n#{content}")
+            raise UnexpectedHashedScriptException.new(message)
           else
-            puts "\n\n*** WARNING: Unrecognized hash!!! Value: #{hash_value} ***"
-            puts "<script>#{content}</script>"
-            puts "*** This is fine in dev/test, but will raise exceptions in production. ***"
-            puts "*** Run #{SECURE_HEADERS_RAKE_TASK} ***\n\n"
+            puts message
             request.env[HASHES_ENV_KEY] = (request.env[HASHES_ENV_KEY] || []) << hash_value
           end
         end
       end
 
       content_tag :script, content
+    end
+
+    private
+
+    def unexpected_hash_error_message(file_path, hash_value, content)
+      <<-EOF
+\n\n*** WARNING: Unrecognized hash in #{file_path}!!! Value: #{hash_value} ***
+<script>#{content}</script>
+*** This is fine in dev/test, but will raise exceptions in production. ***
+*** Run #{SECURE_HEADERS_RAKE_TASK} or add the following to config/script_hashes.yml:***
+#{file_path}:
+- #{hash_value}\n\n
+      EOF
     end
   end
 end
