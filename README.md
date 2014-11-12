@@ -310,6 +310,8 @@ You can use plain "script" tags or you can use a built-in helper:
 <%= hashed_javascript_tag do %>
 console.log("hashed automatically!")
 <% end %>
+
+<%= hashed_javascript_tag 'console.log("hashed automatically!")' %>
 ```
 
 By using the helper, hash values will be computed dynamically in development/test environments. If a dynamically computed hash value does not match what is expected to be found in config/script_hashes.yml a warning message will be printed to the console. If you want to raise exceptions instead, use:

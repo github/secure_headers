@@ -1,5 +1,6 @@
 INLINE_SCRIPT_REGEX = /(<script(\s*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*\s*>)(.*?)<\/script>/mx
 INLINE_HASH_HELPER_REGEX = /<%=\s?hashed_javascript_tag(.*?)\s+do\s?%>(.*?)<%\s*end\s*%>/mx
+INLINE_HASH_HELPER_WITHOUT_BLOCK_REGEX = /<%=\s?hashed_javascript_tag[\(]?\s*(["']+)(.*?)[^\\]\1.*?%>/mx
 SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
 
 namespace :secure_headers do
@@ -13,7 +14,7 @@ namespace :secure_headers do
     file = File.read(filename)
     hashes = []
 
-    [INLINE_SCRIPT_REGEX, INLINE_HASH_HELPER_REGEX].each do |regex|
+    [INLINE_SCRIPT_REGEX, INLINE_HASH_HELPER_REGEX, INLINE_HASH_HELPER_WITHOUT_BLOCK_REGEX].each do |regex|
       file.gsub(regex) do # TODO don't use gsub
         inline_script = Regexp.last_match.captures.last
         if (filename =~ /\.mustache\Z/ && inline_script =~ /\{\{.*\}\}/) || (is_erb?(filename) && inline_script =~ /<%.*%>/)
