@@ -1,19 +1,17 @@
 module SecureHeaders
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
   HASHES_ENV_KEY = 'secure_headers.script_hashes'
-  mattr_accessor :script_hashes
-
-  if File.exists?(SCRIPT_HASH_CONFIG_FILE)
-    SecureHeaders.script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
-  end
 
   module Configuration
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
-        :x_xss_protection, :csp, :x_download_options
+        :x_xss_protection, :csp, :x_download_options, :script_hashes
 
       def configure &block
         instance_eval &block
+        if File.exists?(SCRIPT_HASH_CONFIG_FILE)
+          ::SecureHeaders::Configuration.script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
+        end
       end
     end
   end
@@ -91,8 +89,8 @@ module SecureHeaders
 
 
     def prep_script_hash
-      if SecureHeaders.script_hashes
-        @script_hashes = SecureHeaders.script_hashes.dup
+      if ::SecureHeaders::Configuration.script_hashes
+        @script_hashes = ::SecureHeaders::Configuration.script_hashes.dup
         ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
           save_hash_for_later payload
         end
