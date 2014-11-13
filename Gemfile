@@ -11,7 +11,5 @@ group :test do
   gem 'guard-rspec', :platform => :ruby_19
   gem 'growl'
   gem 'rb-fsevent'
-  gem 'debugger', :platform => :ruby_19
-  gem 'ruby-debug', :platform => :ruby_18
-  gem 'coveralls', :require => false
+  gem 'coveralls', :platform => :ruby_19
 end

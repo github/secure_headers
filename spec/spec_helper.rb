@@ -2,8 +2,10 @@ require 'rubygems'
 require 'rspec'
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'secure_headers')
-require 'coveralls'
-Coveralls.wear!
+
+if defined?(Coveralls)
+  Coveralls.wear!
+end
 
 include ::SecureHeaders::StrictTransportSecurity::Constants
 include ::SecureHeaders::ContentSecurityPolicy::Constants
