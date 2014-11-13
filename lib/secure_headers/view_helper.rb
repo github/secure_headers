@@ -17,13 +17,8 @@ module SecureHeaders
       content_tag :script, content, :nonce => @content_security_policy_nonce
     end
 
-    def hashed_javascript_tag(content_or_config = nil, raise_error_on_unrecognized_hash = false, &block)
-      content = if block_given?
-        raise_error_on_unrecognized_hash = content_or_config
-        capture(&block)
-      else
-        content_or_config.html_safe # :'(
-      end
+    def hashed_javascript_tag(raise_error_on_unrecognized_hash = false, &block)
+      content = capture(&block)
 
       if ['development', 'test'].include?(ENV["RAILS_ENV"])
         hash_value = hash_source(content)
