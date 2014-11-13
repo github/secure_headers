@@ -219,7 +219,7 @@ module SecureHeaders
           double(
             :ssl? => true,
             :url => 'https://example.com',
-            :env => env,
+            :env => env
           )
         end
 
@@ -231,7 +231,7 @@ module SecureHeaders
           it "adds metadata to env" do
             metadata = {
               :config => config,
-              :options => options,
+              :options => options
             }
             expect(ContentSecurityPolicy).to receive(:options_from_request).and_return(options)
             expect(env).to receive(:[]=).with(ContentSecurityPolicy::ENV_KEY, metadata)
@@ -245,7 +245,7 @@ module SecureHeaders
             expect(options).to eql({
               :ua => ua,
               :ssl => true,
-              :request_uri => 'https://example.com',
+              :request_uri => 'https://example.com'
             })
           end
         end
