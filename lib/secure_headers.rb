@@ -170,4 +170,3 @@ require "secure_headers/headers/x_download_options"
 require "secure_headers/railtie"
 require "secure_headers/hash_helper"
 require "secure_headers/view_helper"
-
