@@ -24,7 +24,7 @@ module SecureHeaders
 
       it "doesn't accept anything besides noopen" do
         expect {
-          XContentTypeOptions.new("open")
+          XDownloadOptions.new("open")
         }.to raise_error
       end
     end
