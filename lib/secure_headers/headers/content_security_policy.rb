@@ -11,22 +11,27 @@ module SecureHeaders
       ENV_KEY = 'secure_headers.content_security_policy'
       DIRECTIVES = [
         :default_src,
-        # :base_uri, disabled because this doesn't use the default-src value if empty
-        # :child_src, disabled because this doesn't use the default-src value if empty
         :connect_src,
         :font_src,
-        # :form_action, disabled because this doesn't use the default-src value if empty
         :frame_src,
-        # :frame_ancestors, disabled because this doesn't use the default-src value if empty
         :img_src,
         :media_src,
         :object_src,
-        # :plugin_types, disabled because this doesn't use the default-src value if empty
-        # :referrer, disabled because this doesn't use the default-src value if empty
-        # :reflected_xss, disabled because this doesn't use the default-src value if empty
         :script_src,
         :style_src
       ]
+
+      NON_DEFAULT_SOURCES = [
+        :base_uri,
+        :child_src,
+        :form_action,
+        :frame_ancestors,
+        :plugin_types,
+        :referrer,
+        :reflected_xss
+      ]
+
+      ALL_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES
     end
     include Constants
 
@@ -69,6 +74,10 @@ module SecureHeaders
           request.url
         end
       end
+
+      def symbol_to_hyphen_case sym
+        sym.to_s.gsub('_', '-')
+      end
     end
 
     # +options+ param contains
@@ -93,7 +102,7 @@ module SecureHeaders
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call : value
 
-        if DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
+        if ALL_DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
@@ -119,10 +128,17 @@ module SecureHeaders
       fill_directives unless disable_fill_missing?
     end
 
+    ##
+    # Return or initialize the nonce value used for this header.
+    # If a reference to a controller is passed in the config, this method
+    # will check if a nonce has already been set and use it.
     def nonce
       @nonce ||= @controller.instance_variable_get(:@content_security_policy_nonce) || self.class.generate_nonce
     end
 
+    ##
+    # Returns the name to use for the header. Either "Content-Security-Policy" or
+    # "Content-Security-Policy-Report-Only"
     def name
       base = HEADER_NAME
       if !@enforce
@@ -131,6 +147,8 @@ module SecureHeaders
       base
     end
 
+    ##
+    # Return the value of the CSP header
     def value
       return @config if @config.is_a?(String)
       if @config
@@ -150,7 +168,8 @@ module SecureHeaders
       raise "Expected to find default_src directive value" unless @config[:default_src]
       append_http_additions unless ssl_request?
       header_value = [
-        generic_directives(@config),
+        generic_directives,
+        non_default_directives,
         report_uri_directive
       ].join.strip
     end
@@ -206,12 +225,12 @@ module SecureHeaders
       "report-uri #{@report_uri};"
     end
 
-    def generic_directives(config)
+    def generic_directives
       header_value = ''
-      if config[:img_src]
-        config[:img_src] = config[:img_src] + ['data:'] unless config[:img_src].include?('data:')
+      if @config[:img_src]
+        @config[:img_src] = @config[:img_src] + ['data:'] unless @config[:img_src].include?('data:')
       else
-        config[:img_src] = config[:default_src] + ['data:']
+        @config[:img_src] = @config[:default_src] + ['data:']
       end
 
       DIRECTIVES.each do |directive_name|
@@ -221,12 +240,17 @@ module SecureHeaders
       header_value
     end
 
-    def build_directive(key)
-      "#{symbol_to_hyphen_case(key)} #{@config[key].join(" ")}; "
+    def non_default_directives
+      header_value = ''
+      NON_DEFAULT_SOURCES.each do |directive_name|
+        header_value += build_directive(directive_name) if @config[directive_name]
+      end
+
+      header_value
     end
 
-    def symbol_to_hyphen_case sym
-      sym.to_s.gsub('_', '-')
+    def build_directive(key)
+      "#{self.class.symbol_to_hyphen_case(key)} #{@config[key].join(" ")}; "
     end
   end
 end
