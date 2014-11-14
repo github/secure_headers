@@ -16,7 +16,7 @@ describe ThingsController, :type => :controller do
       expect(response.headers['X-Frame-Options']).to eq('SAMEORIGIN')
     end
 
-    it "sets the X-WebKit-CSP header" do
+    it "does not set CSP header" do
       get :index
       expect(response.headers['Content-Security-Policy-Report-Only']).to eq(nil)
     end

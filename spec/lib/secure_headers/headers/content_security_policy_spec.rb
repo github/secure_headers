@@ -55,6 +55,13 @@ module SecureHeaders
       end
     end
 
+    context "when using hash sources" do
+      it "adds hashes and unsafe-inline to the script-src" do
+        policy = ContentSecurityPolicy.new(default_opts.merge(:script_hashes => ['sha256-abc123']))
+        expect(policy.value).to match /script-src[^;]*'sha256-abc123'/
+      end
+    end
+
     describe "#normalize_csp_options" do
       before(:each) do
         default_opts.delete(:disable_fill_missing)
@@ -198,6 +205,49 @@ module SecureHeaders
         it "does not add the directive values if requesting https" do
           csp = ContentSecurityPolicy.new(options, :ua => "Chrome", :ssl => true)
           expect(csp.value).not_to match(/http:/)
+        end
+      end
+
+      describe "class methods" do
+        let(:ua) { CHROME }
+        let(:env) do
+          double.tap do |env|
+            allow(env).to receive(:[]).with('HTTP_USER_AGENT').and_return(ua)
+          end
+        end
+        let(:request) do
+          double(
+            :ssl? => true,
+            :url => 'https://example.com',
+            :env => env
+          )
+        end
+
+        describe ".add_to_env" do
+          let(:controller) { double }
+          let(:config) { {:default_src => 'self'} }
+          let(:options) { {:controller => controller} }
+
+          it "adds metadata to env" do
+            metadata = {
+              :config => config,
+              :options => options
+            }
+            expect(ContentSecurityPolicy).to receive(:options_from_request).and_return(options)
+            expect(env).to receive(:[]=).with(ContentSecurityPolicy::ENV_KEY, metadata)
+            ContentSecurityPolicy.add_to_env(request, controller, config)
+          end
+        end
+
+        describe ".options_from_request" do
+          it "extracts options from request" do
+            options = ContentSecurityPolicy.options_from_request(request)
+            expect(options).to eql({
+              :ua => ua,
+              :ssl => true,
+              :request_uri => 'https://example.com'
+            })
+          end
         end
       end
     end
