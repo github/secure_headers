@@ -18,7 +18,7 @@ describe SecureHeaders do
     allow(subject).to receive(:request).and_return(request)
   end
 
-  ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection].map{|header| [header, false]}]
+  ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection, :x_permitted_cross_domain_policies].map{|header| [header, false]}]
 
   def stub_user_agent val
     allow(request).to receive_message_chain(:env, :[]).and_return(val)
@@ -36,6 +36,7 @@ describe SecureHeaders do
       config.x_xss_protection = nil
       config.csp = nil
       config.x_download_options = nil
+      config.x_permitted_cross_domain_policies = nil
     end
   end
 
@@ -46,6 +47,7 @@ describe SecureHeaders do
     subject.set_x_content_type_options_header
     subject.set_x_xss_protection_header
     subject.set_x_download_options_header
+    subject.set_x_permitted_cross_domain_policies_header
   end
 
   describe "#set_header" do
@@ -64,7 +66,7 @@ describe SecureHeaders do
     USER_AGENTS.each do |name, useragent|
       it "sets all default headers for #{name} (smoke test)" do
         stub_user_agent(useragent)
-        number_of_headers = 6
+        number_of_headers = 7
         expect(subject).to receive(:set_header).exactly(number_of_headers).times # a request for a given header
         subject.set_csp_header
         subject.set_x_frame_options_header
@@ -72,6 +74,7 @@ describe SecureHeaders do
         subject.set_x_xss_protection_header
         subject.set_x_content_type_options_header
         subject.set_x_download_options_header
+        subject.set_x_permitted_cross_domain_policies_header
       end
     end
 
@@ -94,6 +97,11 @@ describe SecureHeaders do
     it "does not set the X-Frame-Options header if disabled" do
       should_not_assign_header(XFO_HEADER_NAME)
       subject.set_x_frame_options_header(false)
+    end
+
+    it "does not set the X-Permitted-Cross-Domain-Policies header if disabled" do
+      should_not_assign_header(XPCDP_HEADER_NAME)
+      subject.set_x_permitted_cross_domain_policies_header(false)
     end
 
     it "does not set the HSTS header if disabled" do
@@ -133,6 +141,7 @@ describe SecureHeaders do
           config.x_xss_protection = false
           config.csp = false
           config.x_download_options = false
+          config.x_permitted_cross_domain_policies = false
         end
         expect(subject).not_to receive(:set_header)
         set_security_headers(subject)
@@ -247,6 +256,18 @@ describe SecureHeaders do
         should_assign_header(HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
         subject.set_csp_header
       end
+    end
+  end
+
+  describe "#set_x_permitted_cross_domain_policies_header" do
+    it "sets the X-Permitted-Cross-Domain-Policies header" do
+      should_assign_header(XPCDP_HEADER_NAME, SecureHeaders::XPermittedCrossDomainPolicies::Constants::DEFAULT_VALUE)
+      subject.set_x_permitted_cross_domain_policies_header
+    end
+
+    it "allows a custom X-Permitted-Cross-Domain-Policies header" do
+      should_assign_header(XPCDP_HEADER_NAME, "master-only")
+      subject.set_x_permitted_cross_domain_policies_header(:value => 'master-only')
     end
   end
 end
