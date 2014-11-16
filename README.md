@@ -6,6 +6,7 @@ The gem will automatically apply several headers that are related to security.  
 - X-Frame-Options (XFO) - Prevents your content from being framed and potentially clickjacked. [X-Frame-Options draft](https://tools.ietf.org/html/draft-ietf-websec-x-frame-options-02)
 - X-XSS-Protection - [Cross site scripting heuristic filter for IE/Chrome](http://msdn.microsoft.com/en-us/library/dd565647\(v=vs.85\).aspx)
 - X-Content-Type-Options - [Prevent content type sniffing](http://msdn.microsoft.com/en-us/library/ie/gg622941\(v=vs.85\).aspx)
+- X-Download-Options - [Prevent file downloads opening](http://msdn.microsoft.com/en-us/library/ie/jj542450(v=vs.85).aspx)
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 
 This gem has integration with Rails, but works for any Ruby code. See the sinatra example section.
@@ -49,6 +50,7 @@ The following methods are going to be called, unless they are provided in a `ski
 * `:set_x_frame_options_header`
 * `:set_x_xss_protection_header`
 * `:set_x_content_type_options_header`
+* `:set_x_download_options_header`
 * `:set_x_permitted_cross_domain_policies_header`
 
 ### Bonus Features
@@ -67,6 +69,7 @@ This gem makes a few assumptions about how you will use some features.  For exam
   config.x_frame_options = 'DENY'
   config.x_content_type_options = "nosniff"
   config.x_xss_protection = {:value => 1, :mode => 'block'}
+  config.x_download_options = 'noopen'
   config.x_permitted_cross_domain_policies = 'none'
   config.csp = {
     :default_src => "https: self",
@@ -109,6 +112,7 @@ This configuration will likely work for most applications without modification.
 :x_frame_options  => {:value => 'SAMEORIGIN'}
 :x_xss_protection => {:value => 1, :mode => 'block'}  # set the :mode option to false to use "warning only" mode
 :x_content_type_options => {:value => 'nosniff'}
+:x_download_options => {:value => 'noopen'}
 :x_permitted_cross_domain_policies => {:value => 'none'}
 ```
 
@@ -339,6 +343,7 @@ require 'secure_headers'
   config.x_frame_options = 'DENY'
   config.x_content_type_options = "nosniff"
   config.x_xss_protection = {:value => 1, :mode => false}
+  config.x_download_options = 'noopen'
   config.x_permitted_cross_domain_policies = 'none'
   config.csp = {
     :default_src => "https: inline eval",
@@ -395,6 +400,7 @@ def before_load
     config.x_frame_options        = 'DENY'
     config.x_content_type_options = "nosniff"
     config.x_xss_protection       = {:value   => '1', :mode => false}
+    config.x_download_options     = 'noopen'
     config.x_permitted_cross_domain_policies = 'none'
     config.csp                    = {
       :default_src => "https: inline eval",
