@@ -8,10 +8,10 @@ Gem::Specification.new do |gem|
   gem.version       = SecureHeaders::VERSION
   gem.authors       = ["Neil Matatall"]
   gem.email         = ["neil.matatall@gmail.com"]
-  gem.description   = %q{Add easily configured browser headers to responses.}
-  gem.summary       = %q{Add easily configured browser headers to responses
-    including content security policy, x-frame-options,
-    strict-transport-security and more.}
+  gem.description   = %q{Security related headers all in one gem.}
+  gem.summary       = %q{Add easily configured security headers to responses
+    including content-security-policy, x-frame-options,
+    strict-transport-security, etc.}
   gem.homepage      = "https://github.com/twitter/secureheaders"
   gem.license       = "Apache Public License 2.0"
   gem.files         = `git ls-files`.split($/)
