@@ -67,6 +67,11 @@ describe OtherThingsController, :type => :controller do
       expect(@env['X-Content-Type-Options']).to eq("nosniff")
     end
 
+    it "sets the X-Permitted-Cross-Domain-Policies" do
+      get '/'
+      expect(@env['X-Permitted-Cross-Domain-Policies']).to eq("none")
+    end
+
     context "using IE" do
       it "sets the X-Content-Type-Options header" do
         @env['HTTP_USER_AGENT'] = "Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0"

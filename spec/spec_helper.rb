@@ -13,6 +13,7 @@ include ::SecureHeaders::XFrameOptions::Constants
 include ::SecureHeaders::XXssProtection::Constants
 include ::SecureHeaders::XContentTypeOptions::Constants
 include ::SecureHeaders::XDownloadOptions::Constants
+include ::SecureHeaders::XPermittedCrossDomainPolicies::Constants
 
 USER_AGENTS = {
   :firefox => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1',

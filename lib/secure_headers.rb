@@ -5,7 +5,8 @@ module SecureHeaders
   module Configuration
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
-        :x_xss_protection, :csp, :x_download_options, :script_hashes
+        :x_xss_protection, :csp, :x_download_options, :script_hashes,
+        :x_permitted_cross_domain_policies
 
       def configure &block
         instance_eval &block
@@ -46,6 +47,7 @@ module SecureHeaders
       before_filter :set_x_xss_protection_header
       before_filter :set_x_content_type_options_header
       before_filter :set_x_download_options_header
+      before_filter :set_x_permitted_cross_domain_policies_header
     end
 
     # we can't use ||= because I'm overloading false => disable, nil => default
@@ -63,6 +65,7 @@ module SecureHeaders
       set_x_xss_protection_header(options[:x_xss_protection])
       set_x_content_type_options_header(options[:x_content_type_options])
       set_x_download_options_header(options[:x_download_options])
+      set_x_permitted_cross_domain_policies_header(options[:x_permitted_cross_domain_policies])
     end
 
     # set_csp_header - uses the request accessor and SecureHeader::Configuration settings
@@ -137,6 +140,10 @@ module SecureHeaders
       set_a_header(:x_download_options, XDownloadOptions, options)
     end
 
+    def set_x_permitted_cross_domain_policies_header(options=self.class.secure_headers_options[:x_permitted_cross_domain_policies])
+      set_a_header(:x_permitted_cross_domain_policies, XPermittedCrossDomainPolicies, options)
+    end
+
     private
 
     def set_a_header(name, klass, options=nil)
@@ -167,6 +174,7 @@ require "secure_headers/headers/strict_transport_security"
 require "secure_headers/headers/x_xss_protection"
 require "secure_headers/headers/x_content_type_options"
 require "secure_headers/headers/x_download_options"
+require "secure_headers/headers/x_permitted_cross_domain_policies"
 require "secure_headers/railtie"
 require "secure_headers/hash_helper"
 require "secure_headers/view_helper"
