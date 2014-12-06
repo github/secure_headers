@@ -8,7 +8,6 @@ group :test do
   gem 'jdbc-sqlite3', :platform => :jruby
   gem 'rspec-rails', '>= 3.1'
   gem 'rspec', '>= 3.1'
-  gem 'guard-rspec', :platform => [:ruby_19, :ruby_20, :ruby_21]
   gem 'growl'
   gem 'rb-fsevent'
   gem 'coveralls', :platform => :ruby_19
