@@ -5,6 +5,7 @@ class ContentSecurityPolicyController < ActionController::Base
   CA_FILE = File.expand_path(File.join('..','..', '..', 'config', 'curl-ca-bundle.crt'), __FILE__)
 
   def scribe
+    warn "[DEPRECATION] ContentSecurityPolicyController is removed in 2.0"
     csp = ::SecureHeaders::Configuration.csp || {}
 
     forward_endpoint = csp[:forward_endpoint]

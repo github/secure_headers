@@ -126,7 +126,7 @@ module SecureHeaders
   end
 end
 
-
+require "securerandom"
 require "secure_headers/version"
 require "secure_headers/header"
 require "secure_headers/headers/content_security_policy"

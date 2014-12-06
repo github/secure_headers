@@ -30,6 +30,7 @@ module SecureHeaders
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
+      warn "[DEPRECATION] 'experimental' config is removed in 2.0"
       @controller = options.delete(:controller)
 
       if options[:request]
@@ -171,6 +172,7 @@ module SecureHeaders
         end
 
         if forward_endpoint
+          warn "[DEPRECATION] forwarder is removed in 2.0"
           @report_uri = FF_CSP_ENDPOINT
         end
       end
