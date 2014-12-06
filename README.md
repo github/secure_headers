@@ -9,35 +9,9 @@ The gem will automatically apply several headers that are related to security.  
 - X-Download-Options - [Prevent file downloads opening](http://msdn.microsoft.com/en-us/library/ie/jj542450(v=vs.85).aspx)
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 
-This gem has integration with Rails, but works for any Ruby code. See the sinatra example section.
-
-## Installation
-
-Add to your Gemfile
-
-```ruby
-gem 'secure_headers'
-```
-
-And then execute:
-
-```console
-$ bundle
-```
-
-Or install it yourself as:
-
-```console
-$ gem install secure_headers
-```
-
 ## Usage
 
-Functionality provided
-
-- `ensure_security_headers`: will set security-related headers automatically based on the configuration below.
-
-By default, it will set all of the headers listed in the options section below unless specified.
+- `ensure_security_headers` in a controller will set security-related headers automatically based on the configuration below.
 
 ### Disabling
 
@@ -117,10 +91,6 @@ This configuration will likely work for most applications without modification.
 ```
 
 ### Content Security Policy (CSP)
-
-All browsers will receive the webkit csp header except Firefox, which gets its own header.
-See [WebKit specification](http://www.w3.org/TR/CSP/)
-and [Mozilla CSP specification](https://wiki.mozilla.org/Security/CSP/Specification)
 
 ```ruby
 :csp => {
