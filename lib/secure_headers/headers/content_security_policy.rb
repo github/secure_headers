@@ -30,7 +30,9 @@ module SecureHeaders
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil, options={})
       @experimental = !!options.delete(:experimental)
-      warn "[DEPRECATION] 'experimental' config is removed in 2.0"
+      if @experimental
+        warn "[DEPRECATION] 'experimental' config is removed in 2.0"
+      end
       @controller = options.delete(:controller)
 
       if options[:request]
