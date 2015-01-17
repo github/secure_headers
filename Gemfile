@@ -4,12 +4,12 @@ gemspec
 
 group :test do
   gem 'rails', '3.2.12'
-  gem 'sqlite3', :platform => [:ruby, :mswin, :mingw]
-  gem 'jdbc-sqlite3', :platform => :jruby
+  gem 'sqlite3', :platforms => [:ruby, :mswin, :mingw]
+  gem 'jdbc-sqlite3', :platforms => [:jruby]
   gem 'rspec-rails', '>= 3.1'
   gem 'rspec', '>= 3.1'
   gem 'growl'
   gem 'rb-fsevent'
-  gem 'coveralls', :platform => :ruby_19
-  gem 'i18n', '< 0.7.0', :platform => :ruby_18
+  gem 'coveralls', :platforms => [:ruby_19]
+  gem 'i18n', '< 0.7.0', :platforms => [:ruby_18]
 end
