@@ -11,4 +11,6 @@ group :test do
   gem 'growl'
   gem 'rb-fsevent'
   gem 'coveralls', :platform => :ruby_19
+
+  gem 'i18n', '~< 0.6.0', :platform => :ruby_18
 end
