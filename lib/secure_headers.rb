@@ -157,18 +157,10 @@ module SecureHeaders
     def set_header(name_or_header, value=nil)
       if name_or_header.is_a?(Header)
         header = name_or_header
-        if default_header?(header.name)
-          Rails.application.config.action_dispatch.default_headers[header.name] = header.value
-        else
-          response.headers[header.name] = header.value
-        end
+        response.headers[header.name] = header.value
       else
         response.headers[name_or_header] = value
       end
-    end
-
-    def default_header?(name)
-      Rails.application.config.action_dispatch.default_headers.has_key?(name)
     end
   end
 end
