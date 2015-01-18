@@ -3,7 +3,7 @@ if defined?(Rails::Railtie)
   module SecureHeaders
     class Railtie < Rails::Engine
       isolate_namespace ::SecureHeaders if defined? isolate_namespace # rails 3.0
-      conflicting_headers = ['X-Frame-Options', 'X-XSS-Protection', 'X-Content-Options']
+      conflicting_headers = ['X-Frame-Options', 'X-XSS-Protection', 'X-Content-Type-Options']
       initializer "secure_headers.action_controller" do
         ActiveSupport.on_load(:action_controller) do
           include ::SecureHeaders
