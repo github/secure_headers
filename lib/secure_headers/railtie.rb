@@ -9,7 +9,7 @@ if defined?(Rails::Railtie)
           include ::SecureHeaders
 
           conflicting_headers.each do |header|
-            Rails.application.config.action_dispatch.default_headers.delete[header]
+            Rails.application.config.action_dispatch.default_headers.delete(header)
           end
 
         end
