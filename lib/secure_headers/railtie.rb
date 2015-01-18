@@ -8,8 +8,10 @@ if defined?(Rails::Railtie)
         ActiveSupport.on_load(:action_controller) do
           include ::SecureHeaders
 
-          conflicting_headers.each do |header|
-            Rails.application.config.action_dispatch.default_headers.delete(header)
+          unless Rails.application.config.action_dispatch.default_headers.nil?
+            conflicting_headers.each do |header|
+              Rails.application.config.action_dispatch.default_headers.delete(header)
+            end
           end
 
         end
