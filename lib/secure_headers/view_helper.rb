@@ -62,7 +62,7 @@ module SecureHeaders
 end
 
 module ActionView #:nodoc:
-  module Helpers #:nodoc:
+  class Base #:nodoc:
     include SecureHeaders::ViewHelpers
   end
 end
