@@ -18,14 +18,8 @@ describe SecureHeaders do
     allow(subject).to receive(:request).and_return(request)
   end
 
-  ALL_HEADERS = Hash[[:hsts, :csp, :x_frame_options, :x_content_type_options, :x_xss_protection, :x_permitted_cross_domain_policies].map{|header| [header, false]}]
-
   def stub_user_agent val
     allow(request).to receive_message_chain(:env, :[]).and_return(val)
-  end
-
-  def options_for header
-    ALL_HEADERS.reject{|k,v| k == header}
   end
 
   def reset_config
