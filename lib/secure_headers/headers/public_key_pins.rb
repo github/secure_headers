@@ -50,7 +50,7 @@ module SecureHeaders
       elsif config[:max_age].to_s !~ /\A\d+\z/
         raise PublicKeyPinsBuildError.new("max-age must be a number.
                                           #{config[:max_age]} was supplied.")
-      elsif config[:pins] and config[:pins].length < 2
+      elsif config[:pins] && config[:pins].length < 2
         raise PublicKeyPinsBuildError.new("A minimum of 2 pins are required.")
       end
 

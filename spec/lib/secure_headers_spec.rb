@@ -120,7 +120,7 @@ describe SecureHeaders do
     it "does not set the HPKP header if request is over HTTP" do
       allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
       should_not_assign_header(HPKP_HEADER_NAME)
-      subject.set_hpkp_header(max_age: 1234)
+      subject.set_hpkp_header(:max_age => 1234)
     end
 
     it "does not set the CSP header if disabled" do
@@ -208,32 +208,32 @@ describe SecureHeaders do
   describe "#set_public_key_pins" do
     it "sets the Public-Key-Pins header" do
       should_assign_header(HPKP_HEADER_NAME + "-Report-Only", "max-age=1234")
-      subject.set_hpkp_header(max_age: 1234)
+      subject.set_hpkp_header(:max_age => 1234)
     end
 
     it "allows you to enforce public key pinning" do
       should_assign_header(HPKP_HEADER_NAME, "max-age=1234")
-      subject.set_hpkp_header(max_age: 1234, enforce: true)
+      subject.set_hpkp_header(:max_age => 1234, :enforce => true)
     end
 
     it "allows you to specific a custom max-age value" do
       should_assign_header(HPKP_HEADER_NAME + "-Report-Only", 'max-age=1234')
-      subject.set_hpkp_header(max_age: 1234)
+      subject.set_hpkp_header(:max_age => 1234)
     end
 
     it "allows you to specify includeSubdomains" do
       should_assign_header(HPKP_HEADER_NAME, "max-age=1234; includeSubDomains")
-      subject.set_hpkp_header(max_age: 1234, include_subdomains: true, enforce: true)
+      subject.set_hpkp_header(:max_age => 1234, :include_subdomains => true, :enforce => true)
     end
 
     it "allows you to specify a report-uri" do
       should_assign_header(HPKP_HEADER_NAME, "max-age=1234; report-uri=\"https://foobar.com\"")
-      subject.set_hpkp_header(max_age: 1234, report_uri: "https://foobar.com", enforce: true)
+      subject.set_hpkp_header(:max_age => 1234, :report_uri => "https://foobar.com", :enforce => true)
     end
 
     it "allows you to specify a report-uri with app_name" do
       should_assign_header(HPKP_HEADER_NAME, "max-age=1234; report-uri=\"https://foobar.com?enforce=true&app_name=my_app\"")
-      subject.set_hpkp_header(max_age: 1234, report_uri: "https://foobar.com", app_name: "my_app", tag_report_uri: true, enforce: true)
+      subject.set_hpkp_header(:max_age => 1234, :report_uri => "https://foobar.com", :app_name => "my_app", :tag_report_uri => true, :enforce => true)
     end
   end
 
