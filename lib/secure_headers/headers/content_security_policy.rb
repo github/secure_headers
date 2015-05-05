@@ -31,7 +31,13 @@ module SecureHeaders
         :reflected_xss
       ]
 
-      ALL_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES
+      OTHER = [
+        :report_uri
+      ]
+
+      SOURCE_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES
+
+      ALL_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES + OTHER
     end
     include Constants
 
@@ -102,7 +108,7 @@ module SecureHeaders
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call : value
 
-        if ALL_DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
+        if SOURCE_DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
