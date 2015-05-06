@@ -57,17 +57,20 @@ This gem makes a few assumptions about how you will use some features.  For exam
     :max_age => 60.days.to_i,
     :include_subdomains => true,
     :report_uri => '//example.com/uri-directive',
-    :pins => [{:sha256 => 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c'}]
+    :pins => [
+      {:sha256 => 'abc'},
+      {:sha256 => '123'}
+    ]
   }
 end
 
-# and then simply include this in application_controller.rb
+# and then include this in application_controller.rb
 class ApplicationController < ActionController::Base
   ensure_security_headers
 end
 ```
 
-Or simply add it to application controller
+Or do the config as a parameter to `ensure_security_headers`
 
 ```ruby
 ensure_security_headers(
@@ -307,6 +310,8 @@ console.log("will raise an exception if not in script_hashes.yml!")
 ```
 
 ### Public Key Pins
+
+Be aware that pinning error reporting is governed by the same rules as everything else. If you have a pinning failure that tries to report back to the same origin, by definition this will not work.
 
 ```
 config.hpkp = {
