@@ -6,7 +6,7 @@ module SecureHeaders
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
         :x_xss_protection, :csp, :x_download_options, :script_hashes,
-        :x_permitted_cross_domain_policies
+        :x_permitted_cross_domain_policies, :hpkp
 
       def configure &block
         instance_eval &block
@@ -42,6 +42,7 @@ module SecureHeaders
       self.secure_headers_options = options
       before_filter :prep_script_hash
       before_filter :set_hsts_header
+      before_filter :set_hpkp_header
       before_filter :set_x_frame_options_header
       before_filter :set_csp_header
       before_filter :set_x_xss_protection_header
@@ -61,6 +62,7 @@ module SecureHeaders
     def set_security_headers(options = self.class.secure_headers_options)
       set_csp_header(request, options[:csp])
       set_hsts_header(options[:hsts])
+      set_hpkp_header(options[:hpkp])
       set_x_frame_options_header(options[:x_frame_options])
       set_x_xss_protection_header(options[:x_xss_protection])
       set_x_content_type_options_header(options[:x_content_type_options])
@@ -136,6 +138,16 @@ module SecureHeaders
       set_a_header(:hsts, StrictTransportSecurity, options)
     end
 
+    def set_hpkp_header(options=self.class.secure_headers_options[:hpkp])
+      return unless request.ssl?
+      config = self.class.options_for :hpkp, options
+
+      return if config == false || config.nil?
+
+      hpkp_header = PublicKeyPins.new(config)
+      set_header(hpkp_header)
+    end
+
     def set_x_download_options_header(options=self.class.secure_headers_options[:x_download_options])
       set_a_header(:x_download_options, XDownloadOptions, options)
     end
@@ -168,6 +180,7 @@ end
 
 require "secure_headers/version"
 require "secure_headers/header"
+require "secure_headers/headers/public_key_pins"
 require "secure_headers/headers/content_security_policy"
 require "secure_headers/headers/x_frame_options"
 require "secure_headers/headers/strict_transport_security"

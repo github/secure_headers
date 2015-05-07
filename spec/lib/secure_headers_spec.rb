@@ -24,6 +24,7 @@ describe SecureHeaders do
 
   def reset_config
     ::SecureHeaders::Configuration.configure do |config|
+      config.hpkp = nil
       config.hsts = nil
       config.x_frame_options = nil
       config.x_content_type_options = nil
@@ -36,6 +37,7 @@ describe SecureHeaders do
 
   def set_security_headers(subject)
     subject.set_csp_header
+    subject.set_hpkp_header
     subject.set_hsts_header
     subject.set_x_frame_options_header
     subject.set_x_content_type_options_header
@@ -65,6 +67,7 @@ describe SecureHeaders do
         subject.set_csp_header
         subject.set_x_frame_options_header
         subject.set_hsts_header
+        subject.set_hpkp_header
         subject.set_x_xss_protection_header
         subject.set_x_content_type_options_header
         subject.set_x_download_options_header
@@ -109,6 +112,17 @@ describe SecureHeaders do
       subject.set_hsts_header({:include_subdomains => true})
     end
 
+    it "does not set the HPKP header if disabled" do
+      should_not_assign_header(HPKP_HEADER_NAME)
+      subject.set_hpkp_header
+    end
+
+    it "does not set the HPKP header if request is over HTTP" do
+      allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
+      should_not_assign_header(HPKP_HEADER_NAME)
+      subject.set_hpkp_header(:max_age => 1234)
+    end
+
     it "does not set the CSP header if disabled" do
       stub_user_agent(USER_AGENTS[:chrome])
       should_not_assign_header(HEADER_NAME)
@@ -130,6 +144,7 @@ describe SecureHeaders do
       it "does not set any headers when disabled" do
         ::SecureHeaders::Configuration.configure do |config|
           config.hsts = false
+          config.hpkp = false
           config.x_frame_options = false
           config.x_content_type_options = false
           config.x_xss_protection = false
@@ -187,6 +202,38 @@ describe SecureHeaders do
     it "allows you to specify preload" do
       should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains; preload")
       subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true, :preload => true)
+    end
+  end
+
+  describe "#set_public_key_pins" do
+    it "sets the Public-Key-Pins header" do
+      should_assign_header(HPKP_HEADER_NAME + "-Report-Only", "max-age=1234")
+      subject.set_hpkp_header(:max_age => 1234)
+    end
+
+    it "allows you to enforce public key pinning" do
+      should_assign_header(HPKP_HEADER_NAME, "max-age=1234")
+      subject.set_hpkp_header(:max_age => 1234, :enforce => true)
+    end
+
+    it "allows you to specific a custom max-age value" do
+      should_assign_header(HPKP_HEADER_NAME + "-Report-Only", 'max-age=1234')
+      subject.set_hpkp_header(:max_age => 1234)
+    end
+
+    it "allows you to specify includeSubdomains" do
+      should_assign_header(HPKP_HEADER_NAME, "max-age=1234; includeSubDomains")
+      subject.set_hpkp_header(:max_age => 1234, :include_subdomains => true, :enforce => true)
+    end
+
+    it "allows you to specify a report-uri" do
+      should_assign_header(HPKP_HEADER_NAME, "max-age=1234; report-uri=\"https://foobar.com\"")
+      subject.set_hpkp_header(:max_age => 1234, :report_uri => "https://foobar.com", :enforce => true)
+    end
+
+    it "allows you to specify a report-uri with app_name" do
+      should_assign_header(HPKP_HEADER_NAME, "max-age=1234; report-uri=\"https://foobar.com?enforce=true&app_name=my_app\"")
+      subject.set_hpkp_header(:max_age => 1234, :report_uri => "https://foobar.com", :app_name => "my_app", :tag_report_uri => true, :enforce => true)
     end
   end
 

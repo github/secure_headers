@@ -8,6 +8,7 @@ The gem will automatically apply several headers that are related to security.  
 - X-Content-Type-Options - [Prevent content type sniffing](http://msdn.microsoft.com/en-us/library/ie/gg622941\(v=vs.85\).aspx)
 - X-Download-Options - [Prevent file downloads opening](http://msdn.microsoft.com/en-us/library/ie/jj542450(v=vs.85).aspx)
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
+- Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorites. [Public Key Pinnning  Specification](https://tools.ietf.org/html/draft-ietf-websec-key-pinning-21)
 
 ## Usage
 
@@ -21,6 +22,7 @@ The following methods are going to be called, unless they are provided in a `ski
 
 * `:set_csp_header`
 * `:set_hsts_header`
+* `:set_hpkp_header`
 * `:set_x_frame_options_header`
 * `:set_x_xss_protection_header`
 * `:set_x_content_type_options_header`
@@ -51,15 +53,24 @@ This gem makes a few assumptions about how you will use some features.  For exam
     :img_src => "https:",
     :report_uri => '//example.com/uri-directive'
   }
+  config.hpkp = {
+    :max_age => 60.days.to_i,
+    :include_subdomains => true,
+    :report_uri => '//example.com/uri-directive',
+    :pins => [
+      {:sha256 => 'abc'},
+      {:sha256 => '123'}
+    ]
+  }
 end
 
-# and then simply include this in application_controller.rb
+# and then include this in application_controller.rb
 class ApplicationController < ActionController::Base
   ensure_security_headers
 end
 ```
 
-Or simply add it to application controller
+Or do the config as a parameter to `ensure_security_headers`
 
 ```ruby
 ensure_security_headers(
@@ -298,6 +309,26 @@ console.log("will raise an exception if not in script_hashes.yml!")
 <% end %>
 ```
 
+### Public Key Pins
+
+Be aware that pinning error reporting is governed by the same rules as everything else. If you have a pinning failure that tries to report back to the same origin, by definition this will not work.
+
+```
+config.hpkp = {
+  max_age: 60.days.to_i,   # max_age is a required parameter
+  include_subdomains: true, # whether or not to apply pins to subdomains
+  # Per the spec, SHA256 hashes are the only currently supported format.
+  pins: [
+    {sha256: 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c'},
+    {sha256: '73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f'}
+  ],
+  enforce: true,            # defaults to false (report-only mode)
+  report_uri: '//example.com/uri-directive',
+  app_name: 'example',
+  tag_report_uri: true
+}
+```
+
 ### Using with Sinatra
 
 Here's an example using SecureHeaders for Sinatra applications:
@@ -321,6 +352,7 @@ require 'secure_headers'
     :img_src => "https: data:",
     :frame_src => "https: http:.twimg.com http://itunes.apple.com"
   }
+  config.hpkp = false
 end
 
 class Donkey < Sinatra::Application

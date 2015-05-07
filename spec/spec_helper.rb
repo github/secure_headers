@@ -7,6 +7,7 @@ if defined?(Coveralls)
   Coveralls.wear!
 end
 
+include ::SecureHeaders::PublicKeyPins::Constants
 include ::SecureHeaders::StrictTransportSecurity::Constants
 include ::SecureHeaders::ContentSecurityPolicy::Constants
 include ::SecureHeaders::XFrameOptions::Constants
