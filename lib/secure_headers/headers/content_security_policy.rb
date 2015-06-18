@@ -106,7 +106,7 @@ module SecureHeaders
 
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
-        config_val = value.respond_to?(:call) ? value.call : value
+        config_val = value.respond_to?(:call) ? value.call(@controller) : value
 
         if SOURCE_DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
