@@ -76,7 +76,7 @@ module SecureHeaders
         end
 
         it "adds a @enforce and @app_name variables to the report uri" do
-          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => lambda { 'twitter' })
+          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => proc { 'twitter' })
           csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
           expect(csp.value).to include("/csp_report?enforce=true&app_name=twitter")
         end
@@ -90,7 +90,7 @@ module SecureHeaders
         it "accepts procs for report-uris" do
           opts = {
             :default_src => 'self',
-            :report_uri => lambda { "http://lambda/result" }
+            :report_uri => proc { "http://lambda/result" }
           }
 
           csp = ContentSecurityPolicy.new(opts)
@@ -99,13 +99,27 @@ module SecureHeaders
 
         it "accepts procs for other fields" do
           opts = {
-            :default_src => lambda { "http://lambda/result" },
-            :enforce => lambda { true },
-            :disable_fill_missing => lambda { true }
+            :default_src => proc { "http://lambda/result" },
+            :enforce => proc { true },
+            :disable_fill_missing => proc { true }
           }
 
           csp = ContentSecurityPolicy.new(opts)
           expect(csp.value).to eq("default-src http://lambda/result; img-src http://lambda/result data:;")
+          expect(csp.name).to match("Content-Security-Policy")
+        end
+
+        it "passes a reference to the controller to the proc" do
+          controller = double
+          user = double(:beta_testing? => true)
+
+          allow(controller).to receive(:current_user).and_return(user)
+          opts = {
+            :disable_fill_missing => true,
+            :default_src => "self",
+            :enforce => lambda { |c| c.current_user.beta_testing? }
+          }
+          csp = ContentSecurityPolicy.new(opts, :controller => controller)
           expect(csp.name).to match("Content-Security-Policy")
         end
       end
