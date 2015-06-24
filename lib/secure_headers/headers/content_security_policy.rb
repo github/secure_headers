@@ -1,6 +1,7 @@
 require 'uri'
 require 'base64'
 require 'securerandom'
+require 'user_agent_parser'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -205,8 +206,12 @@ module SecureHeaders
       elsif %{self none}.include?(val)
         "'#{val}'"
       elsif val == 'nonce'
-        self.class.set_nonce(@controller, nonce)
-        ["'nonce-#{nonce}'", "'unsafe-inline'"]
+        if supports_nonces?(@ua)
+          self.class.set_nonce(@controller, nonce)
+          ["'nonce-#{nonce}'", "'unsafe-inline'"]
+        else
+          "'unsafe-inline'"
+        end
       else
         val
       end
@@ -257,6 +262,11 @@ module SecureHeaders
 
     def build_directive(key)
       "#{self.class.symbol_to_hyphen_case(key)} #{@config[key].join(" ")}; "
+    end
+
+    def supports_nonces?(user_agent)
+      parsed_ua = UserAgentParser.parse(user_agent)
+      ["Chrome", "Opera", "Firefox"].include?(parsed_ua.family)
     end
   end
 end
