@@ -195,7 +195,7 @@ module SecureHeaders
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
-        it "adds a nonce and unsafe-inline to the script-src value when using firefox" do
+        it "adds a nonce and unsafe-inline to the script-src value when using opera" do
           header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(OPERA))
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
