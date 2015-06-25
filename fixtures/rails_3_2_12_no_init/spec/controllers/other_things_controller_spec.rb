@@ -12,9 +12,15 @@ describe OtherThingsController, :type => :controller do
       expect(response.headers['X-Frame-Options']).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
     end
 
-    it "sets the X-WebKit-CSP header" do
+    it "sets the CSP header" do
       get :index
       expect(response.headers['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; img-src 'self' data:;")
+    end
+
+    it "sets per-action values based on secure_header_options_for" do
+      # munges :style_src => self into policy
+      get :other_action
+      expect(response.headers['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; img-src 'self' data:; style-src 'self';")
     end
 
     #mock ssl
