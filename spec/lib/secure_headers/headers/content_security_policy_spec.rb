@@ -17,7 +17,8 @@ module SecureHeaders
     FIREFOX_23 = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:23.0) Gecko/20131011 Firefox/23.0"
     CHROME = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4"
     CHROME_25 = "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/537.22 (KHTML like Gecko) Chrome/25.0.1364.99 Safari/537.22"
-
+    SAFARI = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A"
+    OPERA = "Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16"
 
     def request_for user_agent, request_uri=nil, options={:ssl => false}
       double(:ssl? => options[:ssl], :env => {'HTTP_USER_AGENT' => user_agent}, :url => (request_uri || 'http://areallylongdomainexample.com') )
@@ -76,7 +77,7 @@ module SecureHeaders
         end
 
         it "adds a @enforce and @app_name variables to the report uri" do
-          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => lambda { 'twitter' })
+          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => proc { 'twitter' })
           csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
           expect(csp.value).to include("/csp_report?enforce=true&app_name=twitter")
         end
@@ -90,7 +91,7 @@ module SecureHeaders
         it "accepts procs for report-uris" do
           opts = {
             :default_src => 'self',
-            :report_uri => lambda { "http://lambda/result" }
+            :report_uri => proc { "http://lambda/result" }
           }
 
           csp = ContentSecurityPolicy.new(opts)
@@ -99,13 +100,27 @@ module SecureHeaders
 
         it "accepts procs for other fields" do
           opts = {
-            :default_src => lambda { "http://lambda/result" },
-            :enforce => lambda { true },
-            :disable_fill_missing => lambda { true }
+            :default_src => proc { "http://lambda/result" },
+            :enforce => proc { true },
+            :disable_fill_missing => proc { true }
           }
 
           csp = ContentSecurityPolicy.new(opts)
           expect(csp.value).to eq("default-src http://lambda/result; img-src http://lambda/result data:;")
+          expect(csp.name).to match("Content-Security-Policy")
+        end
+
+        it "passes a reference to the controller to the proc" do
+          controller = double
+          user = double(:beta_testing? => true)
+
+          allow(controller).to receive(:current_user).and_return(user)
+          opts = {
+            :disable_fill_missing => true,
+            :default_src => "self",
+            :enforce => lambda { |c| c.current_user.beta_testing? }
+          }
+          csp = ContentSecurityPolicy.new(opts, :controller => controller)
           expect(csp.name).to match("Content-Security-Policy")
         end
       end
@@ -170,9 +185,31 @@ module SecureHeaders
       end
 
       context "when using a nonce" do
-        it "adds a nonce and unsafe-inline to the script-src value" do
+        it "adds a nonce and unsafe-inline to the script-src value when using chrome" do
           header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(CHROME))
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
+        end
+
+        it "adds a nonce and unsafe-inline to the script-src value when using firefox" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(FIREFOX))
+          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
+        end
+
+        it "adds a nonce and unsafe-inline to the script-src value when using opera" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(OPERA))
+          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
+        end
+
+        it "does not add a nonce and unsafe-inline to the script-src value when using Safari" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(SAFARI))
+          expect(header.value).to include("script-src 'self' 'unsafe-inline'")
+          expect(header.value).not_to include("nonce")
+        end
+
+        it "does not add a nonce and unsafe-inline to the script-src value when using IE" do
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(IE))
+          expect(header.value).to include("script-src 'self' 'unsafe-inline'")
+          expect(header.value).not_to include("nonce")
         end
 
         it "adds a nonce and unsafe-inline to the style-src value" do
