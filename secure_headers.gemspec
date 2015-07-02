@@ -20,5 +20,4 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.add_development_dependency "rake"
   gem.add_dependency "user_agent_parser"
-  gem.post_install_message = "Warning: lambda config values will be broken until you add |controller|. e.g. :enforce => lambda { |controller| some_expression }"
 end
