@@ -50,12 +50,6 @@ module SecureHeaders
       before_filter :set_x_download_options_header
       before_filter :set_x_permitted_cross_domain_policies_header
     end
-
-    # we can't use ||= because I'm overloading false => disable, nil => default
-    # both of which trigger the conditional assignment
-    def options_for(type, options)
-      options.nil? ? ::SecureHeaders::Configuration.send(type) : options
-    end
   end
 
   module InstanceMethods
@@ -80,7 +74,7 @@ module SecureHeaders
       end
 
       config = self.class.secure_headers_options[:csp] if config.nil?
-      config = self.class.options_for :csp, config
+      config = secure_header_options_for :csp, config
 
       return if config == false
 
@@ -140,7 +134,7 @@ module SecureHeaders
 
     def set_hpkp_header(options=self.class.secure_headers_options[:hpkp])
       return unless request.ssl?
-      config = self.class.options_for :hpkp, options
+      config = secure_header_options_for :hpkp, options
 
       return if config == false || config.nil?
 
@@ -158,8 +152,15 @@ module SecureHeaders
 
     private
 
+    # we can't use ||= because I'm overloading false => disable, nil => default
+    # both of which trigger the conditional assignment
+    def secure_header_options_for(type, options)
+      options.nil? ? ::SecureHeaders::Configuration.send(type) : options
+    end
+
+
     def set_a_header(name, klass, options=nil)
-      options = self.class.options_for name, options
+      options = secure_header_options_for name, options
       return if options == false
 
       header = klass.new(options)
