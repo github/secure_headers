@@ -3,8 +3,11 @@ require 'rspec'
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'secure_headers')
 
-if defined?(Coveralls)
+begin
+  require 'coveralls'
   Coveralls.wear!
+rescue LoadError
+  # damn you 1.8.7
 end
 
 include ::SecureHeaders::PublicKeyPins::Constants
