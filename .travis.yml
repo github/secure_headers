@@ -14,5 +14,5 @@ cache: bundler
 before_install:
   - gem update --system $RUBYGEMS_VERSION
   - gem --version
-  - gem install bundler
+  - gem update bundler
   - bundle --version
