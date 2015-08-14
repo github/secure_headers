@@ -16,3 +16,5 @@ before_install:
   - gem --version
   - gem update bundler
   - bundle --version
+
+script: rake

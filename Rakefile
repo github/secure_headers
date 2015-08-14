@@ -35,16 +35,16 @@ task :all_spec => :spec do
       fail "Header tests with app not using initializer failed"
       Dir.chdir pwd
     end
+  end
 
+  Dir.chdir pwd
+  Dir.chdir 'fixtures/rails_4_1_8'
+  puts Dir.pwd
+  puts `bundle install >> /dev/null; bundle exec rspec spec`
+
+  unless $? == 0
+    fail "Header tests with Rails 4 failed"
     Dir.chdir pwd
-    Dir.chdir 'fixtures/rails_4_1_8'
-    puts Dir.pwd
-    puts `bundle install >> /dev/null; bundle exec rspec spec`
-
-    unless $? == 0
-      fail "Header tests with Rails 4 failed"
-      Dir.chdir pwd
-    end
   end
 end
 
