@@ -128,6 +128,7 @@ module SecureHeaders
 
       @disable_fill_missing = !!@config.delete(:disable_fill_missing)
       @enforce = !!@config.delete(:enforce)
+      @disable_img_src_data_uri = !!@config.delete(:disable_img_src_data_uri)
       @tag_report_uri = !!@config.delete(:tag_report_uri)
       @script_hashes = @config.delete(:script_hashes) || []
 
@@ -238,10 +239,11 @@ module SecureHeaders
 
     def generic_directives
       header_value = ''
+      data_uri = @disable_img_src_data_uri ? [] : ["data:"]
       if @config[:img_src]
-        @config[:img_src] = @config[:img_src] + ['data:'] unless @config[:img_src].include?('data:')
+        @config[:img_src] = @config[:img_src] + data_uri unless @config[:img_src].include?('data:')
       else
-        @config[:img_src] = @config[:default_src] + ['data:']
+        @config[:img_src] = @config[:default_src] + data_uri
       end
 
       DIRECTIVES.each do |directive_name|

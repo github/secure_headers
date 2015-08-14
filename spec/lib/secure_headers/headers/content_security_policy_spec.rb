@@ -156,6 +156,16 @@ module SecureHeaders
           csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_fill_missing => true}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
+
+        it "doesn't add a duplicate data uri if img-src specifies it already" do
+          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self data:', :disable_fill_missing => true}, :request => request_for(CHROME))
+          expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
+        end
+
+        it "allows the user to disable img-src data: uris auto-whitelisting" do
+          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_img_src_data_uri => true, :disable_fill_missing => true}, :request => request_for(CHROME))
+          expect(csp.value).to eq("default-src 'self'; img-src 'self';")
+        end
       end
 
       it "fills in directives without values with default-src value" do
