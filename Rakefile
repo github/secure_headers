@@ -13,7 +13,7 @@ end
 task :default => :all_spec
 
 desc "Run all specs, and test fixture apps"
-task :all_spec => :spec do
+task :all_spec do
   pwd = Dir.pwd
 
   unless /2\.[2-9]+\.\d+/ =~ RUBY_VERSION

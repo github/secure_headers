@@ -17,4 +17,6 @@ before_install:
   - gem update bundler
   - bundle --version
 
-script: rake
+script:
+  - bundle exec rspec spec
+  - rake
