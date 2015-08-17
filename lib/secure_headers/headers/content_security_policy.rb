@@ -2,6 +2,7 @@ require 'uri'
 require 'base64'
 require 'securerandom'
 require 'user_agent_parser'
+require 'json'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -164,6 +165,11 @@ module SecureHeaders
       else
         DEFAULT_CSP_HEADER
       end
+    end
+
+    def to_json
+      build_value
+      @config.to_json
     end
 
     private
