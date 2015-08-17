@@ -58,7 +58,17 @@ module SecureHeaders
 
     it "exports a policy to JSON" do
       policy = ContentSecurityPolicy.new(default_opts)
-      expected = %({"default_src":["https:"],"script_src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style_src":["'unsafe-inline'","https:","about:"],"img_src":["https:","data:"]})
+      expected = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
+      expect(policy.to_json).to eq(expected)
+    end
+
+    it "imports JSON to build a policy" do
+      json1 = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"]})
+      json2 = %({"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
+      config = ContentSecurityPolicy.from_json(json1, json2)
+      policy = ContentSecurityPolicy.new(config.merge(:disable_fill_missing => true))
+
+      expected = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
       expect(policy.to_json).to eq(expected)
     end
 

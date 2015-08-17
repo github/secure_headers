@@ -169,7 +169,17 @@ module SecureHeaders
 
     def to_json
       build_value
-      @config.to_json
+      @config.to_json.gsub(/(\w+)_src/, "\\1-src")
+    end
+
+    def self.from_json(*json_configs)
+      json_configs.inject({}) do |combined_config, one_config|
+        one_config = one_config.gsub(/(\w+)-src/, "\\1_src")
+        config = JSON.parse(one_config, :symbolize_names => true)
+        combined_config.merge(config) do |_, lhs, rhs|
+          lhs | rhs
+        end
+      end
     end
 
     private
