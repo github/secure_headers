@@ -64,8 +64,9 @@ module SecureHeaders
 
     it "imports JSON to build a policy" do
       json1 = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"]})
-      json2 = %({"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
-      config = ContentSecurityPolicy.from_json(json1, json2)
+      json2 = %({"style-src":["'unsafe-inline'"],"img-src":["https:","data:"]})
+      json3 = %({"style-src":["https:","about:"]})
+      config = ContentSecurityPolicy.from_json(json1, json2, json3)
       policy = ContentSecurityPolicy.new(config.merge(:disable_fill_missing => true))
 
       expected = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
