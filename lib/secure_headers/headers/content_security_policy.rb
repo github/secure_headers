@@ -2,6 +2,7 @@ require 'uri'
 require 'base64'
 require 'securerandom'
 require 'user_agent_parser'
+require 'json'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -163,6 +164,21 @@ module SecureHeaders
         build_value
       else
         DEFAULT_CSP_HEADER
+      end
+    end
+
+    def to_json
+      build_value
+      @config.to_json.gsub(/(\w+)_src/, "\\1-src")
+    end
+
+    def self.from_json(*json_configs)
+      json_configs.inject({}) do |combined_config, one_config|
+        one_config = one_config.gsub(/(\w+)-src/, "\\1_src")
+        config = JSON.parse(one_config, :symbolize_names => true)
+        combined_config.merge(config) do |_, lhs, rhs|
+          lhs | rhs
+        end
       end
     end
 

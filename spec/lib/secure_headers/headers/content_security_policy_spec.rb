@@ -56,6 +56,23 @@ module SecureHeaders
       end
     end
 
+    it "exports a policy to JSON" do
+      policy = ContentSecurityPolicy.new(default_opts)
+      expected = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
+      expect(policy.to_json).to eq(expected)
+    end
+
+    it "imports JSON to build a policy" do
+      json1 = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"]})
+      json2 = %({"style-src":["'unsafe-inline'"],"img-src":["https:","data:"]})
+      json3 = %({"style-src":["https:","about:"]})
+      config = ContentSecurityPolicy.from_json(json1, json2, json3)
+      policy = ContentSecurityPolicy.new(config.merge(:disable_fill_missing => true))
+
+      expected = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
+      expect(policy.to_json).to eq(expected)
+    end
+
     context "when using hash sources" do
       it "adds hashes and unsafe-inline to the script-src" do
         policy = ContentSecurityPolicy.new(default_opts.merge(:script_hashes => ['sha256-abc123']))
