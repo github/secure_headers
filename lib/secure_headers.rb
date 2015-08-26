@@ -39,6 +39,9 @@ module SecureHeaders
     end
 
     def ensure_security_headers options = {}
+      if RUBY_VERSION == "1.8.7"
+        warn "[DEPRECATION] secure_headers ruby 1.8.7 support will dropped in the next release"
+      end
       self.secure_headers_options = options
       before_filter :prep_script_hash
       before_filter :set_hsts_header
