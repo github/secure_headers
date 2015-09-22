@@ -417,6 +417,7 @@ end
 
 ## Similar libraries
 
+* Rack [rack-secure_headers](https://github.com/harmoni/rack-secure_headers)
 * Node.js (express) [helmet](https://github.com/evilpacket/helmet) and [hood](https://github.com/seanmonstar/hood)
 * Node.js (hapi) [blankie](https://github.com/nlf/blankie)
 * J2EE Servlet >= 3.0 [headlines](https://github.com/sourceclear/headlines)
