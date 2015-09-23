@@ -415,6 +415,35 @@ def before_load
 end
 ```
 
+### Using in rack middleware
+
+The `SecureHeaders::header_hash` generates a hash of all header values, which is useful for merging with rack middleware values.
+
+```ruby
+class MySecureHeaders
+  include SecureHeaders
+  def initialize(app)
+  @app = app
+ end
+
+ def call(env)
+   status, headers, response = @app.call(env)
+   security_headers = if override?
+     SecureHeaders::header_hash(:csp => false) # uses global config, but overrides CSP config
+   else
+     SecureHeaders::header_hash # uses global config
+   end
+   [status, headers.merge(security_headers), [response.body]]
+ end
+end
+
+module Testapp
+  class Application < Rails::Application
+    config.middleware.use MySecureHeaders
+  end
+end
+```
+
 ## Similar libraries
 
 * Rack [rack-secure_headers](https://github.com/harmoni/rack-secure_headers)

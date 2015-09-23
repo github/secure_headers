@@ -19,6 +19,7 @@ module SecureHeaders
   ALL_HEADER_CLASSES = [
     SecureHeaders::ContentSecurityPolicy,
     SecureHeaders::StrictTransportSecurity,
+    SecureHeaders::PublicKeyPins,
     SecureHeaders::XContentTypeOptions,
     SecureHeaders::XDownloadOptions,
     SecureHeaders::XFrameOptions,
@@ -57,8 +58,10 @@ module SecureHeaders
           ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
         end
 
-        header = get_a_header(klass::Constants::CONFIG_KEY, klass, config)
-        memo[header.name] = header.value
+        unless klass == SecureHeaders::PublicKeyPins && !config.is_a?(Hash)
+          header = get_a_header(klass::Constants::CONFIG_KEY, klass, config)
+          memo[header.name] = header.value
+        end
         memo
       end
     end
