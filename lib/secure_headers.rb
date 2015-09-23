@@ -200,7 +200,9 @@ module SecureHeaders
     end
 
     def set_a_header(name, klass, options=nil)
-      set_header(SecureHeaders::get_a_header(name, klass, secure_header_options_for(name, options)))
+      options = secure_header_options_for(name, options)
+      return if options == false
+      set_header(SecureHeaders::get_a_header(name, klass, options))
     end
 
     def set_header(name_or_header, value=nil)
