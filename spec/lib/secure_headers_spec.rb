@@ -159,6 +159,24 @@ describe SecureHeaders do
     end
   end
 
+  describe "SecureHeaders#header_hash" do
+    it "produces a hash of headers given a hash as config" do
+      hash = SecureHeaders::header_hash(:csp => {:default_src => 'none', :img_src => "data:", :disable_fill_missing => true})
+      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:;")
+    end
+
+    it "produces a hash of headers with default config" do
+      hash = SecureHeaders::header_hash
+      expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::Constants::DEFAULT_CSP_HEADER)
+      expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
+      expect(hash[XDO_HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::Constants::DEFAULT_VALUE)
+      expect(hash[HSTS_HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
+      expect(hash[X_XSS_PROTECTION_HEADER_NAME]).to eq(SecureHeaders::XXssProtection::Constants::DEFAULT_VALUE)
+      expect(hash[X_CONTENT_TYPE_OPTIONS_HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE)
+      expect(hash[XPCDP_HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::Constants::DEFAULT_VALUE)
+    end
+  end
+
   describe "#set_x_frame_options_header" do
     it "sets the X-Frame-Options header" do
       should_assign_header(XFO_HEADER_NAME, SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
