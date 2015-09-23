@@ -51,11 +51,12 @@ module SecureHeaders
 
     def header_hash(options = nil)
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
-        config = if options.is_a?(Hash)
+        config = if options.is_a?(Hash) && options[klass::Constants::CONFIG_KEY]
           options[klass::Constants::CONFIG_KEY]
         else
           ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
         end
+
         header = get_a_header(klass::Constants::CONFIG_KEY, klass, config)
         memo[header.name] = header.value
         memo
