@@ -5,6 +5,7 @@ module SecureHeaders
       XFO_HEADER_NAME = "X-Frame-Options"
       DEFAULT_VALUE = 'SAMEORIGIN'
       VALID_XFO_HEADER = /\A(SAMEORIGIN\z|DENY\z|ALLOW-FROM[:\s])/i
+      CONFIG_KEY = :x_frame_options
     end
     include Constants
 

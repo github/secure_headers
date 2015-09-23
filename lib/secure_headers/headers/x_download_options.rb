@@ -4,6 +4,7 @@ module SecureHeaders
     module Constants
       XDO_HEADER_NAME = "X-Download-Options"
       DEFAULT_VALUE = 'noopen'
+      CONFIG_KEY = :x_download_options
     end
     include Constants
 

@@ -5,6 +5,7 @@ module SecureHeaders
     module Constants
       X_CONTENT_TYPE_OPTIONS_HEADER_NAME = "X-Content-Type-Options"
       DEFAULT_VALUE = "nosniff"
+      CONFIG_KEY = :x_content_type_options
     end
     include Constants
 

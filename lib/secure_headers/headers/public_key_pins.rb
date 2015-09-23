@@ -6,6 +6,7 @@ module SecureHeaders
       ENV_KEY = 'secure_headers.public_key_pins'
       HASH_ALGORITHMS = [:sha256]
       DIRECTIVES = [:max_age]
+      CONFIG_KEY = :hpkp
     end
     class << self
       def symbol_to_hyphen_case sym
