@@ -40,7 +40,9 @@ module SecureHeaders
       SOURCE_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES
 
       ALL_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES + OTHER
+      CONFIG_KEY = :csp
     end
+
     include Constants
 
     attr_reader :disable_fill_missing, :ssl_request

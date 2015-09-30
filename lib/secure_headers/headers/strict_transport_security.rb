@@ -8,6 +8,7 @@ module SecureHeaders
       DEFAULT_VALUE = "max-age=" + HSTS_MAX_AGE
       VALID_STS_HEADER = /\Amax-age=\d+(; includeSubdomains)?(; preload)?\z/i
       MESSAGE = "The config value supplied for the HSTS header was invalid."
+      CONFIG_KEY = :hsts
     end
     include Constants
 

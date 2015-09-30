@@ -1,6 +1,31 @@
+require "secure_headers/version"
+require "secure_headers/header"
+require "secure_headers/headers/public_key_pins"
+require "secure_headers/headers/content_security_policy"
+require "secure_headers/headers/x_frame_options"
+require "secure_headers/headers/strict_transport_security"
+require "secure_headers/headers/x_xss_protection"
+require "secure_headers/headers/x_content_type_options"
+require "secure_headers/headers/x_download_options"
+require "secure_headers/headers/x_permitted_cross_domain_policies"
+require "secure_headers/railtie"
+require "secure_headers/hash_helper"
+require "secure_headers/view_helper"
+
 module SecureHeaders
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
   HASHES_ENV_KEY = 'secure_headers.script_hashes'
+
+  ALL_HEADER_CLASSES = [
+    SecureHeaders::ContentSecurityPolicy,
+    SecureHeaders::StrictTransportSecurity,
+    SecureHeaders::PublicKeyPins,
+    SecureHeaders::XContentTypeOptions,
+    SecureHeaders::XDownloadOptions,
+    SecureHeaders::XFrameOptions,
+    SecureHeaders::XPermittedCrossDomainPolicies,
+    SecureHeaders::XXssProtection
+  ]
 
   module Configuration
     class << self
@@ -23,6 +48,27 @@ module SecureHeaders
         extend ClassMethods
         include InstanceMethods
       end
+    end
+
+    def header_hash(options = nil)
+      ALL_HEADER_CLASSES.inject({}) do |memo, klass|
+        config = if options.is_a?(Hash) && options[klass::Constants::CONFIG_KEY]
+          options[klass::Constants::CONFIG_KEY]
+        else
+          ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
+        end
+
+        unless klass == SecureHeaders::PublicKeyPins && !config.is_a?(Hash)
+          header = get_a_header(klass::Constants::CONFIG_KEY, klass, config)
+          memo[header.name] = header.value
+        end
+        memo
+      end
+    end
+
+    def get_a_header(name, klass, options)
+      return if options == false
+      klass.new(options)
     end
   end
 
@@ -161,13 +207,10 @@ module SecureHeaders
       options.nil? ? ::SecureHeaders::Configuration.send(type) : options
     end
 
-
     def set_a_header(name, klass, options=nil)
-      options = secure_header_options_for name, options
+      options = secure_header_options_for(name, options)
       return if options == false
-
-      header = klass.new(options)
-      set_header(header)
+      set_header(SecureHeaders::get_a_header(name, klass, options))
     end
 
     def set_header(name_or_header, value=nil)
@@ -180,18 +223,3 @@ module SecureHeaders
     end
   end
 end
-
-
-require "secure_headers/version"
-require "secure_headers/header"
-require "secure_headers/headers/public_key_pins"
-require "secure_headers/headers/content_security_policy"
-require "secure_headers/headers/x_frame_options"
-require "secure_headers/headers/strict_transport_security"
-require "secure_headers/headers/x_xss_protection"
-require "secure_headers/headers/x_content_type_options"
-require "secure_headers/headers/x_download_options"
-require "secure_headers/headers/x_permitted_cross_domain_policies"
-require "secure_headers/railtie"
-require "secure_headers/hash_helper"
-require "secure_headers/view_helper"

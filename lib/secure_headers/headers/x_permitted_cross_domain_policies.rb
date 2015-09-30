@@ -5,6 +5,7 @@ module SecureHeaders
       XPCDP_HEADER_NAME = "X-Permitted-Cross-Domain-Policies"
       DEFAULT_VALUE = 'none'
       VALID_POLICIES = %w(all none master-only by-content-type by-ftp-filename)
+      CONFIG_KEY = :x_permitted_cross_domain_policies
     end
     include Constants
 
