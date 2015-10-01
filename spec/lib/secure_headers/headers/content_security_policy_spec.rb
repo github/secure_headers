@@ -82,7 +82,7 @@ module SecureHeaders
 
     describe "#normalize_csp_options" do
       before(:each) do
-        default_opts[:script_src] << ' self none'
+        default_opts[:script_src] <<  " 'self' 'none'"
         @opts = default_opts
       end
 
@@ -106,7 +106,7 @@ module SecureHeaders
 
         it "accepts procs for report-uris" do
           opts = {
-            :default_src => 'self',
+            :default_src => "'self'",
             :report_uri => proc { "http://lambda/result" }
           }
 
@@ -131,7 +131,7 @@ module SecureHeaders
 
           allow(controller).to receive(:current_user).and_return(user)
           opts = {
-            :default_src => "self",
+            :default_src => "'self'",
             :enforce => lambda { |c| c.current_user.beta_testing? }
           }
           csp = ContentSecurityPolicy.new(opts, :controller => controller)
@@ -150,22 +150,22 @@ module SecureHeaders
 
       context "auto-whitelists data: uris for img-src" do
         it "sets the value if no img-src specified" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self'}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => "'self'"}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "appends the value if img-src is specified" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self'}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => "'self'", :img_src => "'self'"}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "doesn't add a duplicate data uri if img-src specifies it already" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self data:'}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => "'self'", :img_src => "'self' data:"}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "allows the user to disable img-src data: uris auto-whitelisting" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_img_src_data_uri => true}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => "'self'", :img_src => "'self'", :disable_img_src_data_uri => true}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self';")
         end
       end
@@ -191,39 +191,39 @@ module SecureHeaders
 
       context "when using a nonce" do
         it "adds a nonce and unsafe-inline to the script-src value when using chrome" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(CHROME), :controller => controller)
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "adds a nonce and unsafe-inline to the script-src value when using firefox" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(FIREFOX), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(FIREFOX), :controller => controller)
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "adds a nonce and unsafe-inline to the script-src value when using opera" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(OPERA), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(OPERA), :controller => controller)
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "does not add a nonce and unsafe-inline to the script-src value when using Safari" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(SAFARI), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(SAFARI), :controller => controller)
           expect(header.value).to include("script-src 'self' 'unsafe-inline'")
           expect(header.value).not_to include("nonce")
         end
 
         it "does not add a nonce and unsafe-inline to the script-src value when using IE" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce"), :request => request_for(IE), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(IE), :controller => controller)
           expect(header.value).to include("script-src 'self' 'unsafe-inline'")
           expect(header.value).not_to include("nonce")
         end
 
         it "adds a nonce and unsafe-inline to the style-src value" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "self nonce"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "'self' nonce"), :request => request_for(CHROME), :controller => controller)
           expect(header.value).to include("style-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "adds an identical nonce to the style and script-src directives" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "self nonce", :script_src => "self nonce"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "'self' nonce", :script_src => "'self' nonce"), :request => request_for(CHROME), :controller => controller)
           nonce = header.nonce
           value = header.value
           expect(value).to include("style-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
@@ -231,7 +231,7 @@ module SecureHeaders
         end
 
         it "does not add 'unsafe-inline' twice" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce 'unsafe-inline'"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce 'unsafe-inline'"), :request => request_for(CHROME), :controller => controller)
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline';")
         end
       end
@@ -279,7 +279,7 @@ module SecureHeaders
 
         describe ".add_to_env" do
           let(:controller) { double }
-          let(:config) { {:default_src => 'self'} }
+          let(:config) { {:default_src => "'self'"} }
           let(:options) { {:controller => controller} }
 
           it "adds metadata to env" do
