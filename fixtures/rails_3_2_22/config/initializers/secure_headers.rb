@@ -5,8 +5,8 @@
   config.x_xss_protection = {:value => 1, :mode => 'block'}
   config.x_permitted_cross_domain_policies = 'none'
   csp = {
-    :default_src => "self",
-    :script_src => "self nonce",
+    :default_src => "'self'",
+    :script_src => "'self' nonce",
     :report_uri => 'somewhere',
     :script_hash_middleware => true,
     :enforce => false # false means warnings only

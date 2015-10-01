@@ -20,26 +20,19 @@ module SecureHeaders
         :media_src,
         :object_src,
         :script_src,
-        :style_src
-      ]
-
-      NON_DEFAULT_SOURCES = [
+        :style_src,
         :base_uri,
         :child_src,
         :form_action,
         :frame_ancestors,
-        :plugin_types,
-        :referrer,
-        :reflected_xss
+        :plugin_types
       ]
 
       OTHER = [
         :report_uri
       ]
 
-      SOURCE_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES
-
-      ALL_DIRECTIVES = DIRECTIVES + NON_DEFAULT_SOURCES + OTHER
+      ALL_DIRECTIVES = DIRECTIVES + OTHER
       CONFIG_KEY = :csp
     end
 
@@ -111,7 +104,7 @@ module SecureHeaders
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call(@controller) : value
 
-        if SOURCE_DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
+        if DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
@@ -191,7 +184,6 @@ module SecureHeaders
       append_http_additions unless ssl_request?
       header_value = [
         generic_directives,
-        non_default_directives,
         report_uri_directive
       ].join.strip
     end
@@ -252,15 +244,6 @@ module SecureHeaders
       end
 
       DIRECTIVES.each do |directive_name|
-        header_value += build_directive(directive_name) if @config[directive_name]
-      end
-
-      header_value
-    end
-
-    def non_default_directives
-      header_value = ''
-      NON_DEFAULT_SOURCES.each do |directive_name|
         header_value += build_directive(directive_name) if @config[directive_name]
       end
 

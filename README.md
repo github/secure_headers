@@ -42,10 +42,23 @@ The following methods are going to be called, unless they are provided in a `ski
   config.x_download_options = 'noopen'
   config.x_permitted_cross_domain_policies = 'none'
   config.csp = {
-    :default_src => "https: self",
+    :default_src => "https: 'self'",
     :enforce => proc {|controller| controller.current_user.enforce_csp? },
     :frame_src => "https: http:.twimg.com http://itunes.apple.com",
     :img_src => "https:",
+    :connect_src => "wws:"
+    :font_src => "'self' data:",
+    :frame_src => "'self'",
+    :img_src => "mycdn.com data:",
+    :media_src => "utoob.com",
+    :object_src => "'self'",
+    :script_src => "'self'",
+    :style_src => "'unsafe-inline'",
+    :base_uri => "'self'",
+    :child_src => "'self'",
+    :form_action => "'self' github.com",
+    :frame_ancestors => "'none'",
+    :plugin_types => 'application/x-shockwave-flash',
     :report_uri => '//example.com/uri-directive'
   }
   config.hpkp = {
@@ -152,7 +165,7 @@ This configuration will likely work for most applications without modification.
 
 # Auction site wants to allow images from anywhere, plugin content from a list of trusted media providers (including a content distribution network), and scripts only from its server hosting sanitized JavaScript
 :csp => {
-  :default_src => 'self',
+  :default_src => "'self'",
   :img_src => '*',
   :object_src => ['media1.com', 'media2.com', '*.cdn.com'],
   # alternatively (NOT csv) :object_src => 'media1.com media2.com *.cdn.com'
@@ -191,8 +204,8 @@ Setting a nonce will also set 'unsafe-inline' for browsers that don't support no
 
 ```ruby
 :csp => {
-  :default_src => 'self',
-  :script_src => 'self nonce'
+  :default_src => "'self'",
+  :script_src => "'self' nonce"
 }
 ```
 
@@ -238,7 +251,7 @@ If you only have a few hashes, you can hardcode them for the entire app:
 ```ruby
   config.csp = {
     :default_src => "https:",
-    :script_src => 'self'
+    :script_src => "'self'"
     :script_hashes => ['sha1-abc', 'sha1-qwe']
   }
 ```
@@ -248,7 +261,7 @@ The following will work as well, but may not be as clear:
 ```ruby
   config.csp = {
     :default_src => "https:",
-    :script_src => "self 'sha1-qwe'"
+    :script_src => "'self' 'sha1-qwe'"
   }
 ```
 
@@ -263,7 +276,7 @@ use ::SecureHeaders::ContentSecurityPolicy::ScriptHashMiddleware
 ```ruby
   config.csp = {
     :default_src => "https:",
-    :script_src => 'self',
+    :script_src => "'self'",
     :script_hash_middleware => true
   }
 ```
