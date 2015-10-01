@@ -1,6 +1,7 @@
 language: ruby
 
 rvm:
+  - "2.2"
   - "2.1"
   - "2.0.0"
   - "1.9.3"
@@ -8,3 +9,13 @@ rvm:
 
 sudo: false
 cache: bundler
+
+before_install:
+  - gem update --system $RUBYGEMS_VERSION
+  - gem --version
+  - gem update bundler
+  - bundle --version
+
+script:
+  - bundle exec rspec spec
+  - rake
