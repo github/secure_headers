@@ -4,7 +4,6 @@ module SecureHeaders
   describe ContentSecurityPolicy do
     let(:default_opts) do
       {
-        :disable_fill_missing => true,
         :default_src => 'https:',
         :report_uri => '/csp_report',
         :script_src => 'inline eval https: data:',
@@ -68,7 +67,7 @@ module SecureHeaders
       json2 = %({"style-src":["'unsafe-inline'"],"img-src":["https:","data:"]})
       json3 = %({"style-src":["https:","about:"]})
       config = ContentSecurityPolicy.from_json(json1, json2, json3)
-      policy = ContentSecurityPolicy.new(config.merge(:disable_fill_missing => true))
+      policy = ContentSecurityPolicy.new(config)
 
       expected = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
       expect(policy.to_json).to eq(expected)
@@ -83,7 +82,6 @@ module SecureHeaders
 
     describe "#normalize_csp_options" do
       before(:each) do
-        default_opts.delete(:disable_fill_missing)
         default_opts[:script_src] << ' self none'
         @opts = default_opts
       end
@@ -120,7 +118,6 @@ module SecureHeaders
           opts = {
             :default_src => proc { "http://lambda/result" },
             :enforce => proc { true },
-            :disable_fill_missing => proc { true }
           }
 
           csp = ContentSecurityPolicy.new(opts)
@@ -134,7 +131,6 @@ module SecureHeaders
 
           allow(controller).to receive(:current_user).and_return(user)
           opts = {
-            :disable_fill_missing => true,
             :default_src => "self",
             :enforce => lambda { |c| c.current_user.beta_testing? }
           }
@@ -166,31 +162,24 @@ module SecureHeaders
 
       context "auto-whitelists data: uris for img-src" do
         it "sets the value if no img-src specified" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :disable_fill_missing => true}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => 'self'}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "appends the value if img-src is specified" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_fill_missing => true}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self'}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "doesn't add a duplicate data uri if img-src specifies it already" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self data:', :disable_fill_missing => true}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self data:'}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
         end
 
         it "allows the user to disable img-src data: uris auto-whitelisting" do
-          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_img_src_data_uri => true, :disable_fill_missing => true}, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new({:default_src => 'self', :img_src => 'self', :disable_img_src_data_uri => true}, :request => request_for(CHROME))
           expect(csp.value).to eq("default-src 'self'; img-src 'self';")
         end
-      end
-
-      it "fills in directives without values with default-src value" do
-        options = default_opts.merge(:disable_fill_missing => false)
-        csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-        value = "default-src https:; connect-src https:; font-src https:; frame-src https:; img-src https: data:; media-src https:; object-src https:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;"
-        expect(csp.value).to eq(value)
       end
 
       it "sends the standard csp header if an unknown browser is supplied" do

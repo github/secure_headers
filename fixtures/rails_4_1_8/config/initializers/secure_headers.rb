@@ -7,7 +7,6 @@
   csp = {
     :default_src => "self",
     :script_src => "self nonce",
-    :disable_fill_missing => true,
     :report_uri => 'somewhere',
     :script_hash_middleware => true,
     :enforce => false # false means warnings only

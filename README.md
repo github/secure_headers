@@ -29,12 +29,6 @@ The following methods are going to be called, unless they are provided in a `ski
 * `:set_x_download_options_header`
 * `:set_x_permitted_cross_domain_policies_header`
 
-### Bonus Features
-
-This gem makes a few assumptions about how you will use some features.  For example:
-
-* It fills any blank directives with the value in `:default_src`  Getting a default\-src report is pretty useless.  This way, you will always know what type of violation occurred. You can disable this feature by supplying `:disable_fill_missing => true`. This is referred to as the "effective-directive" in the spec, but is not well supported as of Nov 5, 2013.
-
 ## Configuration
 
 **Place the following in an initializer (recommended):**

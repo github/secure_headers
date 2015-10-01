@@ -1,5 +1,5 @@
 class OtherThingsController < ApplicationController
-  ensure_security_headers :csp => {:default_src => 'self', :disable_fill_missing => true}
+  ensure_security_headers :csp => {:default_src => 'self'}
   def index
 
   end

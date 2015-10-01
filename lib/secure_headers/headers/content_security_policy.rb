@@ -45,8 +45,7 @@ module SecureHeaders
 
     include Constants
 
-    attr_reader :disable_fill_missing, :ssl_request
-    alias :disable_fill_missing? :disable_fill_missing
+    attr_reader :ssl_request
     alias :ssl_request? :ssl_request
 
     class << self
@@ -128,15 +127,12 @@ module SecureHeaders
       @http_additions = @config.delete(:http_additions)
       @app_name = @config.delete(:app_name)
       @report_uri = @config.delete(:report_uri)
-
-      @disable_fill_missing = !!@config.delete(:disable_fill_missing)
       @enforce = !!@config.delete(:enforce)
       @disable_img_src_data_uri = !!@config.delete(:disable_img_src_data_uri)
       @tag_report_uri = !!@config.delete(:tag_report_uri)
       @script_hashes = @config.delete(:script_hashes) || []
 
       add_script_hashes if @script_hashes.any?
-      fill_directives unless disable_fill_missing?
     end
 
     ##
@@ -198,16 +194,6 @@ module SecureHeaders
         non_default_directives,
         report_uri_directive
       ].join.strip
-    end
-
-    def fill_directives
-      if default = @config[:default_src]
-        DIRECTIVES.each do |directive|
-          unless @config[directive]
-            @config[directive] = default
-          end
-        end
-      end
     end
 
     def append_http_additions
