@@ -220,9 +220,10 @@ module SecureHeaders
 
     def translate_dir_value val
       if %w{inline eval}.include?(val)
+        warn "[DEPRECATION] using inline/eval may not be supported in the future. Instead use 'unsafe-inline'/'unsafe-eval' instead."
         val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
-        # self/none are special sources/src-dir-values and need to be quoted
       elsif %{self none}.include?(val)
+        warn "[DEPRECATION] using self/none may not be supported in the future. Instead use 'self'/'none' instead."
         "'#{val}'"
       elsif val == 'nonce'
         if supports_nonces?(@ua)

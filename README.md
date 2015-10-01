@@ -142,7 +142,7 @@ This configuration will likely work for most applications without modification.
 ```ruby
 # most basic example
 :csp => {
-  :default_src => "https: inline eval",
+  :default_src => "https: 'unsafe-inline' 'unsafe-eval'",
   :report_uri => '/uri-directive'
 }
 

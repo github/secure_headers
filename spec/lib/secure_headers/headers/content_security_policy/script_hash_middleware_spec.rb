@@ -13,8 +13,8 @@ module SecureHeaders
         :disable_fill_missing => true,
         :default_src => 'https://*',
         :report_uri => '/csp_report',
-        :script_src => 'inline eval https://* data:',
-        :style_src => "inline https://* about:"
+        :script_src => "'unsafe-inline' 'unsafe-eval' https://* data:",
+        :style_src => "'unsafe-inline' https://* about:"
       }
     end
 
