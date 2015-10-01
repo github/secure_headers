@@ -33,6 +33,8 @@ The following methods are going to be called, unless they are provided in a `ski
 
 **Place the following in an initializer (recommended):**
 
+**NOTE: All CSP config values accept procs for one way of dynamically setting values**
+
 ```ruby
 ::SecureHeaders::Configuration.configure do |config|
   config.hsts = {:max_age => 20.years.to_i, :include_subdomains => true}
@@ -43,7 +45,7 @@ The following methods are going to be called, unless they are provided in a `ski
   config.x_permitted_cross_domain_policies = 'none'
   config.csp = {
     :default_src => "https: 'self'",
-    :enforce => proc {|controller| controller.current_user.enforce_csp? },
+    :enforce => proc {|controller| controller.my_feature_flag_api.enabled? },
     :frame_src => "https: http:.twimg.com http://itunes.apple.com",
     :img_src => "https:",
     :connect_src => "wws:"
@@ -86,6 +88,37 @@ ensure_security_headers(
   :x_frame_options => 'DENY',
   :csp => false
 )
+```
+
+## Per-action configuration
+
+Sometimes you need to override your content security policy for a given endpoint. Rather than applying the exception globally, you have a few options:
+
+1. Use procs as config values as mentioned above.
+1. Specifying `ensure_security_headers csp: ::SecureHeaders::Configuration.csp.merge(script_src: shadyhost.com)` in a descendent controller will override the settings for that controller only.
+1. Override the `secure_header_options_for` class instance method. e.g.
+
+```ruby
+class SomethingController < ApplicationController 
+  def wumbus
+    # gets style-src override
+  end
+
+  def diffendoofer
+    # does not get style-src override
+  end
+
+  def secure_header_options_for(header, options)
+    options = super
+    if params[:action] == "wumbus"
+      if header == :csp
+        options.merge(style_src: "'self'")
+      end
+    else
+      options
+    end
+  end
+end
 ```
 
 ## Options for ensure\_security\_headers
