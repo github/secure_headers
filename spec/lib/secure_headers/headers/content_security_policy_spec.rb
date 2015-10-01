@@ -7,8 +7,8 @@ module SecureHeaders
         :disable_fill_missing => true,
         :default_src => 'https:',
         :report_uri => '/csp_report',
-        :script_src => 'inline eval https: data:',
-        :style_src => "inline https: about:"
+        :script_src => "'unsafe-inline' 'unsafe-eval' https: data:",
+        :style_src => "'unsafe-inline' https: about:"
       }
     end
     let(:controller) { DummyClass.new }
@@ -254,7 +254,7 @@ module SecureHeaders
         end
 
         it "does not add 'unsafe-inline' twice" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce inline"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "self nonce 'unsafe-inline'"), :request => request_for(CHROME), :controller => controller)
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline';")
         end
       end
