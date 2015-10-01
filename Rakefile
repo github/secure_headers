@@ -15,7 +15,7 @@ task :default => :all_spec
 desc "Run all specs, and test fixture apps"
 task :all_spec => :spec do
   pwd = Dir.pwd
-  Dir.chdir 'fixtures/rails_3_2_12'
+  Dir.chdir 'fixtures/rails_3_2_22'
   puts Dir.pwd
   str = `bundle install >> /dev/null; bundle exec rspec spec`
   puts str
@@ -25,7 +25,7 @@ task :all_spec => :spec do
   end
 
   Dir.chdir pwd
-  Dir.chdir 'fixtures/rails_3_2_12_no_init'
+  Dir.chdir 'fixtures/rails_3_2_22_no_init'
   puts Dir.pwd
   puts `bundle install >> /dev/null; bundle exec rspec spec`
 
