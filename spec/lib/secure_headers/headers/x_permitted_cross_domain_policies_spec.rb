@@ -57,7 +57,7 @@ module SecureHeaders
       it "doesn't accept invalid values" do
         expect {
           XPermittedCrossDomainPolicies.new("open")
-        }.to raise_error
+        }.to raise_error(XPCDPBuildError)
       end
     end
   end

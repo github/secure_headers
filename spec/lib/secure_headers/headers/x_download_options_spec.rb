@@ -25,7 +25,7 @@ module SecureHeaders
       it "doesn't accept anything besides noopen" do
         expect {
           XDownloadOptions.new("open")
-        }.to raise_error
+        }.to raise_error(XDOBuildError)
       end
     end
   end
