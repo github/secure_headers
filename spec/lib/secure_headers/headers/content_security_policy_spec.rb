@@ -148,18 +148,6 @@ module SecureHeaders
         }.to raise_error(RuntimeError)
       end
 
-      context "CSP level 2 directives" do
-        let(:config) { {:default_src => 'self'} }
-        ::SecureHeaders::ContentSecurityPolicy::Constants::NON_DEFAULT_SOURCES.each do |non_default_source|
-          it "supports all level 2 directives" do
-            directive_name = ::SecureHeaders::ContentSecurityPolicy.send(:symbol_to_hyphen_case, non_default_source)
-            config.merge!({ non_default_source => "value" })
-            csp = ContentSecurityPolicy.new(config, :request => request_for(CHROME))
-            expect(csp.value).to match(/#{directive_name} value;/)
-          end
-        end
-      end
-
       context "auto-whitelists data: uris for img-src" do
         it "sets the value if no img-src specified" do
           csp = ContentSecurityPolicy.new({:default_src => 'self'}, :request => request_for(CHROME))

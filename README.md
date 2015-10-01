@@ -42,10 +42,23 @@ The following methods are going to be called, unless they are provided in a `ski
   config.x_download_options = 'noopen'
   config.x_permitted_cross_domain_policies = 'none'
   config.csp = {
-    :default_src => "https: self",
+    :default_src => "https: 'self'",
     :enforce => proc {|controller| controller.current_user.enforce_csp? },
     :frame_src => "https: http:.twimg.com http://itunes.apple.com",
     :img_src => "https:",
+    :connect_src => "wws:"
+    :font_src => "'self' data:",
+    :frame_src => "'self'",
+    :img_src => "mycdn.com data:",
+    :media_src => "utoob.com",
+    :object_src => "'self'",
+    :script_src => "'self'",
+    :style_src => "'unsafe-inline'",
+    :base_uri => "'self'",
+    :child_src => "'self'",
+    :form_action => "'self' github.com",
+    :frame_ancestors => "'none'",
+    :plugin_types => 'application/x-shockwave-flash',
     :report_uri => '//example.com/uri-directive'
   }
   config.hpkp = {
