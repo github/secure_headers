@@ -1,10 +1,6 @@
 require 'spec_helper'
 
 describe SecureHeaders do
-  class DummyClass
-    include ::SecureHeaders
-  end
-
   subject {DummyClass.new}
   let(:headers) {double}
   let(:response) {double(:headers => headers)}
