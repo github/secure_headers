@@ -5,9 +5,10 @@ module SecureHeaders
     let(:default_opts) do
       {
         :default_src => 'https:',
-        :report_uri => '/csp_report',
+        :img_src => "https: data:",
         :script_src => "'unsafe-inline' 'unsafe-eval' https: data:",
-        :style_src => "'unsafe-inline' https: about:"
+        :style_src => "'unsafe-inline' https: about:",
+        :report_uri => '/csp_report'
       }
     end
     let(:controller) { DummyClass.new }
@@ -58,7 +59,8 @@ module SecureHeaders
 
     it "exports a policy to JSON" do
       policy = ContentSecurityPolicy.new(default_opts)
-      expected = %({"default-src":["https:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"img-src":["https:","data:"]})
+      puts default_opts
+      expected = %({"default-src":["https:"],"img-src":["https:","data:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"report-uri":["/csp_report"]})
       expect(policy.to_json).to eq(expected)
     end
 

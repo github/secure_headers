@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 gemspec
 
 group :test do
+  gem 'pry'
   gem 'test-unit', '~> 3.0'
   gem 'rails', '3.2.22'
   gem 'sqlite3', :platforms => [:ruby, :mswin, :mingw]
