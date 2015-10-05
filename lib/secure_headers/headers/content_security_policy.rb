@@ -68,6 +68,7 @@ module SecureHeaders
       ).freeze
 
       ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.sort.uniq
+      ALL_CONFIGS = [:enforce, :app_name, :script_hash_middleware] + ALL_DIRECTIVES
       CONFIG_KEY = :csp
     end
 
@@ -147,7 +148,7 @@ module SecureHeaders
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call(@controller) : value
-        if ([:enforce, :app_name] + ContentSecurityPolicy::ALL_DIRECTIVES).include?(key.to_sym) # directives need to be normalized to arrays of strings
+        if ContentSecurityPolicy::ALL_CONFIGS.include?(key.to_sym) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|

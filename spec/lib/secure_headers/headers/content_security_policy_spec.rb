@@ -59,7 +59,6 @@ module SecureHeaders
 
     it "exports a policy to JSON" do
       policy = ContentSecurityPolicy.new(default_opts)
-      puts default_opts
       expected = %({"default-src":["https:"],"img-src":["https:","data:"],"script-src":["'unsafe-inline'","'unsafe-eval'","https:","data:"],"style-src":["'unsafe-inline'","https:","about:"],"report-uri":["/csp_report"]})
       expect(policy.to_json).to eq(expected)
     end
