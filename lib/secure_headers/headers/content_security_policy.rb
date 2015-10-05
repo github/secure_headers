@@ -67,7 +67,7 @@ module SecureHeaders
         DIRECTIVES_2_0 + DIRECTIVES_DRAFT
       ).freeze
 
-      ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq
+      ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.sort.uniq
       CONFIG_KEY = :csp
     end
 
@@ -274,8 +274,9 @@ module SecureHeaders
       end
     end
 
+    # ensures defualt_src is first and report_uri is last
     def generic_directives
-      header_value = ''
+      header_value = build_directive(:default_src)
       data_uri = @disable_img_src_data_uri ? [] : ["data:"]
       if @config[:img_src]
         @config[:img_src] = @config[:img_src] + data_uri unless @config[:img_src].include?('data:')
@@ -283,11 +284,13 @@ module SecureHeaders
         @config[:img_src] = @config[:default_src] + data_uri
       end
 
-      ALL_DIRECTIVES.each do |directive_name|
+      (ALL_DIRECTIVES - [:default_src, :report_uri]).each do |directive_name|
         if @config[directive_name]
           header_value += build_directive(directive_name)
         end
       end
+
+      header_value += build_directive(:report_uri) if @config[:report_uri]
 
       header_value.strip
     end

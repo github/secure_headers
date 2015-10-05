@@ -143,6 +143,27 @@ module SecureHeaders
     end
 
     describe "#value" do
+      context "browser sniffing" do
+        let(:complex_opts) do
+          ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = "'self'"; memo }.merge(:block_all_mixed_content => '')
+        end
+
+        it "does not filter any directives for Chrome" do
+          policy = ContentSecurityPolicy.new(complex_opts, :request => request_for(CHROME))
+          expect(policy.value).to eq("default-src 'self'; base-url 'self'; block-all-mixed-content ; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self';")
+        end
+
+        it "filters blocked-all-mixed-content, child-src, and plugin-types for firefox" do
+          policy = ContentSecurityPolicy.new(complex_opts, :request => request_for(FIREFOX))
+          expect(policy.value).to eq("default-src 'self'; base-url 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self';")
+        end
+
+        it "filters base-url, blocked-all-mixed-content, child-src, form-action, frame-ancestors, and plugin-types for safari" do
+          policy = ContentSecurityPolicy.new(complex_opts, :request => request_for(SAFARI))
+          expect(policy.value).to eq("default-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self';")
+        end
+      end
+
       it "raises an exception when default-src is missing" do
         csp = ContentSecurityPolicy.new({:script_src => 'anything'}, :request => request_for(CHROME))
         expect {
