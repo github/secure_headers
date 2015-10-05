@@ -3,7 +3,6 @@ require 'base64'
 require 'securerandom'
 require 'user_agent_parser'
 require 'json'
-require 'pry'
 
 module SecureHeaders
   class ContentSecurityPolicyBuildError < StandardError; end
@@ -68,7 +67,6 @@ module SecureHeaders
       ).freeze
 
       ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.sort.uniq
-      ALL_CONFIGS = [:enforce, :app_name, :script_hash_middleware] + ALL_DIRECTIVES
       CONFIG_KEY = :csp
     end
 
@@ -136,26 +134,26 @@ module SecureHeaders
       @ssl_request = !!options.delete(:ssl)
       @request_uri = options.delete(:request_uri)
       @http_additions = config.delete(:http_additions)
+      @disable_img_src_data_uri = !!config.delete(:disable_img_src_data_uri)
+      @tag_report_uri = !!config.delete(:tag_report_uri)
+      @script_hashes = config.delete(:script_hashes) || []
       @app_name = config.delete(:app_name)
       @app_name = @app_name.call(@controller) if @app_name.respond_to?(:call)
       @enforce = config.delete(:enforce)
       @enforce = @enforce.call(@controller) if @enforce.respond_to?(:call)
       @enforce = !!@enforce
-      @disable_img_src_data_uri = !!config.delete(:disable_img_src_data_uri)
-      @tag_report_uri = !!config.delete(:tag_report_uri)
-      @script_hashes = config.delete(:script_hashes) || []
 
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call(@controller) : value
-        if ContentSecurityPolicy::ALL_CONFIGS.include?(key.to_sym) # directives need to be normalized to arrays of strings
+        if ALL_DIRECTIVES.include?(key.to_sym) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
               translate_dir_value(val)
             end.flatten.uniq
           end
-        else
+        elsif key != :script_hash_middleware
           raise ArgumentError.new("Unknown directive supplied: #{key}")
         end
 
@@ -219,7 +217,9 @@ module SecureHeaders
     def to_json
       build_value
       @config.inject({}) do |hash, (key, value)|
-        hash[key.to_s.gsub(/(\w+)_(\w+)/, "\\1-\\2")] = value
+        if ALL_DIRECTIVES.include?(key)
+          hash[key.to_s.gsub(/(\w+)_(\w+)/, "\\1-\\2")] = value
+        end
         hash
       end.to_json
     end
