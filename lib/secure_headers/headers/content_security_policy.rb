@@ -67,7 +67,7 @@ module SecureHeaders
         DIRECTIVES_2_0 + DIRECTIVES_DRAFT
       ).freeze
 
-      ALL_DIRECTIVES = DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT
+      ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq
       CONFIG_KEY = :csp
     end
 
@@ -136,7 +136,10 @@ module SecureHeaders
       @request_uri = options.delete(:request_uri)
       @http_additions = config.delete(:http_additions)
       @app_name = config.delete(:app_name)
-      @enforce = !!config.delete(:enforce)
+      @app_name = @app_name.call(@controller) if @app_name.respond_to?(:call)
+      @enforce = config.delete(:enforce)
+      @enforce = @enforce.call(@controller) if @enforce.respond_to?(:call)
+      @enforce = !!@enforce
       @disable_img_src_data_uri = !!config.delete(:disable_img_src_data_uri)
       @tag_report_uri = !!config.delete(:tag_report_uri)
       @script_hashes = config.delete(:script_hashes) || []
@@ -144,7 +147,7 @@ module SecureHeaders
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call(@controller) : value
-        if ContentSecurityPolicy::ALL_DIRECTIVES.include?(key.to_sym) # directives need to be normalized to arrays of strings
+        if ([:enforce, :app_name] + ContentSecurityPolicy::ALL_DIRECTIVES).include?(key.to_sym) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
@@ -155,15 +158,31 @@ module SecureHeaders
           raise ArgumentError.new("Unknown directive supplied: #{key}")
         end
 
-
         hash[key] = config_val
         hash
       end
 
+      # normalize and tag the report-uri
+      if @config[:report_uri]
+        @config[:report_uri] = @config[:report_uri].map do |report_uri|
+          if report_uri.start_with?('//')
+            report_uri = if @ssl_request
+                           "https:" + report_uri
+                         else
+                           "http:" + report_uri
+                         end
+          end
+
+          if @tag_report_uri
+            report_uri = "#{report_uri}?enforce=#{@enforce}"
+            report_uri += "&app_name=#{@app_name}" if @app_name
+          end
+          report_uri
+        end
+      end
+
       add_script_hashes if @script_hashes.any?
-      puts @config
       strip_unsupported_directives
-      puts @config
     end
 
     ##
@@ -198,12 +217,10 @@ module SecureHeaders
 
     def to_json
       build_value
-      out = @config.inject({}) do |hash, (key, value)|
+      @config.inject({}) do |hash, (key, value)|
         hash[key.to_s.gsub(/(\w+)_(\w+)/, "\\1-\\2")] = value
         hash
-      end
-      puts out
-      out.to_json
+      end.to_json
     end
 
     def self.from_json(*json_configs)
@@ -267,10 +284,12 @@ module SecureHeaders
       end
 
       ALL_DIRECTIVES.each do |directive_name|
-        header_value += build_directive(directive_name) if @config[directive_name]
+        if @config[directive_name]
+          header_value += build_directive(directive_name)
+        end
       end
 
-      header_value
+      header_value.strip
     end
 
     def build_directive(key)

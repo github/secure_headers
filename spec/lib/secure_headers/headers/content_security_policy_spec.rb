@@ -250,7 +250,7 @@ module SecureHeaders
 
         it "adds directive values for headers on http" do
           csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src https:; frame-src http:; img-src http: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
+          expect(csp.value).to eq("default-src https:; frame-src http:; img-src https: data: http:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
         end
 
         it "does not add the directive values if requesting https" do
