@@ -28,7 +28,7 @@ module SecureHeaders
 
       DIRECTIVES_2_0 = [
         DIRECTIVES_1_0,
-        :base_url,
+        :base_uri,
         :child_src,
         :form_action,
         :frame_ancestors,
