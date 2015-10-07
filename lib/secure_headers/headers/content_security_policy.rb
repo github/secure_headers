@@ -148,8 +148,6 @@ module SecureHeaders
       @enforce = @enforce.call(@controller) if @enforce.respond_to?(:call)
       @enforce = !!@enforce
 
-      puts config
-
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call(@controller) : value
@@ -196,7 +194,6 @@ module SecureHeaders
 
       add_script_hashes if @script_hashes.any?
       strip_unsupported_directives
-      puts @config
     end
 
     ##

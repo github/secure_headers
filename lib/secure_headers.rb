@@ -58,22 +58,19 @@ module SecureHeaders
         config = env["secure_headers.#{klass::Constants::CONFIG_KEY}"] ||
           ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
 
-        puts "Config for #{klass}: #{config}"
+        # Remember, false means "don't set the header". nil means "use default".
+        # so config != false is indeed what we want.
+        if config != false
+          header = if klass == SecureHeaders::ContentSecurityPolicy
+            ContentSecurityPolicy.new(config, :ua => env["HTTP_USER_AGENT"])
+          else
+            klass.new(config)
+          end
 
-        header = if klass == SecureHeaders::ContentSecurityPolicy
-          ContentSecurityPolicy.new(config, :ua => env["HTTP_USER_AGENT"])
-        else
-          get_a_header(klass::Constants::CONFIG_KEY, klass, config)
+          memo[header.name] = header.value
+          memo
         end
-
-        memo[header.name] = header.value
-        memo
       end
-    end
-
-    def get_a_header(name, klass, config)
-      return if config == false
-      klass.new(config)
     end
   end
 
