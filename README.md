@@ -61,6 +61,7 @@ The following methods are going to be called, unless they are provided in a `ski
     :form_action => "'self' github.com",
     :frame_ancestors => "'none'",
     :plugin_types => 'application/x-shockwave-flash',
+    :block_all_mixed_content => '' # see [http://www.w3.org/TR/mixed-content/]()
     :report_uri => '//example.com/uri-directive'
   }
   config.hpkp = {
@@ -99,7 +100,7 @@ Sometimes you need to override your content security policy for a given endpoint
 1. Override the `secure_header_options_for` class instance method. e.g.
 
 ```ruby
-class SomethingController < ApplicationController 
+class SomethingController < ApplicationController
   def wumbus
     # gets style-src override
   end
