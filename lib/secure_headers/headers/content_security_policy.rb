@@ -107,6 +107,11 @@ module SecureHeaders
         if DIRECTIVES.include?(key) # directives need to be normalized to arrays of strings
           config_val = config_val.split if config_val.is_a? String
           if config_val.is_a?(Array)
+            # if 'none' is supplied with additional values, assume the override was
+            # intentional and remove any 'none's
+            if config_val.size > 1
+              config_val.reject! { |value| value == "'none'" }
+            end
             config_val = config_val.map do |val|
               translate_dir_value(val)
             end.flatten.uniq

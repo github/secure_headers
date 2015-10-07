@@ -89,7 +89,7 @@ module SecureHeaders
       context "Content-Security-Policy" do
         it "converts the script values to their equivilents" do
           csp = ContentSecurityPolicy.new(@opts, :request => request_for(CHROME))
-          expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https: data: 'self' 'none'")
+          expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https: data: 'self'")
         end
 
         it "adds a @enforce and @app_name variables to the report uri" do

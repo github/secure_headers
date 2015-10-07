@@ -15,6 +15,9 @@ require "secure_headers/view_helper"
 module SecureHeaders
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
   HASHES_ENV_KEY = 'secure_headers.script_hashes'
+  CSP_ENV_KEY = "secure_headers.#{ContentSecurityPolicy::CONFIG_KEY}"
+  XFO_ENV_KEY = "secure_headers.#{XFrameOptions::CONFIG_KEY}"
+  HPKP_ENV_KEY = "secure_headers.#{PublicKeyPins::CONFIG_KEY}"
 
   ALL_HEADER_CLASSES = [
     SecureHeaders::ContentSecurityPolicy,
@@ -55,20 +58,30 @@ module SecureHeaders
         config = if options.is_a?(Hash) && options[klass::Constants::CONFIG_KEY]
           options[klass::Constants::CONFIG_KEY]
         else
-          ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
+          ENV["secure_headers.#{klass::Constants::CONFIG_KEY}"] ||
+            ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
         end
 
         unless klass == SecureHeaders::PublicKeyPins && !config.is_a?(Hash)
-          header = get_a_header(klass::Constants::CONFIG_KEY, klass, config)
+          header = if klass == SecureHeaders::ContentSecurityPolicy
+            user_agent = { :ua => options[:ua] } if options
+            get_a_header(klass::Constants::CONFIG_KEY, klass, config, )
+          else
+            get_a_header(klass::Constants::CONFIG_KEY, klass, config)
+          end
           memo[header.name] = header.value
         end
         memo
       end
     end
 
-    def get_a_header(name, klass, options)
+    def get_a_header(name, klass, config, options = nil)
       return if options == false
-      klass.new(options)
+      if options
+        klass.new(config, options)
+      else
+        klass.new(config)
+      end
     end
   end
 
@@ -135,6 +148,31 @@ module SecureHeaders
       end
     end
 
+    # Append value to the source list for the provided directives, override 'none' values
+    def append_content_security_policy_source(additions)
+      config = ENV[CSP_ENV_KEY] || secure_header_options_for(:csp)
+      config.merge(additions) do |_, lhs, rhs|
+        lhs | rhs
+      end
+      ENV[CSP_ENV_KEY] = config
+    end
+
+    # Overrides the previously set source list for the provided directives, override 'none' values
+    def override_content_security_policy_directive(additions)
+      config = ENV[CSP_ENV_KEY] || secure_header_options_for(:csp)
+      ENV[CSP_ENV_KEY] = config.merge(additions)
+    end
+
+    # Override x-frame-options for this request. If called mult
+    def override_x_frame_options(value)
+      raise "override_x_frame_options may only be called once per action." if ENV[XFO_ENV_KEY]
+      ENV[XFO_ENV_KEY] = value
+    end
+
+    def override_hpkp(config)
+      raise "override_hpkp may only be called once per action." if ENV[HPKP_ENV_KEY]
+      ENV[HPKP_ENV_KEY] = config
+    end
 
     def prep_script_hash
       if ::SecureHeaders::Configuration.script_hashes
