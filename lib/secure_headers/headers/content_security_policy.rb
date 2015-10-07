@@ -10,7 +10,7 @@ module SecureHeaders
     module Constants
       DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https: about: javascript:; img-src data:"
       HEADER_NAME = "Content-Security-Policy"
-      ENV_KEY = 'secure_headers.content_security_policy'
+      NONCE_KEY = "secure_headers.content_security_policy_nonce"
       DATA = "data:"
       SELF = "'self'"
       NONE = "'none'"
@@ -98,27 +98,7 @@ module SecureHeaders
     end
     include Constants
 
-    attr_reader :ssl_request
-    alias :ssl_request? :ssl_request
-
     class << self
-      def generate_nonce
-        SecureRandom.base64(32).chomp
-      end
-
-      def get_nonce
-
-      end
-
-      def set_nonce(controller, nonce = generate_nonce)
-        # controller.instance_variable_set(:@content_security_policy_nonce, nonce)
-        # TODO set in ENV config too
-      end
-
-      def add_to_env(request, controller, config)
-
-      end
-
       def symbol_to_hyphen_case sym
         sym.to_s.gsub('_', '-')
       end
@@ -147,14 +127,6 @@ module SecureHeaders
       end
 
       strip_unsupported_directives
-    end
-
-    ##
-    # Return or initialize the nonce value used for this header.
-    # If a reference to a controller is passed in the config, this method
-    # will check if a nonce has already been set and use it.
-    def nonce
-      # @nonce ||= @controller.instance_variable_get(:@content_security_policy_nonce) || self.class.generate_nonce
     end
 
     ##
@@ -202,7 +174,7 @@ module SecureHeaders
 
     private
 
-    # ensures defualt_src is first and report_uri is last
+    # ensures defualt_src is first and block-all-mixed-content / report_uri are last
     def build_value
       header_value = [build_directive(DEFAULT_SRC)]
 

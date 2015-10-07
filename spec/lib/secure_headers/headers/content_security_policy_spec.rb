@@ -149,53 +149,6 @@ module SecureHeaders
           expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report")
         end
       end
-
-      context "when using a nonce" do
-        it "adds a nonce and unsafe-inline to the script-src value when using chrome" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: CHROME))
-          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
-        end
-
-        it "adds a nonce and unsafe-inline to the script-src value when using firefox" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: FIREFOX))
-          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
-        end
-
-        it "adds a nonce and unsafe-inline to the script-src value when using opera" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: OPERA))
-          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
-        end
-
-        it "does not add a nonce and unsafe-inline to the script-src value when using Safari" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: SAFARI))
-          expect(header.value).to include("script-src 'self' 'unsafe-inline'")
-          expect(header.value).not_to include("nonce")
-        end
-
-        it "does not add a nonce and unsafe-inline to the script-src value when using IE" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: IE))
-          expect(header.value).to include("script-src 'self' 'unsafe-inline'")
-          expect(header.value).not_to include("nonce")
-        end
-
-        it "adds a nonce and unsafe-inline to the style-src value" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => %w('self' nonce)).merge(ua: CHROME))
-          expect(header.value).to include("style-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
-        end
-
-        it "adds an identical nonce to the style and script-src directives" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => %w('self' nonce), :script_src => %w('self' nonce)).merge(ua: CHROME))
-          nonce = header.nonce
-          value = header.value
-          expect(value).to include("style-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
-          expect(value).to include("script-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
-        end
-
-        it "does not add 'unsafe-inline' twice" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce 'unsafe-inline'), ua: CHROME))
-          expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline';")
-        end
-      end
     end
   end
 end

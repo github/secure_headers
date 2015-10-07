@@ -54,8 +54,8 @@ describe SecureHeaders do
     end
 
     it "produces a hash of headers given a hash as config" do
-      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
-      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:;")
+      hash = SecureHeaders::header_hash(:csp => {:default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA]})
+      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
       expect_default_values(hash)
     end
 
@@ -64,6 +64,10 @@ describe SecureHeaders do
     end
 
     it "validates your config upon configuration" do
+
+    end
+
+    it "works with nonces" do
 
     end
 
@@ -82,13 +86,13 @@ describe SecureHeaders do
         }
       end
 
-      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
+      hash = SecureHeaders::header_hash(:csp => {:default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA]})
       ::SecureHeaders::Configuration.configure do |config|
         config.hsts = nil
-        config.hpkp = nil
+        config.hpkp = SecureHeaders::OPT_OUT
       end
 
-      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:;")
+      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
       expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
       expect(hash[HSTS_HEADER_NAME]).to eq("max-age=123456")
       expect(hash[HPKP_HEADER_NAME]).to eq(%{max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains})

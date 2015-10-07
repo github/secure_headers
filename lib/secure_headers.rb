@@ -13,9 +13,9 @@ require "secure_headers/hash_helper"
 require "secure_headers/view_helper"
 
 # All headers (except for hpkp) have a default value. Provide SecureHeaders::OPT_OUT
-# or ":optout" as a config value to disable a given header
+# or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
-  OPT_OUT = :optout
+  OPT_OUT = :optout_of_protection
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
   HASHES_ENV_KEY = 'secure_headers.script_hashes'
   CSP_ENV_KEY = "secure_headers.#{ContentSecurityPolicy::CONFIG_KEY}"
@@ -40,8 +40,6 @@ module SecureHeaders
         :x_permitted_cross_domain_policies, :hpkp
 
       def configure &block
-        # HPKP is the only header not set by default, so opt it out here
-        hpkp = OPT_OUT
         instance_eval &block
         if File.exists?(SCRIPT_HASH_CONFIG_FILE)
           ::SecureHeaders::Configuration.script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
@@ -57,6 +55,8 @@ module SecureHeaders
 
   class << self
     def append_features(base)
+      # HPKP is the only header not set by default, so opt it out here
+      ::SecureHeaders::Configuration.send(:hpkp=, OPT_OUT)
       base.module_eval do
         include InstanceMethods
       end
@@ -65,6 +65,7 @@ module SecureHeaders
     def header_hash(env = {})
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
         config = env["secure_headers.#{klass::Constants::CONFIG_KEY}"] ||
+          env[klass::Constants::CONFIG_KEY]                            ||
           ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
 
         unless config == OPT_OUT
@@ -81,11 +82,19 @@ module SecureHeaders
         memo
       end
     end
+
+    def content_security_policy_nonce(env)
+      unless env[NONCE_KEY]
+        env[NONCE_KEY] = SecureRandom.base64(32).chomp
+        append_content_security_policy_source(env[NONCE_KEY])
+        append_content_security_policy_source(ContentSecurityPolicy::UNSAFE_INLINE)
+      end
+    end
   end
 
   module InstanceMethods
     def content_security_policy_nonce
-
+      self.class.content_security_policy_nonce(request.env)
     end
 
     # Append value to the source list for the provided directives, override 'none' values
