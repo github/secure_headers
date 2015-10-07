@@ -166,7 +166,7 @@ describe SecureHeaders do
     end
 
     it "produces a hash of headers given a hash as config" do
-      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:", :disable_fill_missing => true})
+      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:;")
       expect_default_values(hash)
     end
@@ -186,7 +186,7 @@ describe SecureHeaders do
         }
       end
 
-      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:", :disable_fill_missing => true})
+      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
       ::SecureHeaders::Configuration.configure do |config|
         config.hsts = nil
         config.hpkp = nil

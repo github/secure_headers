@@ -6,7 +6,7 @@ module SecureHeaders
 
     def call(env)
       status, headers, response = @app.call(env)
-      headers.merge(SecureHeaders::header_hash(:ua => env["HTTP_USER_AGENT"]))
+      headers.merge(SecureHeaders::header_hash(env))
       [status, headers, response]
     end
   end

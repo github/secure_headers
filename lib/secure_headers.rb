@@ -53,39 +53,27 @@ module SecureHeaders
       end
     end
 
-    def header_hash(options = nil)
-      binding.pry
+    def header_hash(env)
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
-        config = if options.is_a?(Hash) && options[klass::Constants::CONFIG_KEY]
-          options[klass::Constants::CONFIG_KEY]
+        config = env["secure_headers.#{klass::Constants::CONFIG_KEY}"] ||
+          ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
+
+        puts "Config for #{klass}: #{config}"
+
+        header = if klass == SecureHeaders::ContentSecurityPolicy
+          ContentSecurityPolicy.new(config, :ua => env["HTTP_USER_AGENT"])
         else
-          if ENV["secure_headers.#{klass::Constants::CONFIG_KEY}"]
-            JSON.parse(ENV["secure_headers.#{klass::Constants::CONFIG_KEY}"])
-          else
-            ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
-          end
+          get_a_header(klass::Constants::CONFIG_KEY, klass, config)
         end
 
-        unless klass == SecureHeaders::PublicKeyPins && !config.is_a?(Hash)
-          header = if klass == SecureHeaders::ContentSecurityPolicy
-            user_agent = { :ua => options[:ua] } if options
-            get_a_header(klass::Constants::CONFIG_KEY, klass, config, options)
-          else
-            get_a_header(klass::Constants::CONFIG_KEY, klass, config)
-          end
-          memo[header.name] = header.value
-        end
+        memo[header.name] = header.value
         memo
       end
     end
 
-    def get_a_header(name, klass, config, options = nil)
-      return if options == false
-      if options
-        klass.new(config, options)
-      else
-        klass.new(config)
-      end
+    def get_a_header(name, klass, config)
+      return if config == false
+      klass.new(config)
     end
   end
 
@@ -154,8 +142,8 @@ module SecureHeaders
 
     # Append value to the source list for the provided directives, override 'none' values
     def append_content_security_policy_source(additions)
-      config = if ENV[CSP_ENV_KEY]
-        JSON.parse(ENV[CSP_ENV_KEY])
+      config = if request.env[CSP_ENV_KEY]
+        request.env[CSP_ENV_KEY]
       else
         secure_header_options_for(:csp, nil)
       end
@@ -163,28 +151,28 @@ module SecureHeaders
       config.merge!(additions) do |_, lhs, rhs|
         lhs | rhs
       end
-      ENV[CSP_ENV_KEY] = config.to_json
+      request.env[CSP_ENV_KEY] = config
     end
 
     # Overrides the previously set source list for the provided directives, override 'none' values
     def override_content_security_policy_directive(additions)
-      config = if ENV[CSP_ENV_KEY]
-        JSON.parse(ENV[CSP_ENV_KEY])
+      config = if request.env[CSP_ENV_KEY]
+        request.env[CSP_ENV_KEY]
       else
         secure_header_options_for(:csp, nil)
       end
-      ENV[CSP_ENV_KEY] = config.merge(additions).to_json
+      request.env[CSP_ENV_KEY] = config.merge(additions)
     end
 
     # Override x-frame-options for this request. If called mult
     def override_x_frame_options(value)
-      raise "override_x_frame_options may only be called once per action." if ENV[XFO_ENV_KEY]
-      ENV[XFO_ENV_KEY] = value
+      raise "override_x_frame_options may only be called once per action." if request.env[XFO_ENV_KEY]
+      request.env[XFO_ENV_KEY] = value
     end
 
     def override_hpkp(config)
-      raise "override_hpkp may only be called once per action." if ENV[HPKP_ENV_KEY]
-      ENV[HPKP_ENV_KEY] = config
+      raise "override_hpkp may only be called once per action." if request.env[HPKP_ENV_KEY]
+      request.env[HPKP_ENV_KEY] = config
     end
 
     def prep_script_hash

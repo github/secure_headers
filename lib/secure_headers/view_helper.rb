@@ -27,7 +27,6 @@ module SecureHeaders
           if raise_error_on_unrecognized_hash
             raise UnexpectedHashedScriptException.new(message)
           else
-            puts message
             request.env[HASHES_ENV_KEY] = (request.env[HASHES_ENV_KEY] || []) << hash_value
           end
         end

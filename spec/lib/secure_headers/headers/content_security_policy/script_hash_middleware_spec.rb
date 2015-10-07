@@ -10,7 +10,6 @@ module SecureHeaders
 
     let(:default_config) do
       {
-        :disable_fill_missing => true,
         :default_src => 'https://*',
         :report_uri => '/csp_report',
         :script_src => "'unsafe-inline' 'unsafe-eval' https://* data:",
