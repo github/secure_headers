@@ -54,18 +54,22 @@ module SecureHeaders
     end
 
     def header_hash(options = nil)
+      binding.pry
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
         config = if options.is_a?(Hash) && options[klass::Constants::CONFIG_KEY]
           options[klass::Constants::CONFIG_KEY]
         else
-          ENV["secure_headers.#{klass::Constants::CONFIG_KEY}"] ||
+          if ENV["secure_headers.#{klass::Constants::CONFIG_KEY}"]
+            JSON.parse(ENV["secure_headers.#{klass::Constants::CONFIG_KEY}"])
+          else
             ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
+          end
         end
 
         unless klass == SecureHeaders::PublicKeyPins && !config.is_a?(Hash)
           header = if klass == SecureHeaders::ContentSecurityPolicy
             user_agent = { :ua => options[:ua] } if options
-            get_a_header(klass::Constants::CONFIG_KEY, klass, config, )
+            get_a_header(klass::Constants::CONFIG_KEY, klass, config, options)
           else
             get_a_header(klass::Constants::CONFIG_KEY, klass, config)
           end
@@ -150,17 +154,26 @@ module SecureHeaders
 
     # Append value to the source list for the provided directives, override 'none' values
     def append_content_security_policy_source(additions)
-      config = ENV[CSP_ENV_KEY] || secure_header_options_for(:csp)
-      config.merge(additions) do |_, lhs, rhs|
+      config = if ENV[CSP_ENV_KEY]
+        JSON.parse(ENV[CSP_ENV_KEY])
+      else
+        secure_header_options_for(:csp, nil)
+      end
+
+      config.merge!(additions) do |_, lhs, rhs|
         lhs | rhs
       end
-      ENV[CSP_ENV_KEY] = config
+      ENV[CSP_ENV_KEY] = config.to_json
     end
 
     # Overrides the previously set source list for the provided directives, override 'none' values
     def override_content_security_policy_directive(additions)
-      config = ENV[CSP_ENV_KEY] || secure_header_options_for(:csp)
-      ENV[CSP_ENV_KEY] = config.merge(additions)
+      config = if ENV[CSP_ENV_KEY]
+        JSON.parse(ENV[CSP_ENV_KEY])
+      else
+        secure_header_options_for(:csp, nil)
+      end
+      ENV[CSP_ENV_KEY] = config.merge(additions).to_json
     end
 
     # Override x-frame-options for this request. If called mult

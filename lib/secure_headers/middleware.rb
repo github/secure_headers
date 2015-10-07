@@ -1,5 +1,5 @@
 module SecureHeaders
-  class Middlware
+  class Middleware
     def initialize(app)
       @app = app
     end

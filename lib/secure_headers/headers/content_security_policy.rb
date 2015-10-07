@@ -100,6 +100,8 @@ module SecureHeaders
       @ssl_request = !!options.delete(:ssl)
       @request_uri = options.delete(:request_uri)
 
+      puts config
+
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call(@controller) : value
@@ -118,9 +120,11 @@ module SecureHeaders
           end
         end
 
-        hash[key] = config_val
+        hash[key.to_s] = config_val
         hash
       end
+
+      puts @config
 
       @http_additions = @config.delete(:http_additions)
       @app_name = @config.delete(:app_name)
@@ -181,11 +185,12 @@ module SecureHeaders
     private
 
     def add_script_hashes
-      @config[:script_src] << @script_hashes.map {|hash| "'#{hash}'"} << ["'unsafe-inline'"]
+      @config["script_src"] << @script_hashes.map {|hash| "'#{hash}'"} << ["'unsafe-inline'"]
     end
 
     def build_value
-      raise "Expected to find default_src directive value" unless @config[:default_src]
+      binding.pry
+      raise "Expected to find default_src directive value" unless @config["default_src"]
       append_http_additions unless ssl_request?
       header_value = [
         generic_directives,
@@ -242,10 +247,11 @@ module SecureHeaders
     def generic_directives
       header_value = ''
       data_uri = @disable_img_src_data_uri ? [] : ["data:"]
-      if @config[:img_src]
-        @config[:img_src] = @config[:img_src] + data_uri unless @config[:img_src].include?('data:')
+      if @config["img_src"]
+        @config["img_src"] = @config["img_src"] + data_uri unless @config["img_src"].include?('data:')
       else
-        @config[:img_src] = @config[:default_src] + data_uri
+        binding.pry
+        @config["img_src"] = @config["default_src"] + data_uri
       end
 
       DIRECTIVES.each do |directive_name|
