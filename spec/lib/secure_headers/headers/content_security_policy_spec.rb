@@ -4,11 +4,12 @@ module SecureHeaders
   describe ContentSecurityPolicy do
     let(:default_opts) do
       {
-        :default_src => 'https:',
-        :img_src => "https: data:",
-        :script_src => "'unsafe-inline' 'unsafe-eval' https: data:",
-        :style_src => "'unsafe-inline' https: about:",
-        :report_uri => '/csp_report'
+        :default_src => %w(https:),
+        :img_src => %w(https: data:),
+        :script_src => %w('unsafe-inline' 'unsafe-eval' https: data:),
+        :style_src => %w('unsafe-inline' https: about:),
+        :report_uri => %w(/csp_report),
+        :ua => CHROME_25
       }
     end
     let(:controller) { DummyClass.new }
@@ -31,29 +32,29 @@ module SecureHeaders
 
     describe "#name" do
       context "when supplying options to override request" do
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => IE).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => FIREFOX).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => FIREFOX_23).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => CHROME).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :ua => CHROME_25).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: IE)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: FIREFOX)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: FIREFOX_23)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: CHROME)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: CHROME_25)).name).to eq(HEADER_NAME + "-Report-Only")}
       end
 
       context "when in report-only mode" do
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(IE)).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX)).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX_23)).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME)).name).to eq(HEADER_NAME + "-Report-Only")}
-        specify { expect(ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME_25)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: IE)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: FIREFOX)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: FIREFOX_23)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: CHROME)).name).to eq(HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(ua: CHROME_25)).name).to eq(HEADER_NAME + "-Report-Only")}
       end
 
       context "when in enforce mode" do
         let(:opts) { default_opts.merge(:enforce => true)}
 
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(IE)).name).to eq(HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX)).name).to eq(HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(FIREFOX_23)).name).to eq(HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME)).name).to eq(HEADER_NAME)}
-        specify { expect(ContentSecurityPolicy.new(opts, :request => request_for(CHROME_25)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts.merge(ua: IE)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts.merge(ua: FIREFOX)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts.merge(ua: FIREFOX_23)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts.merge(ua: CHROME)).name).to eq(HEADER_NAME)}
+        specify { expect(ContentSecurityPolicy.new(opts.merge(ua: CHROME_25)).name).to eq(HEADER_NAME)}
       end
     end
 
@@ -74,69 +75,28 @@ module SecureHeaders
       expect(policy.to_json).to eq(expected)
     end
 
-    context "when using hash sources" do
-      it "adds hashes and unsafe-inline to the script-src" do
-        policy = ContentSecurityPolicy.new(default_opts.merge(:script_hashes => ['sha256-abc123']))
-        expect(policy.value).to match /script-src[^;]*'sha256-abc123'/
-      end
-    end
-
     describe "#normalize_csp_options" do
       before(:each) do
-        default_opts[:script_src] <<  " 'self' 'none'"
+        default_opts[:script_src] +=  %w('self' 'none')
         @opts = default_opts
       end
 
       context "Content-Security-Policy" do
         it "converts the script values to their equivilents" do
-          csp = ContentSecurityPolicy.new(@opts, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new(@opts.merge(ua: CHROME))
           expect(csp.value).to include("script-src 'unsafe-inline' 'unsafe-eval' https: data: 'self'")
         end
 
         it "adds a @enforce and @app_name variables to the report uri" do
-          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => proc { 'twitter' })
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
+          opts = @opts.merge(:tag_report_uri => true, :enforce => true, :app_name => 'twitter')
+          csp = ContentSecurityPolicy.new(opts.merge(ua: CHROME))
           expect(csp.value).to include("/csp_report?enforce=true&app_name=twitter")
         end
 
         it "does not add an empty @app_name variable to the report uri" do
           opts = @opts.merge(:tag_report_uri => true, :enforce => true)
-          csp = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
+          csp = ContentSecurityPolicy.new(opts.merge(ua: CHROME))
           expect(csp.value).to include("/csp_report?enforce=true")
-        end
-
-        it "accepts procs for report-uris" do
-          opts = {
-            :default_src => "'self'",
-            :report_uri => proc { "http://lambda/result" }
-          }
-
-          csp = ContentSecurityPolicy.new(opts)
-          expect(csp.value).to match("report-uri http://lambda/result")
-        end
-
-        it "accepts procs for other fields" do
-          opts = {
-            :default_src => proc { "http://lambda/result" },
-            :enforce => proc { true },
-          }
-
-          csp = ContentSecurityPolicy.new(opts)
-          expect(csp.value).to eq("default-src http://lambda/result; img-src http://lambda/result data:;")
-          expect(csp.name).to match("Content-Security-Policy")
-        end
-
-        it "passes a reference to the controller to the proc" do
-          controller = double
-          user = double(:beta_testing? => true)
-
-          allow(controller).to receive(:current_user).and_return(user)
-          opts = {
-            :default_src => "'self'",
-            :enforce => lambda { |c| c.current_user.beta_testing? }
-          }
-          csp = ContentSecurityPolicy.new(opts, :controller => controller)
-          expect(csp.name).to match("Content-Security-Policy")
         end
       end
     end
@@ -144,108 +104,87 @@ module SecureHeaders
     describe "#value" do
       context "browser sniffing" do
         let(:complex_opts) do
-          ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = "'self'"; memo }.merge(:block_all_mixed_content => '')
+          ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = %w('self'); memo }.merge(:block_all_mixed_content => '')
         end
 
         it "does not filter any directives for Chrome" do
-          policy = ContentSecurityPolicy.new(complex_opts, :request => request_for(CHROME))
-          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content ; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self';")
+          policy = ContentSecurityPolicy.new(complex_opts.merge(ua: CHROME))
+          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; block-all-mixed-content; report-uri 'self'")
         end
 
         it "filters blocked-all-mixed-content, child-src, and plugin-types for firefox" do
-          policy = ContentSecurityPolicy.new(complex_opts, :request => request_for(FIREFOX))
-          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self';")
+          policy = ContentSecurityPolicy.new(complex_opts.merge(ua: FIREFOX))
+          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self'")
         end
 
         it "filters base-uri, blocked-all-mixed-content, child-src, form-action, frame-ancestors, and plugin-types for safari" do
-          policy = ContentSecurityPolicy.new(complex_opts, :request => request_for(SAFARI))
-          expect(policy.value).to eq("default-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self';")
+          policy = ContentSecurityPolicy.new(complex_opts.merge(ua: SAFARI))
+          expect(policy.value).to eq("default-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self'")
         end
       end
 
       it "raises an exception when default-src is missing" do
-        csp = ContentSecurityPolicy.new({:script_src => 'anything'}, :request => request_for(CHROME))
         expect {
+          csp = ContentSecurityPolicy.new({:script_src => %w('anything')}.merge(ua: CHROME))
           csp.value
-        }.to raise_error(RuntimeError)
+        }.to raise_error(ArgumentError)
       end
 
-      context "auto-whitelists data: uris for img-src" do
-        it "sets the value if no img-src specified" do
-          csp = ContentSecurityPolicy.new({:default_src => "'self'"}, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
-        end
-
-        it "appends the value if img-src is specified" do
-          csp = ContentSecurityPolicy.new({:default_src => "'self'", :img_src => "'self'"}, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
-        end
-
-        it "doesn't add a duplicate data uri if img-src specifies it already" do
-          csp = ContentSecurityPolicy.new({:default_src => "'self'", :img_src => "'self' data:"}, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src 'self'; img-src 'self' data:;")
-        end
-
-        it "allows the user to disable img-src data: uris auto-whitelisting" do
-          csp = ContentSecurityPolicy.new({:default_src => "'self'", :img_src => "'self'", :disable_img_src_data_uri => true}, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src 'self'; img-src 'self';")
-        end
-      end
 
       it "sends the standard csp header if an unknown browser is supplied" do
-        csp = ContentSecurityPolicy.new(default_opts, :request => request_for(IE))
+        csp = ContentSecurityPolicy.new(default_opts.merge(ua: IE))
         expect(csp.value).to match "default-src"
       end
 
       context "Firefox" do
         it "builds a csp header for firefox" do
-          csp = ContentSecurityPolicy.new(default_opts, :request => request_for(FIREFOX))
-          expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
+          csp = ContentSecurityPolicy.new(default_opts.merge(ua: FIREFOX))
+          expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report")
         end
       end
 
       context "Chrome" do
         it "builds a csp header for chrome" do
-          csp = ContentSecurityPolicy.new(default_opts, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
+          csp = ContentSecurityPolicy.new(default_opts.merge(ua: CHROME))
+          expect(csp.value).to eq("default-src https:; img-src https: data:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report")
         end
       end
 
       context "when using a nonce" do
         it "adds a nonce and unsafe-inline to the script-src value when using chrome" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: CHROME))
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "adds a nonce and unsafe-inline to the script-src value when using firefox" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(FIREFOX), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: FIREFOX))
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "adds a nonce and unsafe-inline to the script-src value when using opera" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(OPERA), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: OPERA))
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "does not add a nonce and unsafe-inline to the script-src value when using Safari" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(SAFARI), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: SAFARI))
           expect(header.value).to include("script-src 'self' 'unsafe-inline'")
           expect(header.value).not_to include("nonce")
         end
 
         it "does not add a nonce and unsafe-inline to the script-src value when using IE" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce"), :request => request_for(IE), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce)).merge(ua: IE))
           expect(header.value).to include("script-src 'self' 'unsafe-inline'")
           expect(header.value).not_to include("nonce")
         end
 
         it "adds a nonce and unsafe-inline to the style-src value" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "'self' nonce"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => %w('self' nonce)).merge(ua: CHROME))
           expect(header.value).to include("style-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline'")
         end
 
         it "adds an identical nonce to the style and script-src directives" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => "'self' nonce", :script_src => "'self' nonce"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:style_src => %w('self' nonce), :script_src => %w('self' nonce)).merge(ua: CHROME))
           nonce = header.nonce
           value = header.value
           expect(value).to include("style-src 'self' 'nonce-#{nonce}' 'unsafe-inline'")
@@ -253,77 +192,8 @@ module SecureHeaders
         end
 
         it "does not add 'unsafe-inline' twice" do
-          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => "'self' nonce 'unsafe-inline'"), :request => request_for(CHROME), :controller => controller)
+          header = ContentSecurityPolicy.new(default_opts.merge(:script_src => %w('self' nonce 'unsafe-inline'), ua: CHROME))
           expect(header.value).to include("script-src 'self' 'nonce-#{header.nonce}' 'unsafe-inline';")
-        end
-      end
-
-      context "when supplying additional http directive values" do
-        let(:options) {
-          default_opts.merge({
-            :http_additions => {
-              :frame_src => "http:",
-              :img_src => "http:"
-            }
-          })
-        }
-
-        it "adds directive values for headers on http" do
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME))
-          expect(csp.value).to eq("default-src https:; frame-src http:; img-src https: data: http:; script-src 'unsafe-inline' 'unsafe-eval' https: data:; style-src 'unsafe-inline' https: about:; report-uri /csp_report;")
-        end
-
-        it "does not add the directive values if requesting https" do
-          csp = ContentSecurityPolicy.new(options, :request => request_for(CHROME, '/', :ssl => true))
-          expect(csp.value).not_to match(/http:/)
-        end
-
-        it "does not add the directive values if requesting https" do
-          csp = ContentSecurityPolicy.new(options, :ua => "Chrome", :ssl => true)
-          expect(csp.value).not_to match(/http:/)
-        end
-      end
-
-      describe "class methods" do
-        let(:ua) { CHROME }
-        let(:env) do
-          double.tap do |env|
-            allow(env).to receive(:[]).with('HTTP_USER_AGENT').and_return(ua)
-          end
-        end
-        let(:request) do
-          double(
-            :ssl? => true,
-            :url => 'https://example.com',
-            :env => env
-          )
-        end
-
-        describe ".add_to_env" do
-          let(:controller) { double }
-          let(:config) { {:default_src => "'self'"} }
-          let(:options) { {:controller => controller} }
-
-          it "adds metadata to env" do
-            metadata = {
-              :config => config,
-              :options => options
-            }
-            expect(ContentSecurityPolicy).to receive(:options_from_request).and_return(options)
-            expect(env).to receive(:[]=).with(ContentSecurityPolicy::ENV_KEY, metadata)
-            ContentSecurityPolicy.add_to_env(request, controller, config)
-          end
-        end
-
-        describe ".options_from_request" do
-          it "extracts options from request" do
-            options = ContentSecurityPolicy.options_from_request(request)
-            expect(options).to eql({
-              :ua => ua,
-              :ssl => true,
-              :request_uri => 'https://example.com'
-            })
-          end
         end
       end
     end

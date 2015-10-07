@@ -124,7 +124,7 @@ end
 
 ## Options for ensure\_security\_headers
 
-**To disable any of these headers, supply a value of false (e.g. :hsts => false), supplying nil will set the default value**
+**To disable any of these headers, supply a value of SecureHeaders::OPT_OUT (e.g. :hsts => SecureHeaders::OPT_OUT), supplying nil will set the default value**
 
 Each header configuration can take a hash, or a string, or both. If a string
 is provided, that value is inserted verbatim.  If a hash is supplied, a
@@ -394,7 +394,7 @@ require 'secure_headers'
     :img_src => "https: data:",
     :frame_src => "https: http:.twimg.com http://itunes.apple.com"
   }
-  config.hpkp = false
+  config.hpkp = SecureHeaders::OPT_OUT # hpkp is opted out by default
 end
 
 class Donkey < Sinatra::Application
