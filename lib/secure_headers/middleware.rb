@@ -6,8 +6,7 @@ module SecureHeaders
 
     def call(env)
       status, headers, response = @app.call(env)
-      headers.merge(SecureHeaders::header_hash(env))
-      [status, headers, response]
+      [status, headers.merge(SecureHeaders::header_hash(env)), response]
     end
   end
 end
