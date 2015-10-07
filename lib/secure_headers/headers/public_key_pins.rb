@@ -1,61 +1,60 @@
 module SecureHeaders
-  class PublicKeyPinsBuildError < StandardError; end
-  class PublicKeyPins < Header
-    module Constants
-      HPKP_HEADER_NAME = "Public-Key-Pins"
-      ENV_KEY = 'secure_headers.public_key_pins'
-      HASH_ALGORITHMS = [:sha256]
-      DIRECTIVES = [:max_age]
-      CONFIG_KEY = :hpkp
-    end
+  class PublicKeyPinsConfigError < StandardError; end
+  class PublicKeyPins
+    HEADER_NAME = "Public-Key-Pins".freeze
+    REPORT_ONLY = "Public-Key-Pins-Report-Only".freeze
+    HASH_ALGORITHMS = [:sha256].freeze
+    CONFIG_KEY = :hpkp
+
+
     class << self
-      def symbol_to_hyphen_case sym
-        sym.to_s.gsub('_', '-')
+      # Public: make an hpkp header name, value pair
+      #
+      # Returns nil if not configured, returns header name and value if configured.
+      def make_header(config)
+        return if config.nil?
+        header = new(config)
+        [header.name, header.value]
+      end
+
+      def validate_config!(config)
+        return if config.nil? || config == OPT_OUT
+        raise PublicKeyPinsConfigError.new("config must be a hash.") unless config.is_a? Hash
+
+        if !config[:max_age]
+          raise PublicKeyPinsConfigError.new("max-age is a required directive.")
+        elsif config[:max_age].to_s !~ /\A\d+\z/
+          raise PublicKeyPinsConfigError.new("max-age must be a number.
+                                            #{config[:max_age]} was supplied.")
+        elsif config[:pins] && config[:pins].length < 2
+          raise PublicKeyPinsConfigError.new("A minimum of 2 pins are required.")
+        end
       end
     end
-    include Constants
 
-    def initialize(config=nil)
-      @config = validate_config(config)
-
-      @pins = @config.fetch(:pins, nil)
-      @report_uri = @config.fetch(:report_uri, nil)
-      @app_name = @config.fetch(:app_name, nil)
-      @enforce = !!@config.fetch(:enforce, nil)
-      @include_subdomains = !!@config.fetch(:include_subdomains, nil)
-      @tag_report_uri = !!@config.fetch(:tag_report_uri, nil)
+    def initialize(config)
+      @max_age = config.fetch(:max_age, nil)
+      @pins = config.fetch(:pins, nil)
+      @report_uri = config.fetch(:report_uri, nil)
+      @report_only = !!config.fetch(:report_only, nil)
+      @include_subdomains = !!config.fetch(:include_subdomains, nil)
     end
 
     def name
-      base = HPKP_HEADER_NAME
-      if !@enforce
-        base += "-Report-Only"
+      if @report_only
+        REPORT_ONLY
+      else
+        HEADER_NAME
       end
-      base
     end
 
     def value
       header_value = [
-        generic_directives,
+        max_age_directive,
         pin_directives,
         report_uri_directive,
         subdomain_directive
       ].compact.join('; ').strip
-    end
-
-    def validate_config(config)
-      raise PublicKeyPinsBuildError.new("config must be a hash.") unless config.is_a? Hash
-
-      if !config[:max_age]
-        raise PublicKeyPinsBuildError.new("max-age is a required directive.")
-      elsif config[:max_age].to_s !~ /\A\d+\z/
-        raise PublicKeyPinsBuildError.new("max-age must be a number.
-                                          #{config[:max_age]} was supplied.")
-      elsif config[:pins] && config[:pins].length < 2
-        raise PublicKeyPinsBuildError.new("A minimum of 2 pins are required.")
-      end
-
-      config
     end
 
     def pin_directives
@@ -67,27 +66,13 @@ module SecureHeaders
       end.join('; ')
     end
 
-    def generic_directives
-      DIRECTIVES.collect do |directive_name|
-        build_directive(directive_name) if @config[directive_name]
-      end.join('; ')
-    end
-
-    def build_directive(key)
-      "#{self.class.symbol_to_hyphen_case(key)}=#{@config[key]}"
+    def max_age_directive
+      "max-age=#{@max_age}" if @max_age
     end
 
     def report_uri_directive
-      return nil if @report_uri.nil?
-
-      if @tag_report_uri
-        @report_uri = "#{@report_uri}?enforce=#{@enforce}"
-        @report_uri += "&app_name=#{@app_name}" if @app_name
-      end
-
-      "report-uri=\"#{@report_uri}\""
+      "report-uri=\"#{@report_uri}\"" if @report_uri
     end
-
 
     def subdomain_directive
       @include_subdomains ? 'includeSubDomains' : nil

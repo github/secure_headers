@@ -1,40 +1,26 @@
 module SecureHeaders
-  class XContentTypeOptionsBuildError < StandardError; end
+  class XContentTypeOptionsConfigError < StandardError; end
   # IE only
-  class XContentTypeOptions < Header
-    module Constants
-      X_CONTENT_TYPE_OPTIONS_HEADER_NAME = "X-Content-Type-Options"
-      DEFAULT_VALUE = "nosniff"
-      CONFIG_KEY = :x_content_type_options
-    end
-    include Constants
+  class XContentTypeOptions
+    HEADER_NAME = "X-Content-Type-Options"
+    DEFAULT_VALUE = "nosniff"
+    CONFIG_KEY = :x_content_type_options
 
-    def initialize(config=nil)
-      @config = config
-      validate_config unless @config.nil?
-    end
-
-    def name
-      X_CONTENT_TYPE_OPTIONS_HEADER_NAME
-    end
-
-    def value
-      case @config
-      when NilClass
-        DEFAULT_VALUE
-      when String
-        @config
-      else
-        @config[:value]
+    class << self
+      # Public: generate an X-Content-Type-Options header.
+      #
+      # Returns a default header if no configuration is provided, or a
+      # header name and value based on the config.
+      def make_header(config = nil)
+        [HEADER_NAME, config || DEFAULT_VALUE]
       end
-    end
 
-    private
-
-    def validate_config
-      value = @config.is_a?(Hash) ? @config[:value] : @config
-      unless value.casecmp(DEFAULT_VALUE) == 0
-        raise XContentTypeOptionsBuildError.new("Value can only be nil or 'nosniff'")
+      def validate_config!(config)
+        return if config.nil? || config == OPT_OUT
+        raise TypeError.new("Must be a string. Found #{config.class}: #{config}") unless config.is_a?(String)
+        unless config.casecmp(DEFAULT_VALUE) == 0
+          raise XContentTypeOptionsConfigError.new("Value can only be nil or 'nosniff'")
+        end
       end
     end
   end

@@ -1,54 +1,27 @@
 module SecureHeaders
-  class STSBuildError < StandardError; end
+  class STSConfigError < StandardError; end
 
-  class StrictTransportSecurity < Header
-    module Constants
-      HSTS_HEADER_NAME = 'Strict-Transport-Security'
-      HSTS_MAX_AGE = "631138519"
-      DEFAULT_VALUE = "max-age=" + HSTS_MAX_AGE
-      VALID_STS_HEADER = /\Amax-age=\d+(; includeSubdomains)?(; preload)?\z/i
-      MESSAGE = "The config value supplied for the HSTS header was invalid."
-      CONFIG_KEY = :hsts
-    end
-    include Constants
+  class StrictTransportSecurity
+    HEADER_NAME = 'Strict-Transport-Security'
+    HSTS_MAX_AGE = "631138519"
+    DEFAULT_VALUE = "max-age=" + HSTS_MAX_AGE
+    VALID_STS_HEADER = /\Amax-age=\d+(; includeSubdomains)?(; preload)?\z/i
+    MESSAGE = "The config value supplied for the HSTS header was invalid. Must match #{VALID_STS_HEADER}"
+    CONFIG_KEY = :hsts
 
-    def initialize(config = nil)
-      @config = config
-      validate_config unless @config.nil?
-    end
-
-    def name
-      return HSTS_HEADER_NAME
-    end
-
-    def value
-      case @config
-      when String
-        return @config
-      when NilClass
-        return DEFAULT_VALUE
+    class << self
+      # Public: generate an hsts header name, value pair.
+      #
+      # Returns a default header if no configuration is provided, or a
+      # header name and value based on the config.
+      def make_header(config = nil)
+        [HEADER_NAME, config || DEFAULT_VALUE]
       end
 
-      max_age = @config.fetch(:max_age, HSTS_MAX_AGE)
-      value = "max-age=" + max_age.to_s
-      value += "; includeSubdomains" if @config[:include_subdomains]
-      value += "; preload" if @config[:preload]
-
-      value
-    end
-
-    private
-
-    def validate_config
-      if @config.is_a? Hash
-        if !@config[:max_age]
-          raise STSBuildError.new("No max-age was supplied.")
-        elsif @config[:max_age].to_s !~ /\A\d+\z/
-          raise STSBuildError.new("max-age must be a number. #{@config[:max_age]} was supplied.")
-        end
-      else
-        @config = @config.to_s
-        raise STSBuildError.new(MESSAGE) unless @config =~ VALID_STS_HEADER
+      def validate_config!(config)
+        return if config.nil? || config == OPT_OUT
+        raise TypeError.new("Must be a string. Found #{config.class}: #{config} #{config.class}") unless config.is_a?(String)
+        raise STSConfigError.new(MESSAGE) unless config =~ VALID_STS_HEADER
       end
     end
   end
