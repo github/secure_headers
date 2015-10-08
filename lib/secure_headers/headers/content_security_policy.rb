@@ -107,7 +107,8 @@ module SecureHeaders
       META_CONFIG = [:tag_report_uri, :app_name, :enforce]
       CONFIG_KEY = :csp
       STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
-      NONCE_REGEXP = Regexp.new(/nonce-/)
+      HASH_NONCE_REGEXP = Regexp.union(/'nonce-/, /'sha/)
+      HTTP_SCHEME_REGEX = %r(https?://)
     end
     include Constants
 
@@ -121,11 +122,11 @@ module SecureHeaders
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
           case key
-          when :tag_report_uri, :enforce, :block_all_mixed_content
+          when :block_all_mixed_content
             unless value.is_a?(TrueClass) || value.is_a?(FalseClass)
               raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
             end
-          when :app_name, :reflected_xss
+          when :reflected_xss
             unless value.is_a?(String)
               raise ContentSecurityPolicyConfigError.new("#{key} must be a string value")
             end
@@ -152,21 +153,8 @@ module SecureHeaders
       return unless config
 
       @ua = config.delete(:ua)
-      @tag_report_uri = !!config.delete(:tag_report_uri)
-      @app_name = config.delete(:app_name)
       @enforce = !!config.delete(:enforce)
       @config = config
-
-      # tag the report-uri(s)
-      if @config[REPORT_URI] && @tag_report_uri
-        @config[REPORT_URI] = @config[REPORT_URI].map do |report_uri|
-          report_uri = "#{report_uri}?enforce=#{@enforce}"
-          report_uri += "&app_name=#{@app_name}" if @app_name
-          report_uri
-        end
-      end
-
-      strip_unsupported_directives
     end
 
     ##
@@ -214,37 +202,49 @@ module SecureHeaders
 
     private
 
-    # ensures defualt_src is first and block-all-mixed-content / report_uri are last
+    # ensures defualt_src is first and report_uri are last
     def build_value
       header_value = [build_directive(DEFAULT_SRC)]
 
-      (ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI, BLOCK_ALL_MIXED_CONTENT]).each do |directive_name|
-        if @config[directive_name]
-          header_value << build_directive(directive_name)
+      directives = filter_unsupported_directives(ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI])
+
+      directives.select { |directive| @config[directive]}.each do |directive_name|
+        header_value << case directive_name
+        when BLOCK_ALL_MIXED_CONTENT
+          self.class.symbol_to_hyphen_case(directive_name)
+        when REFLECTED_XSS
+          [self.class.symbol_to_hyphen_case(directive_name), @config[directive_name]].join(" ")
+        else
+           build_directive(directive_name)
         end
       end
 
-      header_value << "block-all-mixed-content" if @config[BLOCK_ALL_MIXED_CONTENT]
       header_value << build_directive(REPORT_URI) if @config[REPORT_URI]
 
       header_value.join("; ")
     end
 
-    # Join the unique values and discard 'none' if a directive has additional config.
-    def build_directive(key)
-      directive_config = @config[key].uniq
-      value = if directive_config.include?(STAR)
+    # Join the unique values. Discard 'none' if a directive has additional config, discard
+    # addtional config if directive has *
+    def build_directive(directive_name)
+      source_list = @config[directive_name]
+      value = if source_list.include?(STAR)
+        # Discard trailing entries since * accomplishes the same.
         STAR
       else
-        directive_config.reject! { |value| value == NONE} if directive_config.length > 1
-        directive_config.reject! { |value| value =~ NONCE_REGEXP } unless supports_nonces?
-        dedup_source_list(directive_config).join(" ")
+        # Discard any 'none' values if more directives are supplied since none may override values.
+        source_list.reject! { |value| value == NONE} if source_list.length > 1
+        # Discard nonces/hash for browsers that do not support them
+        source_list .reject! { |value| value =~ HASH_NONCE_REGEXP } unless supports_nonces?
+        # remove schemes and dedup source expressions
+        dedup_source_list(strip_source_schemes(source_list)).join(" ")
       end
-      [self.class.symbol_to_hyphen_case(key), value].join(" ")
+      [self.class.symbol_to_hyphen_case(directive_name), value].join(" ")
     end
 
+    # Removes duplicates and sources that already match an existing wild card.
+    # Basically cargo culted from GitHub :P
     def dedup_source_list(sources)
-      sources = sources.uniq
       wild_sources = sources.select { |source| source =~ STAR_REGEXP }
 
       if wild_sources.any?
@@ -254,11 +254,17 @@ module SecureHeaders
         end
       else
         sources
-      end
+      end.uniq
     end
 
-    def strip_unsupported_directives
-      @config.select! { |key, _| supported_directives.include?(key) }
+    def filter_unsupported_directives(directives)
+      directives.select! { |key| supported_directives.include?(key) }
+    end
+
+    # Save bytes, discourages mixed content.
+    # Basically cargo culted from GitHub :P
+    def strip_source_schemes(source_list)
+      source_list.map { |source_expression| source_expression.sub(HTTP_SCHEME_REGEX, "") }
     end
 
     def supported_directives

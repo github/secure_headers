@@ -121,7 +121,7 @@ module SecureHeaders
 
         # unsafe-inline is automatically added for backwards compatibility. The spec says to ignore unsafe-inline
         # when a nonce is present
-        append_content_security_policy_source(env, script_src: ["nonce-#{env[NONCE_KEY]}", ContentSecurityPolicy::UNSAFE_INLINE])
+        append_content_security_policy_source(env, script_src: ["'nonce-#{env[NONCE_KEY]}'", ContentSecurityPolicy::UNSAFE_INLINE])
       end
 
       env[NONCE_KEY]

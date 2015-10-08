@@ -94,10 +94,28 @@ module SecureHeaders
     end
 
     describe "#value" do
-      it "discards 'none' values if any other source expressions are present"
-      it "discards any other source expressions when * is present"
-      it "minifies source expressions based on overlapping wildcards"
-      it "removes http/s schemes from hosts"
+      it "discards 'none' values if any other source expressions are present" do
+        csp = ContentSecurityPolicy.new(default_opts.merge(:frame_src => %w('self' 'none')))
+        expect(csp.value).not_to include("'none'")
+      end
+
+      it "discards any other source expressions when * is present" do
+        csp = ContentSecurityPolicy.new(default_src: %w(* http: https: example.org))
+        expect(csp.value).to eq("default-src *")
+      end
+
+      it "minifies source expressions based on overlapping wildcards" do
+        config = {
+          default_src: %w(a.example.org b.example.org *.example.org)
+        }
+        csp = ContentSecurityPolicy.new(config)
+        expect(csp.value).to eq("default-src *.example.org")
+      end
+
+      it "removes http/s schemes from hosts" do
+        csp = ContentSecurityPolicy.new(default_src: %w(https://example.org))
+        expect(csp.value).to eq("default-src example.org")
+      end
       it "deduplicates any source expressions"
 
       it "adds @enforce and @app_name variables to the report uri" do
@@ -114,7 +132,7 @@ module SecureHeaders
 
       context "browser sniffing" do
         let(:complex_opts) do
-          ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = %w('self'); memo }.merge(:block_all_mixed_content => '')
+          ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = %w('self'); memo }.merge(:block_all_mixed_content => "", :reflexed_xss => "")
         end
 
         it "does not filter any directives for Chrome" do

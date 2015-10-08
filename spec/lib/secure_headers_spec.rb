@@ -78,7 +78,7 @@ describe SecureHeaders do
       env = {"HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/537.22 (KHTML like Gecko) Chrome/25.0.1364.99 Safari/537.22"}
       nonce = SecureHeaders::content_security_policy_nonce(env)
       hash = SecureHeaders::header_hash(env)
-      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com nonce-#{nonce} 'unsafe-inline'")
+      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}' 'unsafe-inline'")
 
       env = {"HTTP_USER_AGENT" => "Mozilla/4.0 totally a legit browser"}
       hash = SecureHeaders::header_hash(env)
