@@ -27,6 +27,8 @@ module SecureHeaders
         UNSAFE_INLINE
       ]
 
+      DEPRECATED_SOURCE_VALUES = SOURCE_VALUES.map { |value| value.gsub("'", "")}
+
       DEFAULT_SRC = :default_src
       CONNECT_SRC = :connect_src
       FONT_SRC = :font_src
@@ -114,7 +116,7 @@ module SecureHeaders
         sym.to_s.gsub('_', '-')
       end
 
-      def validate_config(config)
+      def validate_config!(config)
         return if config.nil?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
@@ -133,6 +135,12 @@ module SecureHeaders
             end
             unless value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
               raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
+            end
+
+            value.each do |source_expression|
+              if DEPRECATED_SOURCE_VALUES.include?(source_expression)
+                raise ContentSecurityPolicyConfigError.new("#{source_expression} contains an invalid keyword source. This value must be single quoted.")
+              end
             end
           end
         end

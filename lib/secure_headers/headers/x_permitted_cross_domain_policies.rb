@@ -28,10 +28,10 @@ module SecureHeaders
       end
     end
 
-    def self.validate_config(config)
+    def self.validate_config!(config)
       return if config.nil?
-      value = config.is_a?(Hash) ? config[:value] : config
-      unless VALID_POLICIES.include?(value.downcase)
+      raise TypeError.new("Must be a string") unless config.is_a?(String)
+      unless VALID_POLICIES.include?(config.downcase)
         raise XPCDPConfigError.new("Value can only be one of #{VALID_POLICIES.join(', ')}")
       end
     end

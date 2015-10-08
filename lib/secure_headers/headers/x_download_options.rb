@@ -28,10 +28,10 @@ module SecureHeaders
     end
 
 
-    def self.validate_config(config)
+    def self.validate_config!(config)
       return if config.nil?
-      value = config.is_a?(Hash) ? config[:value] : config
-      unless value.casecmp(DEFAULT_VALUE) == 0
+      raise TypeError.new("Must be a string") unless config.is_a?(String)
+      unless config.casecmp(DEFAULT_VALUE) == 0
         raise XDOConfigError.new("Value can only be nil or 'noopen'")
       end
     end

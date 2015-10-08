@@ -7,7 +7,7 @@ module SecureHeaders
       HSTS_MAX_AGE = "631138519"
       DEFAULT_VALUE = "max-age=" + HSTS_MAX_AGE
       VALID_STS_HEADER = /\Amax-age=\d+(; includeSubdomains)?(; preload)?\z/i
-      MESSAGE = "The config value supplied for the HSTS header was invalid."
+      MESSAGE = "The config value supplied for the HSTS header was invalid. Must match #{VALID_STS_HEADER}"
       CONFIG_KEY = :hsts
     end
     include Constants
@@ -21,32 +21,17 @@ module SecureHeaders
     end
 
     def value
-      case @config
-      when String
-        return @config
-      when NilClass
-        return DEFAULT_VALUE
+      if @config.nil?
+        DEFAULT_VALUE
+      else
+        @config
       end
-
-      max_age = @config.fetch(:max_age, HSTS_MAX_AGE)
-      value = "max-age=" + max_age.to_s
-      value += "; includeSubdomains" if @config[:include_subdomains]
-      value += "; preload" if @config[:preload]
-
-      value
     end
 
-    def self.validate_config(config)
+    def self.validate_config!(config)
       return if config.nil?
-      if config.is_a? Hash
-        if !config[:max_age]
-          raise STSConfigError.new("No max-age was supplied.")
-        elsif config[:max_age].to_s !~ /\A\d+\z/
-          raise STSConfigError.new("max-age must be a number. #{config[:max_age]} was supplied.")
-        end
-      else
-        raise STSConfigError.new(MESSAGE) unless config =~ VALID_STS_HEADER
-      end
+      raise TypeError.new("Must be a string") unless config.is_a?(String)
+      raise STSConfigError.new(MESSAGE) unless config =~ VALID_STS_HEADER
     end
   end
 end

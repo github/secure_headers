@@ -48,15 +48,15 @@ module SecureHeaders
         end
       end
 
-      def validate_config
-        StrictTransportSecurity.validate_config(self.hsts)
-        ContentSecurityPolicy.validate_config(self.csp)
-        XFrameOptions.validate_config(self.x_frame_options)
-        XContentTypeOptions.validate_config(self.x_content_type_options)
-        XXssProtection.validate_config(self.x_xss_protection)
-        XDownloadOptions.validate_config(self.x_download_options)
-        XPermittedCrossDomainPolicies.validate_config(self.x_permitted_cross_domain_policies)
-        PublicKeyPins.validate_config(self.hpkp)
+      def validate_config!
+        StrictTransportSecurity.validate_config!(self.hsts)
+        ContentSecurityPolicy.validate_config!(self.csp)
+        XFrameOptions.validate_config!(self.x_frame_options)
+        XContentTypeOptions.validate_config!(self.x_content_type_options)
+        XXssProtection.validate_config!(self.x_xss_protection)
+        XDownloadOptions.validate_config!(self.x_download_options)
+        XPermittedCrossDomainPolicies.validate_config!(self.x_permitted_cross_domain_policies)
+        PublicKeyPins.validate_config!(self.hpkp)
       end
     end
   end

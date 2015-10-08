@@ -8,46 +8,30 @@ module SecureHeaders
     context "valid configuration values" do
       it "accepts 'all'" do
         expect {
-          XPermittedCrossDomainPolicies.validate_config("all")
-        }.not_to raise_error
-
-        expect {
-          XPermittedCrossDomainPolicies.validate_config(:value => "all")
+          XPermittedCrossDomainPolicies.validate_config!("all")
         }.not_to raise_error
       end
 
       it "accepts 'by-ftp-filename'" do
         expect {
-          XPermittedCrossDomainPolicies.validate_config("by-ftp-filename")
-        }.not_to raise_error
-
-        expect {
-          XPermittedCrossDomainPolicies.validate_config(:value => "by-ftp-filename")
+          XPermittedCrossDomainPolicies.validate_config!("by-ftp-filename")
         }.not_to raise_error
       end
 
       it "accepts 'by-content-type'" do
         expect {
-          XPermittedCrossDomainPolicies.validate_config("by-content-type")
-        }.not_to raise_error
-
-        expect {
-          XPermittedCrossDomainPolicies.validate_config(:value => "by-content-type")
+          XPermittedCrossDomainPolicies.validate_config!("by-content-type")
         }.not_to raise_error
       end
       it "accepts 'master-only'" do
         expect {
-          XPermittedCrossDomainPolicies.validate_config("master-only")
-        }.not_to raise_error
-
-        expect {
-          XPermittedCrossDomainPolicies.validate_config(:value => "master-only")
+          XPermittedCrossDomainPolicies.validate_config!("master-only")
         }.not_to raise_error
       end
 
       it "accepts nil" do
         expect {
-          XPermittedCrossDomainPolicies.validate_config(nil)
+          XPermittedCrossDomainPolicies.validate_config!(nil)
         }.not_to raise_error
       end
     end
@@ -55,7 +39,7 @@ module SecureHeaders
     context 'invlaid configuration values' do
       it "doesn't accept invalid values" do
         expect {
-          XPermittedCrossDomainPolicies.validate_config("open")
+          XPermittedCrossDomainPolicies.validate_config!("open")
         }.to raise_error(XPCDPConfigError)
       end
     end

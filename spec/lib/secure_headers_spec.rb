@@ -88,9 +88,9 @@ describe SecureHeaders do
     it "validates your hsts config upon configuration" do
       expect {
         ::SecureHeaders::Configuration.configure do |config|
-          config.hsts = { :max_age => 'lol'}
+          config.hsts = 'lol'
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::STSConfigError)
     end
 
@@ -99,7 +99,7 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.csp = { SecureHeaders::CSP::DEFAULT_SRC => '123456'}
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::ContentSecurityPolicyConfigError)
     end
 
@@ -108,7 +108,7 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_frame_options = "NOPE"
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XFOConfigError)
     end
 
@@ -117,7 +117,7 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_content_type_options = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XContentTypeOptionsConfigError)
     end
 
@@ -126,7 +126,7 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_xss_protection = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XXssProtectionConfigError)
     end
 
@@ -135,7 +135,7 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_download_options = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XDOConfigError)
     end
 
@@ -144,7 +144,7 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_permitted_cross_domain_policies = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XPCDPConfigError)
     end
 
@@ -153,13 +153,13 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.hpkp = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config
+        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::PublicKeyPinsConfigError)
     end
 
     it "produces a hash with a mix of config values, override values, and default values" do
       ::SecureHeaders::Configuration.configure do |config|
-        config.hsts = { :max_age => '123456'}
+        config.hsts = "max-age=123456"
         config.hpkp = {
           :enforce => true,
           :max_age => 1000000,

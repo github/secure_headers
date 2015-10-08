@@ -5,28 +5,23 @@ module SecureHeaders
     describe "#value" do
       specify { expect(XContentTypeOptions.new.value).to eq(XContentTypeOptions::Constants::DEFAULT_VALUE)}
       specify { expect(XContentTypeOptions.new("nosniff").value).to eq("nosniff")}
-      specify { expect(XContentTypeOptions.new(:value => 'nosniff').value).to eq("nosniff")}
 
       context "invalid configuration values" do
         it "accepts nosniff" do
           expect {
-            XContentTypeOptions.validate_config("nosniff")
-          }.not_to raise_error
-
-          expect {
-            XContentTypeOptions.validate_config(:value => "nosniff")
+            XContentTypeOptions.validate_config!("nosniff")
           }.not_to raise_error
         end
 
         it "accepts nil" do
           expect {
-            XContentTypeOptions.validate_config(nil)
+            XContentTypeOptions.validate_config!(nil)
           }.not_to raise_error
         end
 
         it "doesn't accept anything besides no-sniff" do
           expect {
-            XContentTypeOptions.validate_config("donkey")
+            XContentTypeOptions.validate_config!("donkey")
           }.to raise_error(XContentTypeOptionsConfigError)
         end
       end

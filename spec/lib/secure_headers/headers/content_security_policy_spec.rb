@@ -48,18 +48,56 @@ module SecureHeaders
       expect(policy.to_json).to eq(expected)
     end
 
-    describe "#validate_config" do
-      it "requires a :default_src value"
-      it "requires :enforce to be a truthy value"
-      it "requires :tag_report_uri to be a truthy value"
-      it "requires :app_name to be a string value"
-      it "requires :block_all_mixed_content to be a boolean value"
-      it "requires all source lists to be an array of strings"
+    describe "#validate_config!" do
+      it "requires a :default_src value" do
+        expect {
+          CSP.validate_config!(script_src: %('self'))
+        }.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "requires :enforce to be a truthy value" do
+        expect {
+          CSP.validate_config!(default_opts.merge(enforce: "steve"))
+        }.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "requires :tag_report_uri to be a truthy value" do
+        expect {
+          CSP.validate_config!(default_opts.merge(tag_report_uri: "steve"))
+        }.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "requires :app_name to be a string value" do
+        expect {
+          CSP.validate_config!(default_opts.merge(app_name: proc { "steve" }))
+        }.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "requires :block_all_mixed_content to be a boolean value" do
+        expect {
+          CSP.validate_config!(default_opts.merge(block_all_mixed_content: "steve"))
+        }.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "requires all source lists to be an array of strings" do
+        expect {
+          CSP.validate_config!(default_src: "steve")
+        }.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      # this is mostly to ensure people don't use the antiquated shorthands common in other configs
+      it "performs light validation on source lists" do
+        expect {
+          CSP.validate_config!(default_src: %w(self none inline eval))
+        }.to raise_error(ContentSecurityPolicyConfigError)
+      end
     end
 
     describe "#value" do
       it "discards 'none' values if any other source expressions are present"
       it "discards any other source expressions when * is present"
+      it "minifies source expressions based on overlapping wildcards"
+      it "removes http/s schemes from hosts"
       it "deduplicates any source expressions"
 
       it "adds @enforce and @app_name variables to the report uri" do

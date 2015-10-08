@@ -43,7 +43,7 @@ module SecureHeaders
       ].compact.join('; ').strip
     end
 
-    def self.validate_config(config)
+    def self.validate_config!(config)
       return if config.nil? || config == SecureHeaders::OPT_OUT
       raise PublicKeyPinsConfigError.new("config must be a hash.") unless config.is_a? Hash
 

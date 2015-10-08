@@ -18,35 +18,17 @@ module SecureHeaders
     end
 
     def value
-      case @config
-      when NilClass
+      if @config.nil?
         DEFAULT_VALUE
-      when String
+      else String
         @config
-      else
-        value = @config[:value].to_s
-        value += "; mode=#{@config[:mode]}" if @config[:mode]
-        value += "; report=#{@config[:report_uri]}" if @config[:report_uri]
-        value
       end
     end
 
-    def self.validate_config(config)
-      if config.is_a? Hash
-        if !config[:value]
-          raise XXssProtectionConfigError.new(":value key is missing")
-        elsif config[:value]
-          unless [0,1].include?(config[:value].to_i)
-            raise XXssProtectionConfigError.new(":value must be 1 or 0")
-          end
-
-          if config[:mode] && config[:mode].casecmp('block') != 0
-            raise XXssProtectionConfigError.new(":mode must nil or 'block'")
-          end
-        end
-      elsif config.is_a? String
-        raise XXssProtectionConfigError.new("Invalid format (see VALID_X_XSS_HEADER)") unless config =~ VALID_X_XSS_HEADER
-      end
+    def self.validate_config!(config)
+      return if config.nil?
+      raise TypeError.new("Must be a string") unless config.is_a?(String)
+      raise XXssProtectionConfigError.new("Invalid format (see VALID_X_XSS_HEADER)") unless config.to_s =~ VALID_X_XSS_HEADER
     end
   end
 end
