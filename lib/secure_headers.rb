@@ -90,12 +90,40 @@ module SecureHeaders
       end
     end
 
+    def append_content_security_policy_source(env, additions)
+      config = if env[CSP_ENV_KEY]
+        env[CSP_ENV_KEY]
+      else
+        ::SecureHeaders::Configuration.send(:csp)
+      end
+
+      config.merge!(additions) do |_, lhs, rhs|
+        lhs | rhs
+      end
+      env[CSP_ENV_KEY] = config
+    end
+
+   # Overrides the previously set source list for the provided directives, override 'none' values
+    def override_content_security_policy_directive(env, additions)
+      config = if env[CSP_ENV_KEY]
+        env[CSP_ENV_KEY]
+      else
+        ::SecureHeaders::Configuration.send(:csp)
+      end
+      env[CSP_ENV_KEY] = config.merge(additions)
+    end    
+
     def content_security_policy_nonce(env)
       unless env[NONCE_KEY]
+
         env[NONCE_KEY] = SecureRandom.base64(32).chomp
-        append_content_security_policy_source(env[NONCE_KEY])
-        append_content_security_policy_source(ContentSecurityPolicy::UNSAFE_INLINE)
+
+        # unsafe-inline is automatically added for backwards compatibility. The spec says to ignore unsafe-inline
+        # when a nonce is present
+        append_content_security_policy_source(env, script_src: ["nonce-#{env[NONCE_KEY]}", ContentSecurityPolicy::UNSAFE_INLINE])
       end
+
+      env[NONCE_KEY]
     end
 
     private 
@@ -112,26 +140,12 @@ module SecureHeaders
 
     # Append value to the source list for the provided directives, override 'none' values
     def append_content_security_policy_source(additions)
-      config = if request.env[CSP_ENV_KEY]
-        request.env[CSP_ENV_KEY]
-      else
-        secure_header_options_for(:csp, nil)
-      end
-
-      config.merge!(additions) do |_, lhs, rhs|
-        lhs | rhs
-      end
-      request.env[CSP_ENV_KEY] = config
+      self.class.append_content_security_policy_source(request.env, additions)
     end
 
     # Overrides the previously set source list for the provided directives, override 'none' values
     def override_content_security_policy_directive(additions)
-      config = if request.env[CSP_ENV_KEY]
-        request.env[CSP_ENV_KEY]
-      else
-        secure_header_options_for(:csp, nil)
-      end
-      request.env[CSP_ENV_KEY] = config.merge(additions)
+      self.class.override_content_security_policy_directive(request.env, additions)
     end
 
     # Override x-frame-options for this request. If called mult

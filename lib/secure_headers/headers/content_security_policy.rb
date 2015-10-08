@@ -213,6 +213,7 @@ module SecureHeaders
     def build_directive(key)
       directive = @config[key].uniq
       directive.reject! { |value| value == NONE} if directive.length > 1
+      directive.reject! { |value| value =~ /nonce-/ } unless supports_nonces?
       "#{self.class.symbol_to_hyphen_case(key)} #{directive.join(" ")}"
     end
 
