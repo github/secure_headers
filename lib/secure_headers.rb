@@ -15,6 +15,8 @@ require "secure_headers/view_helper"
 # All headers (except for hpkp) have a default value. Provide SecureHeaders::OPT_OUT
 # or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
+  CSP = SecureHeaders::ContentSecurityPolicy
+
   OPT_OUT = :optout_of_protection
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
   HASHES_ENV_KEY = 'secure_headers.script_hashes'
@@ -39,12 +41,11 @@ module SecureHeaders
         :x_xss_protection, :csp, :x_download_options, :script_hashes,
         :x_permitted_cross_domain_policies, :hpkp
 
-      def configure &block
+      def configure(&block)
         instance_eval &block
         if File.exists?(SCRIPT_HASH_CONFIG_FILE)
           ::SecureHeaders::Configuration.script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
         end
-        validate_config
       end
 
       def validate_config
@@ -111,7 +112,7 @@ module SecureHeaders
         ::SecureHeaders::Configuration.send(:csp)
       end
       env[CSP_ENV_KEY] = config.merge(additions)
-    end    
+    end
 
     def content_security_policy_nonce(env)
       unless env[NONCE_KEY]
@@ -126,7 +127,7 @@ module SecureHeaders
       env[NONCE_KEY]
     end
 
-    private 
+    private
 
     def ssl_required?(klass)
       [SecureHeaders::StrictTransportSecurity, SecureHeaders::PublicKeyPins].include?(klass)
@@ -148,7 +149,6 @@ module SecureHeaders
       self.class.override_content_security_policy_directive(request.env, additions)
     end
 
-    # Override x-frame-options for this request. If called mult
     def override_x_frame_options(value)
       raise "override_x_frame_options may only be called once per action." if request.env[XFO_ENV_KEY]
       request.env[XFO_ENV_KEY] = value
@@ -160,15 +160,12 @@ module SecureHeaders
     end
 
     def prep_script_hash
-      if ::SecureHeaders::Configuration.script_hashes
-        @script_hashes = ::SecureHeaders::Configuration.script_hashes.dup
-        ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
-          save_hash_for_later payload
-        end
+      ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
+        save_hash_for_later payload
+      end
 
-        ActiveSupport::Notifications.subscribe("render_template.action_view") do |event_name, start_at, end_at, id, payload|
-          save_hash_for_later payload
-        end
+      ActiveSupport::Notifications.subscribe("render_template.action_view") do |event_name, start_at, end_at, id, payload|
+        save_hash_for_later payload
       end
     end
 

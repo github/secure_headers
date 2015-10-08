@@ -1,5 +1,5 @@
 module SecureHeaders
-  class XPCDPBuildError < StandardError; end
+  class XPCDPConfigError < StandardError; end
   class XPermittedCrossDomainPolicies < Header
     module Constants
       XPCDP_HEADER_NAME = "X-Permitted-Cross-Domain-Policies"
@@ -32,7 +32,7 @@ module SecureHeaders
       return if config.nil?
       value = config.is_a?(Hash) ? config[:value] : config
       unless VALID_POLICIES.include?(value.downcase)
-        raise XPCDPBuildError.new("Value can only be one of #{VALID_POLICIES.join(', ')}")
+        raise XPCDPConfigError.new("Value can only be one of #{VALID_POLICIES.join(', ')}")
       end
     end
   end

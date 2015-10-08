@@ -5,7 +5,7 @@ require 'user_agent_parser'
 require 'json'
 
 module SecureHeaders
-  class ContentSecurityPolicyBuildError < StandardError; end
+  class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy < Header
     module Constants
       DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https: about: javascript:; img-src data:"
@@ -14,8 +14,18 @@ module SecureHeaders
       DATA = "data:"
       SELF = "'self'"
       NONE = "'none'"
+      STAR = "*"
       UNSAFE_INLINE = "'unsafe-inline'"
       UNSAFE_EVAL = "'unsafe-eval'"
+
+      SOURCE_VALUES = [
+        STAR,
+        DATA,
+        SELF,
+        NONE,
+        UNSAFE_EVAL,
+        UNSAFE_INLINE
+      ]
 
       DEFAULT_SRC = :default_src
       CONNECT_SRC = :connect_src
@@ -43,7 +53,6 @@ module SecureHeaders
         REPORT_URI
       ].freeze
 
-
       BASE_URI = :base_uri
       CHILD_SRC = :child_src
       FORM_ACTION = :form_action
@@ -58,7 +67,6 @@ module SecureHeaders
         FRAME_ANCESTORS,
         PLUGIN_TYPES
       ].flatten.freeze
-
 
       # All the directives currently under consideration for CSP level 3.
       # https://w3c.github.io/webappsec/specs/CSP2/
@@ -96,6 +104,8 @@ module SecureHeaders
       ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
       META_CONFIG = [:tag_report_uri, :app_name, :enforce]
       CONFIG_KEY = :csp
+      STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
+      NONCE_REGEXP = Regexp.new(/nonce-/)
     end
     include Constants
 
@@ -104,21 +114,26 @@ module SecureHeaders
         sym.to_s.gsub('_', '-')
       end
 
-      def boolean?(item)
-        item.is_a?(TrueClass) || item.is_a?(FalseClass)
-      end
-
       def validate_config(config)
         return if config.nil?
-        raise ContentSecurityPolicyBuildError.new(":default_src is required") unless config[:default_src]
+        raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
           case key
-          when :tag_report_uri, :enforce
-            boolean?(value)
-          when :app_name, :block_all_mixed_content
-            value.is_a?(String)
+          when :tag_report_uri, :enforce, :block_all_mixed_content
+            unless value.is_a?(TrueClass) || value.is_a?(FalseClass)
+              raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
+            end
+          when :app_name, :reflected_xss
+            unless value.is_a?(String)
+              raise ContentSecurityPolicyConfigError.new("#{key} must be a string value")
+            end
           else
-            ContentSecurityPolicy::ALL_DIRECTIVES.include?(key) && value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
+            unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
+              raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
+            end
+            unless value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
+              raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
+            end
           end
         end
       end
@@ -134,9 +149,7 @@ module SecureHeaders
       @enforce = !!config.delete(:enforce)
       @config = config
 
-      raise ArgumentError.new("Expected to find default_src directive value") unless @config[DEFAULT_SRC]
-
-      # tag the report-uri
+      # tag the report-uri(s)
       if @config[REPORT_URI] && @tag_report_uri
         @config[REPORT_URI] = @config[REPORT_URI].map do |report_uri|
           report_uri = "#{report_uri}?enforce=#{@enforce}"
@@ -211,10 +224,29 @@ module SecureHeaders
 
     # Join the unique values and discard 'none' if a directive has additional config.
     def build_directive(key)
-      directive = @config[key].uniq
-      directive.reject! { |value| value == NONE} if directive.length > 1
-      directive.reject! { |value| value =~ /nonce-/ } unless supports_nonces?
-      "#{self.class.symbol_to_hyphen_case(key)} #{directive.join(" ")}"
+      directive_config = @config[key].uniq
+      value = if directive_config.include?(STAR)
+        STAR
+      else
+        directive_config.reject! { |value| value == NONE} if directive_config.length > 1
+        directive_config.reject! { |value| value =~ NONCE_REGEXP } unless supports_nonces?
+        dedup_source_list(directive_config).join(" ")
+      end
+      [self.class.symbol_to_hyphen_case(key), value].join(" ")
+    end
+
+    def dedup_source_list(sources)
+      sources = sources.uniq
+      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
+
+      if wild_sources.any?
+        sources.reject do |source|
+          !wild_sources.include?(source) &&
+            wild_sources.any? { |pattern| File.fnmatch(pattern, source) }
+        end
+      else
+        sources
+      end
     end
 
     def strip_unsupported_directives
@@ -223,7 +255,7 @@ module SecureHeaders
 
     def supported_directives
       @supported_directives ||= case UserAgentParser.parse(@ua).family
-      when "Chrome"
+      when "Chrome", "Opera"
         CHROME_DIRECTIVES
       when "Safari"
         SAFARI_DIRECTIVES

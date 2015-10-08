@@ -1,5 +1,5 @@
 module SecureHeaders
-  class XFOBuildError < StandardError; end
+  class XFOConfigError < StandardError; end
   class XFrameOptions < Header
     module Constants
       XFO_HEADER_NAME = "X-Frame-Options"
@@ -36,7 +36,7 @@ module SecureHeaders
       return if config.nil?
       value = config.is_a?(Hash) ? config[:value] : config
       unless value =~ VALID_XFO_HEADER
-        raise XFOBuildError.new("Value must be SAMEORIGIN|DENY|ALLOW-FROM:")
+        raise XFOConfigError.new("Value must be SAMEORIGIN|DENY|ALLOW-FROM:")
       end
     end
   end

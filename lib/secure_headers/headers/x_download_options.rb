@@ -1,5 +1,5 @@
 module SecureHeaders
-  class XDOBuildError < StandardError; end
+  class XDOConfigError < StandardError; end
   class XDownloadOptions < Header
     module Constants
       XDO_HEADER_NAME = "X-Download-Options"
@@ -32,7 +32,7 @@ module SecureHeaders
       return if config.nil?
       value = config.is_a?(Hash) ? config[:value] : config
       unless value.casecmp(DEFAULT_VALUE) == 0
-        raise XDOBuildError.new("Value can only be nil or 'noopen'")
+        raise XDOConfigError.new("Value can only be nil or 'noopen'")
       end
     end
   end

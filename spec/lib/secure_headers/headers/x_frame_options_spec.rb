@@ -29,7 +29,7 @@ module SecureHeaders
         it "does not allow garbage" do
           expect {
             XFrameOptions.validate_config("I like turtles")
-          }.to raise_error(XFOBuildError)
+          }.to raise_error(XFOConfigError)
         end
       end
     end

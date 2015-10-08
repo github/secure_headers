@@ -29,13 +29,13 @@ module SecureHeaders
           it "raises an exception with an invalid max-age" do
             expect {
               StrictTransportSecurity.validate_config(:max_age => 'abc123')
-            }.to raise_error(STSBuildError)
+            }.to raise_error(STSConfigError)
           end
 
           it "raises an exception if max-age is not supplied" do
             expect {
               StrictTransportSecurity.validate_config(:includeSubdomains => true)
-            }.to raise_error(STSBuildError)
+            }.to raise_error(STSConfigError)
           end
         end
 
@@ -43,19 +43,19 @@ module SecureHeaders
           it "raises an exception with an invalid max-age" do
             expect {
               StrictTransportSecurity.validate_config('max-age=abc123')
-            }.to raise_error(STSBuildError)
+            }.to raise_error(STSConfigError)
           end
 
           it "raises an exception if max-age is not supplied" do
             expect {
               StrictTransportSecurity.validate_config('includeSubdomains')
-            }.to raise_error(STSBuildError)
+            }.to raise_error(STSConfigError)
           end
 
           it "raises an exception with an invalid format" do
             expect {
               StrictTransportSecurity.validate_config('max-age=123includeSubdomains')
-            }.to raise_error(STSBuildError)
+            }.to raise_error(STSConfigError)
           end
         end
       end

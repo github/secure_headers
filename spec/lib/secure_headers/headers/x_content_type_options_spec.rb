@@ -27,7 +27,7 @@ module SecureHeaders
         it "doesn't accept anything besides no-sniff" do
           expect {
             XContentTypeOptions.validate_config("donkey")
-          }.to raise_error(XContentTypeOptionsBuildError)
+          }.to raise_error(XContentTypeOptionsConfigError)
         end
       end
     end

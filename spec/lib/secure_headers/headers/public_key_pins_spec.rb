@@ -17,20 +17,20 @@ module SecureHeaders
       it "raises an exception when max-age is not provided" do
         expect {
           PublicKeyPins.validate_config(:foo => 'bar')
-        }.to raise_error(PublicKeyPinsBuildError)
+        }.to raise_error(PublicKeyPinsConfigError)
       end
 
       it "raises an exception with an invalid max-age" do
         expect {
           PublicKeyPins.validate_config(:max_age => 'abc123')
-        }.to raise_error(PublicKeyPinsBuildError)
+        }.to raise_error(PublicKeyPinsConfigError)
       end
 
       it 'raises an exception with less than 2 pins' do
         expect {
           config = {:max_age => 1234, :pins => [{:sha256 => 'base64encodedpin'}]}
           PublicKeyPins.validate_config(config)
-        }.to raise_error(PublicKeyPinsBuildError)
+        }.to raise_error(PublicKeyPinsConfigError)
       end
     end
   end

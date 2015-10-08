@@ -1,5 +1,5 @@
 module SecureHeaders
-  class STSBuildError < StandardError; end
+  class STSConfigError < StandardError; end
 
   class StrictTransportSecurity < Header
     module Constants
@@ -40,12 +40,12 @@ module SecureHeaders
       return if config.nil?
       if config.is_a? Hash
         if !config[:max_age]
-          raise STSBuildError.new("No max-age was supplied.")
+          raise STSConfigError.new("No max-age was supplied.")
         elsif config[:max_age].to_s !~ /\A\d+\z/
-          raise STSBuildError.new("max-age must be a number. #{config[:max_age]} was supplied.")
+          raise STSConfigError.new("max-age must be a number. #{config[:max_age]} was supplied.")
         end
       else
-        raise STSBuildError.new(MESSAGE) unless config =~ VALID_STS_HEADER
+        raise STSConfigError.new(MESSAGE) unless config =~ VALID_STS_HEADER
       end
     end
   end

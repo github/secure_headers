@@ -10,11 +10,11 @@ module SecureHeaders
       it "should raise an error when providing a string that is not valid" do
         expect {
           XXssProtection.validate_config("asdf")
-        }.to raise_error(XXssProtectionBuildError)
+        }.to raise_error(XXssProtectionConfigError)
 
         expect {
           XXssProtection.validate_config("asdf; mode=donkey")
-        }.to raise_error(XXssProtectionBuildError)
+        }.to raise_error(XXssProtectionConfigError)
       end
 
       context "when using a hash value" do
@@ -33,19 +33,19 @@ module SecureHeaders
         it "should raise an error if no value key is supplied" do
           expect {
             XXssProtection.validate_config(:mode => 'block')
-          }.to raise_error(XXssProtectionBuildError)
+          }.to raise_error(XXssProtectionConfigError)
         end
 
         it "should raise an error if an invalid key is supplied" do
           expect {
             XXssProtection.validate_config(:value => 123)
-          }.to raise_error(XXssProtectionBuildError)
+          }.to raise_error(XXssProtectionConfigError)
         end
 
         it "should raise an error if mode != block" do
           expect {
             XXssProtection.validate_config(:value => 1, :mode => "donkey")
-          }.to raise_error(XXssProtectionBuildError)
+          }.to raise_error(XXssProtectionConfigError)
         end
       end
 

@@ -1,5 +1,5 @@
 module SecureHeaders
-  class PublicKeyPinsBuildError < StandardError; end
+  class PublicKeyPinsConfigError < StandardError; end
   class PublicKeyPins < Header
     module Constants
       HPKP_HEADER_NAME = "Public-Key-Pins"
@@ -45,15 +45,15 @@ module SecureHeaders
 
     def self.validate_config(config)
       return if config.nil? || config == SecureHeaders::OPT_OUT
-      raise PublicKeyPinsBuildError.new("config must be a hash.") unless config.is_a? Hash
+      raise PublicKeyPinsConfigError.new("config must be a hash.") unless config.is_a? Hash
 
       if !config[:max_age]
-        raise PublicKeyPinsBuildError.new("max-age is a required directive.")
+        raise PublicKeyPinsConfigError.new("max-age is a required directive.")
       elsif config[:max_age].to_s !~ /\A\d+\z/
-        raise PublicKeyPinsBuildError.new("max-age must be a number.
+        raise PublicKeyPinsConfigError.new("max-age must be a number.
                                           #{config[:max_age]} was supplied.")
       elsif config[:pins] && config[:pins].length < 2
-        raise PublicKeyPinsBuildError.new("A minimum of 2 pins are required.")
+        raise PublicKeyPinsConfigError.new("A minimum of 2 pins are required.")
       end
     end
 

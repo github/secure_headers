@@ -1,5 +1,5 @@
 module SecureHeaders
-  class XContentTypeOptionsBuildError < StandardError; end
+  class XContentTypeOptionsConfigError < StandardError; end
   # IE only
   class XContentTypeOptions < Header
     module Constants
@@ -32,7 +32,7 @@ module SecureHeaders
       return if config.nil?
       value = config.is_a?(Hash) ? config[:value] : config
       unless value.casecmp(DEFAULT_VALUE) == 0
-        raise XContentTypeOptionsBuildError.new("Value can only be nil or 'nosniff'")
+        raise XContentTypeOptionsConfigError.new("Value can only be nil or 'nosniff'")
       end
     end
   end
