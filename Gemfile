@@ -3,7 +3,8 @@ source 'https://rubygems.org'
 gemspec
 
 group :test do
-  gem 'pry-nav'
+  gem 'pry-nav', :platforms => [:ruby_19, :ruby_20, :ruby_21, :ruby_22]
+  gem 'guard-rspec', :platforms => [:ruby_19, :ruby_20, :ruby_21, :ruby_22]
   gem 'test-unit', '~> 3.0'
   gem 'rails', '3.2.22'
   gem 'sqlite3', :platforms => [:ruby, :mswin, :mingw]
@@ -12,6 +13,6 @@ group :test do
   gem 'rspec', '>= 3.1'
   gem 'growl'
   gem 'rb-fsevent'
-  gem 'coveralls', :platforms => [:ruby_19, :ruby_20, :ruby_21]
+  gem 'coveralls', :platforms => [:ruby_19, :ruby_20, :ruby_21, :ruby_22]
   gem 'i18n', '< 0.7.0', :platforms => [:ruby_18]
 end

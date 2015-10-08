@@ -11,7 +11,6 @@ module SecureHeaders
 
     def initialize(config=nil)
       @config = config
-      validate_config unless @config.nil?
     end
 
     def name
@@ -32,23 +31,21 @@ module SecureHeaders
       end
     end
 
-    private
-
-    def validate_config
-      if @config.is_a? Hash
-        if !@config[:value]
+    def self.validate_config(config)
+      if config.is_a? Hash
+        if !config[:value]
           raise XXssProtectionBuildError.new(":value key is missing")
-        elsif @config[:value]
-          unless [0,1].include?(@config[:value].to_i)
+        elsif config[:value]
+          unless [0,1].include?(config[:value].to_i)
             raise XXssProtectionBuildError.new(":value must be 1 or 0")
           end
 
-          if @config[:mode] && @config[:mode].casecmp('block') != 0
+          if config[:mode] && config[:mode].casecmp('block') != 0
             raise XXssProtectionBuildError.new(":mode must nil or 'block'")
           end
         end
-      elsif @config.is_a? String
-        raise XXssProtectionBuildError.new("Invalid format (see VALID_X_XSS_HEADER)") unless @config =~ VALID_X_XSS_HEADER
+      elsif config.is_a? String
+        raise XXssProtectionBuildError.new("Invalid format (see VALID_X_XSS_HEADER)") unless config =~ VALID_X_XSS_HEADER
       end
     end
   end

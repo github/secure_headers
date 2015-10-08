@@ -48,7 +48,14 @@ module SecureHeaders
       end
 
       def validate_config
-        # TODO
+        StrictTransportSecurity.validate_config(self.hsts)
+        ContentSecurityPolicy.validate_config(self.csp)
+        XFrameOptions.validate_config(self.x_frame_options)
+        XContentTypeOptions.validate_config(self.x_content_type_options)
+        XXssProtection.validate_config(self.x_xss_protection)
+        XDownloadOptions.validate_config(self.x_download_options)
+        XPermittedCrossDomainPolicies.validate_config(self.x_permitted_cross_domain_policies)
+        PublicKeyPins.validate_config(self.hpkp)
       end
     end
   end
@@ -68,7 +75,7 @@ module SecureHeaders
           env[klass::Constants::CONFIG_KEY]                            ||
           ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
 
-        unless config == OPT_OUT
+        unless config == OPT_OUT || (ssl_required?(klass) && env[:ssl] != true)
           header = if klass == SecureHeaders::ContentSecurityPolicy
             config.merge!(:ua => env["HTTP_USER_AGENT"]) if config
             ContentSecurityPolicy.new(config)
@@ -89,6 +96,12 @@ module SecureHeaders
         append_content_security_policy_source(env[NONCE_KEY])
         append_content_security_policy_source(ContentSecurityPolicy::UNSAFE_INLINE)
       end
+    end
+
+    private 
+
+    def ssl_required?(klass)
+      [SecureHeaders::StrictTransportSecurity, SecureHeaders::PublicKeyPins].include?(klass)
     end
   end
 

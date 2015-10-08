@@ -94,6 +94,7 @@ module SecureHeaders
       ).freeze
 
       ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
+      META_CONFIG = [:tag_report_uri, :app_name, :enforce]
       CONFIG_KEY = :csp
     end
     include Constants
@@ -101,6 +102,25 @@ module SecureHeaders
     class << self
       def symbol_to_hyphen_case sym
         sym.to_s.gsub('_', '-')
+      end
+
+      def boolean?(item)
+        item.is_a?(TrueClass) || item.is_a?(FalseClass)
+      end
+
+      def validate_config(config)
+        return if config.nil?
+        raise ContentSecurityPolicyBuildError.new(":default_src is required") unless config[:default_src]
+        config.each do |key, value|
+          case key
+          when :tag_report_uri, :enforce
+            boolean?(value)
+          when :app_name, :block_all_mixed_content
+            value.is_a?(String)
+          else
+            ContentSecurityPolicy::ALL_DIRECTIVES.include?(key) && value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
+          end
+        end
       end
     end
 
@@ -110,7 +130,6 @@ module SecureHeaders
 
       @ua = config.delete(:ua)
       @tag_report_uri = !!config.delete(:tag_report_uri)
-      @script_hashes = config.delete(:script_hashes) || []
       @app_name = config.delete(:app_name)
       @enforce = !!config.delete(:enforce)
       @config = config

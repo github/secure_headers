@@ -15,7 +15,6 @@ module SecureHeaders
 
     def initialize(config = nil)
       @config = config
-      validate_config unless @config.nil?
     end
 
     def name
@@ -33,10 +32,9 @@ module SecureHeaders
       end
     end
 
-    private
-
-    def validate_config
-      value = @config.is_a?(Hash) ? @config[:value] : @config
+    def self.validate_config(config)
+      return if config.nil?
+      value = config.is_a?(Hash) ? config[:value] : config
       unless value =~ VALID_XFO_HEADER
         raise XFOBuildError.new("Value must be SAMEORIGIN|DENY|ALLOW-FROM:")
       end

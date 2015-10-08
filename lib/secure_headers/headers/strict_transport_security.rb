@@ -14,7 +14,6 @@ module SecureHeaders
 
     def initialize(config = nil)
       @config = config
-      validate_config unless @config.nil?
     end
 
     def name
@@ -37,18 +36,16 @@ module SecureHeaders
       value
     end
 
-    private
-
-    def validate_config
-      if @config.is_a? Hash
-        if !@config[:max_age]
+    def self.validate_config(config)
+      return if config.nil?
+      if config.is_a? Hash
+        if !config[:max_age]
           raise STSBuildError.new("No max-age was supplied.")
-        elsif @config[:max_age].to_s !~ /\A\d+\z/
-          raise STSBuildError.new("max-age must be a number. #{@config[:max_age]} was supplied.")
+        elsif config[:max_age].to_s !~ /\A\d+\z/
+          raise STSBuildError.new("max-age must be a number. #{config[:max_age]} was supplied.")
         end
       else
-        @config = @config.to_s
-        raise STSBuildError.new(MESSAGE) unless @config =~ VALID_STS_HEADER
+        raise STSBuildError.new(MESSAGE) unless config =~ VALID_STS_HEADER
       end
     end
   end

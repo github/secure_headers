@@ -24,8 +24,8 @@ module SecureHeaders
         # TODO append hashes to csp config
         # script_hashes = request.env[SCRIPT_HASHES_KEY][file_path]
         unless script_hashes && script_hashes.include?(hash_value)
-          message = unexpected_hash_error_message(file_path, hash_value, content)
           if raise_error_on_unrecognized_hash
+            message = unexpected_hash_error_message(file_path, hash_value, content)
             raise UnexpectedHashedScriptException.new(message)
           else
             # request.env[HASHES_ENV_KEY] = (request.env[HASHES_ENV_KEY] || []) << hash_value
@@ -45,7 +45,7 @@ module SecureHeaders
         content.html_safe # :'(
       end
 
-      content_tag type, content, options.merge(nonce: content_security_policy_nonce)
+      content_tag type, content, options.merge(nonce: SecureHeaders::content_security_policy_nonce(request.env))
     end
 
     def unexpected_hash_error_message(file_path, hash_value, content)

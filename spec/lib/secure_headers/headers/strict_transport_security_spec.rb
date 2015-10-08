@@ -16,25 +16,25 @@ module SecureHeaders
         context "with a hash argument" do
           it "should allow string values for max-age" do
             expect {
-              StrictTransportSecurity.new(:max_age => '1234')
+              StrictTransportSecurity.validate_config(:max_age => '1234')
             }.not_to raise_error
           end
 
           it "should allow integer values for max-age" do
             expect {
-              StrictTransportSecurity.new(:max_age => 1234)
+              StrictTransportSecurity.validate_config(:max_age => 1234)
             }.not_to raise_error
           end
 
           it "raises an exception with an invalid max-age" do
             expect {
-              StrictTransportSecurity.new(:max_age => 'abc123')
+              StrictTransportSecurity.validate_config(:max_age => 'abc123')
             }.to raise_error(STSBuildError)
           end
 
           it "raises an exception if max-age is not supplied" do
             expect {
-              StrictTransportSecurity.new(:includeSubdomains => true)
+              StrictTransportSecurity.validate_config(:includeSubdomains => true)
             }.to raise_error(STSBuildError)
           end
         end
@@ -42,19 +42,19 @@ module SecureHeaders
         context "with a string argument" do
           it "raises an exception with an invalid max-age" do
             expect {
-              StrictTransportSecurity.new('max-age=abc123')
+              StrictTransportSecurity.validate_config('max-age=abc123')
             }.to raise_error(STSBuildError)
           end
 
           it "raises an exception if max-age is not supplied" do
             expect {
-              StrictTransportSecurity.new('includeSubdomains')
+              StrictTransportSecurity.validate_config('includeSubdomains')
             }.to raise_error(STSBuildError)
           end
 
           it "raises an exception with an invalid format" do
             expect {
-              StrictTransportSecurity.new('max-age=123includeSubdomains')
+              StrictTransportSecurity.validate_config('max-age=123includeSubdomains')
             }.to raise_error(STSBuildError)
           end
         end

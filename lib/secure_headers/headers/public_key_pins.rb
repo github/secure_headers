@@ -16,7 +16,7 @@ module SecureHeaders
     include Constants
 
     def initialize(config=nil)
-      @config = validate_config(config)
+      @config = config
 
       @pins = @config.fetch(:pins, nil)
       @report_uri = @config.fetch(:report_uri, nil)
@@ -43,7 +43,8 @@ module SecureHeaders
       ].compact.join('; ').strip
     end
 
-    def validate_config(config)
+    def self.validate_config(config)
+      return if config.nil? || config == SecureHeaders::OPT_OUT
       raise PublicKeyPinsBuildError.new("config must be a hash.") unless config.is_a? Hash
 
       if !config[:max_age]
@@ -54,8 +55,6 @@ module SecureHeaders
       elsif config[:pins] && config[:pins].length < 2
         raise PublicKeyPinsBuildError.new("A minimum of 2 pins are required.")
       end
-
-      config
     end
 
     def pin_directives

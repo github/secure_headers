@@ -10,23 +10,23 @@ module SecureHeaders
       context "invalid configuration values" do
         it "accepts nosniff" do
           expect {
-            XContentTypeOptions.new("nosniff")
+            XContentTypeOptions.validate_config("nosniff")
           }.not_to raise_error
 
           expect {
-            XContentTypeOptions.new(:value => "nosniff")
+            XContentTypeOptions.validate_config(:value => "nosniff")
           }.not_to raise_error
         end
 
         it "accepts nil" do
           expect {
-            XContentTypeOptions.new
+            XContentTypeOptions.validate_config(nil)
           }.not_to raise_error
         end
 
         it "doesn't accept anything besides no-sniff" do
           expect {
-            XContentTypeOptions.new("donkey")
+            XContentTypeOptions.validate_config("donkey")
           }.to raise_error(XContentTypeOptionsBuildError)
         end
       end

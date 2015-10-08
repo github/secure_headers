@@ -1,17 +1,8 @@
 require 'spec_helper'
 
 describe SecureHeaders do
-  subject {DummyClass.new}
-  let(:headers) {double}
-  let(:response) {double(:headers => headers)}
-  let(:max_age) {99}
-  let(:request) {double(:ssl? => true, :url => 'https://example.com')}
-
-  before(:each) do
-    stub_user_agent(nil)
-    allow(headers).to receive(:[])
-    allow(subject).to receive(:response).and_return(response)
-    allow(subject).to receive(:request).and_return(request)
+  after(:each) do
+    reset_config
   end
 
   def stub_user_agent val
@@ -20,7 +11,7 @@ describe SecureHeaders do
 
   def reset_config
     ::SecureHeaders::Configuration.configure do |config|
-      config.hpkp = nil
+      config.hpkp = SecureHeaders::OPT_OUT
       config.hsts = nil
       config.x_frame_options = nil
       config.x_content_type_options = nil
@@ -31,16 +22,28 @@ describe SecureHeaders do
     end
   end
 
-  xit "does not set the HSTS header if request is over HTTP" do
-    allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
-    should_not_assign_header(HSTS_HEADER_NAME)
-    subject.set_hsts_header({:include_subdomains => true})
+  it "does not set the HSTS header if request is over HTTP" do
+    ::SecureHeaders::Configuration.configure do |config|
+      config.hsts = { :max_age => '123456'}
+    end
+    expect(SecureHeaders::header_hash(ssl: false)[HSTS_HEADER_NAME]).to be_nil
   end
 
-  xit "does not set the HPKP header if request is over HTTP" do
-    allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
-    should_not_assign_header(HPKP_HEADER_NAME)
-    subject.set_hpkp_header(:max_age => 1234)
+  it "does not set the HPKP header if request is over HTTP" do
+    ::SecureHeaders::Configuration.configure do |config|
+      config.hpkp = {
+        :enforce => true,
+        :max_age => 1000000,
+        :include_subdomains => true,
+        :report_uri => '//example.com/uri-directive',
+        :pins => [
+          {:sha256 => 'abc'},
+          {:sha256 => '123'}
+        ]
+      }
+    end
+
+    expect(SecureHeaders::header_hash(ssl: false)[HPKP_HEADER_NAME]).to be_nil
   end
 
   describe "SecureHeaders#header_hash" do
@@ -54,21 +57,79 @@ describe SecureHeaders do
     end
 
     it "produces a hash of headers given a hash as config" do
-      hash = SecureHeaders::header_hash(:csp => {:default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA]})
+      hash = SecureHeaders::header_hash(ssl: true, csp: {default_src: %w('none'), img_src: [SecureHeaders::ContentSecurityPolicy::DATA]})
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
       expect_default_values(hash)
     end
 
     it "allows you to opt out of headers" do
-
+      hash = SecureHeaders::header_hash(csp: SecureHeaders::OPT_OUT)
+      expect(hash['Content-Security-Policy-Report-Only']).to be_nil
+      expect(hash['Content-Security-Policy']).to be_nil
     end
 
-    it "validates your config upon configuration" do
-
+    it "validates your hsts config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.hsts = { :max_age => 'lol'}
+        end
+      }.to raise_error(SecureHeaders::STSBuildError)
     end
 
-    it "works with nonces" do
+    it "validates your csp config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.csp = { :script_src => '123456'}
+        end
+      }.to raise_error(SecureHeaders::ContentSecurityPolicyBuildError)
+    end
 
+    it "validates your xfo config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.x_frame_options = "NOPE"
+        end
+      }.to raise_error(SecureHeaders::XFOBuildError)
+    end
+
+    it "validates your xcto config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.x_content_type_options = "lol"
+        end
+      }.to raise_error(SecureHeaders::XContentTypeOptionsBuildError)
+    end
+
+    it "validates your x_xss config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.x_xss_protection = "lol"
+        end
+      }.to raise_error(SecureHeaders::XXssProtectionBuildError)
+    end
+
+    it "validates your xdo config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.x_download_options = "lol"
+        end
+      }.to raise_error(SecureHeaders::XDOBuildError)
+    end
+
+    it "validates your x_permitted_cross_domain_policies config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.x_permitted_cross_domain_policies = "lol"
+        end
+      }.to raise_error(SecureHeaders::XPCDPBuildError)
+    end
+
+    it "validates your hpkp config upon configuration" do
+      expect {
+        ::SecureHeaders::Configuration.configure do |config|
+          config.hpkp = "lol"
+        end
+      }.to raise_error(SecureHeaders::PublicKeyPinsBuildError)
     end
 
     it "produces a hash with a mix of config values, override values, and default values" do
@@ -86,12 +147,7 @@ describe SecureHeaders do
         }
       end
 
-      hash = SecureHeaders::header_hash(:csp => {:default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA]})
-      ::SecureHeaders::Configuration.configure do |config|
-        config.hsts = nil
-        config.hpkp = SecureHeaders::OPT_OUT
-      end
-
+      hash = SecureHeaders::header_hash(ssl: true, :csp => {:default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA]})
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
       expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
       expect(hash[HSTS_HEADER_NAME]).to eq("max-age=123456")
@@ -99,7 +155,7 @@ describe SecureHeaders do
     end
 
     it "produces a hash of headers with default config" do
-      hash = SecureHeaders::header_hash
+      hash = SecureHeaders::header_hash(ssl: true)
       expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::Constants::DEFAULT_CSP_HEADER)
       expect_default_values(hash)
     end

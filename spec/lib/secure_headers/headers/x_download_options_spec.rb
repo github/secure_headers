@@ -8,23 +8,23 @@ module SecureHeaders
     context "invalid configuration values" do
       it "accepts noopen" do
         expect {
-          XDownloadOptions.new("noopen")
+          XDownloadOptions.validate_config("noopen")
         }.not_to raise_error
 
         expect {
-          XDownloadOptions.new(:value => "noopen")
+          XDownloadOptions.validate_config(:value => "noopen")
         }.not_to raise_error
       end
 
       it "accepts nil" do
         expect {
-          XDownloadOptions.new
+          XDownloadOptions.validate_config(nil)
         }.not_to raise_error
       end
 
       it "doesn't accept anything besides noopen" do
         expect {
-          XDownloadOptions.new("open")
+          XDownloadOptions.validate_config("open")
         }.to raise_error(XDOBuildError)
       end
     end
