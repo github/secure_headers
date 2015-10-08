@@ -24,7 +24,8 @@ module SecureHeaders
   CSP_ENV_KEY = "secure_headers.#{ContentSecurityPolicy::CONFIG_KEY}"
   XFO_ENV_KEY = "secure_headers.#{XFrameOptions::CONFIG_KEY}"
   HPKP_ENV_KEY = "secure_headers.#{PublicKeyPins::CONFIG_KEY}"
-  SECURE_HEADERS_CONFIG = "SECURE_HEADERS_CONFIG"
+  SECURE_HEADERS_CONFIG = "secure_headers"
+  NONCE_KEY = "secure_headers.content_security_policy_nonce"
 
   ALL_HEADER_CLASSES = [
     SecureHeaders::ContentSecurityPolicy,
@@ -147,17 +148,17 @@ module SecureHeaders
     end
 
     def content_security_policy_nonce
-      self.class.content_security_policy_nonce(request.env)
+      SecureHeaders.content_security_policy_nonce(request.env)
     end
 
     # Append value to the source list for the provided directives, override 'none' values
     def append_content_security_policy_source(additions)
-      self.class.append_content_security_policy_source(request.env, additions)
+      SecureHeaders.append_content_security_policy_source(request.env, additions)
     end
 
     # Overrides the previously set source list for the provided directives, override 'none' values
     def override_content_security_policy_directive(additions)
-      self.class.override_content_security_policy_directive(request.env, additions)
+      SecureHeaders.override_content_security_policy_directive(request.env, additions)
     end
 
     def override_x_frame_options(value)

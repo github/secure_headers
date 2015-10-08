@@ -10,7 +10,6 @@ module SecureHeaders
     module Constants
       DEFAULT_CSP_HEADER = "default-src https:;"
       HEADER_NAME = "Content-Security-Policy"
-      NONCE_KEY = "secure_headers.content_security_policy_nonce"
       DATA = "data:"
       SELF = "'self'"
       NONE = "'none'"
@@ -144,7 +143,7 @@ module SecureHeaders
         return if config.nil?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
-          case DIRECTIVE_VALUE_TYPES[key]
+          case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[key]
           when :boolean
             unless value.is_a?(TrueClass) || value.is_a?(FalseClass)
               raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
@@ -162,7 +161,7 @@ module SecureHeaders
             end
 
             value.each do |source_expression|
-              if DEPRECATED_SOURCE_VALUES.include?(source_expression)
+              if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
                 raise ContentSecurityPolicyConfigError.new("#{source_expression} contains an invalid keyword source. This value must be single quoted.")
               end
             end

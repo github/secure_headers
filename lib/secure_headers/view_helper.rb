@@ -44,7 +44,7 @@ module SecureHeaders
       else
         content.html_safe # :'(
       end
-
+      options ||= {}
       content_tag type, content, options.merge(nonce: SecureHeaders::content_security_policy_nonce(request.env))
     end
 
