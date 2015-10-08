@@ -8,7 +8,7 @@ module SecureHeaders
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy < Header
     module Constants
-      DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https: about: javascript:; img-src data:"
+      DEFAULT_CSP_HEADER = "default-src https:;"
       HEADER_NAME = "Content-Security-Policy"
       NONCE_KEY = "secure_headers.content_security_policy_nonce"
       DATA = "data:"
@@ -104,11 +104,34 @@ module SecureHeaders
       ).freeze
 
       ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
-      META_CONFIG = [:tag_report_uri, :app_name, :enforce]
+
+      DIRECTIVE_VALUE_TYPES = {
+        BASE_URI                => :source_list,
+        BLOCK_ALL_MIXED_CONTENT => :boolean,
+        CHILD_SRC               => :source_list,
+        CONNECT_SRC             => :source_list,
+        DEFAULT_SRC             => :source_list,
+        FONT_SRC                => :source_list,
+        FORM_ACTION             => :source_list,
+        FRAME_ANCESTORS         => :source_list,
+        FRAME_SRC               => :source_list,
+        IMG_SRC                 => :source_list,
+        MANIFEST_SRC            => :source_list,
+        MEDIA_SRC               => :source_list,
+        OBJECT_SRC              => :source_list,
+        PLUGIN_TYPES            => :source_list,
+        REFLECTED_XSS           => :string,
+        REPORT_URI              => :source_list,
+        SANDBOX                 => :string,
+        SCRIPT_SRC              => :source_list,
+        STYLE_SRC               => :source_list
+      }.freeze
+
       CONFIG_KEY = :csp
       STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
-      HASH_NONCE_REGEXP = Regexp.union(/'nonce-/, /'sha/)
-      HTTP_SCHEME_REGEX = %r(https?://)
+      NONCE_REGEXP = /\A'nonce-/
+      HASH_REGEXP = /\A'sha/
+      HTTP_SCHEME_REGEX = %r(\Ahttps?://)
     end
     include Constants
 
@@ -121,12 +144,12 @@ module SecureHeaders
         return if config.nil?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
-          case key
-          when :block_all_mixed_content
+          case DIRECTIVE_VALUE_TYPES[key]
+          when :boolean
             unless value.is_a?(TrueClass) || value.is_a?(FalseClass)
               raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
             end
-          when :reflected_xss
+          when :string
             unless value.is_a?(String)
               raise ContentSecurityPolicyConfigError.new("#{key} must be a string value")
             end
@@ -152,7 +175,7 @@ module SecureHeaders
     def initialize(config=nil)
       return unless config
 
-      @ua = config.delete(:ua)
+      @parsed_ua = UserAgentParser.parse(config.delete(:ua))
       @enforce = !!config.delete(:enforce)
       @config = config
     end
@@ -209,10 +232,10 @@ module SecureHeaders
       directives = filter_unsupported_directives(ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI])
 
       directives.select { |directive| @config[directive]}.each do |directive_name|
-        header_value << case directive_name
-        when BLOCK_ALL_MIXED_CONTENT
+        header_value << case DIRECTIVE_VALUE_TYPES[directive_name]
+        when :boolean
           self.class.symbol_to_hyphen_case(directive_name)
-        when REFLECTED_XSS
+        when :string
           [self.class.symbol_to_hyphen_case(directive_name), @config[directive_name]].join(" ")
         else
            build_directive(directive_name)
@@ -227,7 +250,7 @@ module SecureHeaders
     # Join the unique values. Discard 'none' if a directive has additional config, discard
     # addtional config if directive has *
     def build_directive(directive_name)
-      source_list = @config[directive_name]
+      source_list = @config[directive_name].compact
       value = if source_list.include?(STAR)
         # Discard trailing entries since * accomplishes the same.
         STAR
@@ -235,7 +258,11 @@ module SecureHeaders
         # Discard any 'none' values if more directives are supplied since none may override values.
         source_list.reject! { |value| value == NONE} if source_list.length > 1
         # Discard nonces/hash for browsers that do not support them
-        source_list .reject! { |value| value =~ HASH_NONCE_REGEXP } unless supports_nonces?
+        source_list.reject! do |value|
+          value =~ NONCE_REGEXP && !supports_nonces? ||
+          value =~ HASH_REGEXP && !supports_hashes?
+        end
+
         # remove schemes and dedup source expressions
         dedup_source_list(strip_source_schemes(source_list)).join(" ")
       end
@@ -258,7 +285,7 @@ module SecureHeaders
     end
 
     def filter_unsupported_directives(directives)
-      directives.select! { |key| supported_directives.include?(key) }
+      directives.select { |key| supported_directives.include?(key) }
     end
 
     # Save bytes, discourages mixed content.
@@ -268,7 +295,7 @@ module SecureHeaders
     end
 
     def supported_directives
-      @supported_directives ||= case UserAgentParser.parse(@ua).family
+      @supported_directives ||= case @parsed_ua.family
       when "Chrome", "Opera"
         CHROME_DIRECTIVES
       when "Safari"
@@ -280,9 +307,12 @@ module SecureHeaders
       end
     end
 
+    def supports_hashes?
+      ["Chrome", "Opera", "Firefox"].include?(@parsed_ua.family)
+    end
+
     def supports_nonces?
-      parsed_ua = UserAgentParser.parse(@ua)
-      ["Chrome", "Opera", "Firefox"].include?(parsed_ua.family)
+      ["Chrome", "Opera", "Firefox"].include?(@parsed_ua.family)
     end
   end
 end
