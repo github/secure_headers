@@ -16,6 +16,7 @@ require "secure_headers/view_helper"
 # or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
   CSP = SecureHeaders::ContentSecurityPolicy
+  @secure_headers_mutex = Mutex.new
 
   OPT_OUT = :optout_of_protection
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
@@ -23,6 +24,7 @@ module SecureHeaders
   CSP_ENV_KEY = "secure_headers.#{ContentSecurityPolicy::CONFIG_KEY}"
   XFO_ENV_KEY = "secure_headers.#{XFrameOptions::CONFIG_KEY}"
   HPKP_ENV_KEY = "secure_headers.#{PublicKeyPins::CONFIG_KEY}"
+  SECURE_HEADERS_CONFIG = "SECURE_HEADERS_CONFIG"
 
   ALL_HEADER_CLASSES = [
     SecureHeaders::ContentSecurityPolicy,
@@ -92,32 +94,37 @@ module SecureHeaders
     end
 
     def append_content_security_policy_source(env, additions)
-      config = if env[CSP_ENV_KEY]
-        env[CSP_ENV_KEY]
-      else
-        ::SecureHeaders::Configuration.send(:csp)
-      end
+      @secure_headers_mutex.synchronize do
+        config = if env[CSP_ENV_KEY]
+          env[CSP_ENV_KEY]
+        else
+          ::SecureHeaders::Configuration.send(:csp)
+        end
 
-      config.merge!(additions) do |_, lhs, rhs|
-        lhs | rhs
+        config.merge!(additions) do |_, lhs, rhs|
+          lhs | rhs
+        end
+        env[CSP_ENV_KEY] = config
       end
-      env[CSP_ENV_KEY] = config
     end
 
    # Overrides the previously set source list for the provided directives, override 'none' values
     def override_content_security_policy_directive(env, additions)
-      config = if env[CSP_ENV_KEY]
-        env[CSP_ENV_KEY]
-      else
-        ::SecureHeaders::Configuration.send(:csp)
+      @secure_headers_mutex.synchronize do
+        config = if env[CSP_ENV_KEY]
+          env[CSP_ENV_KEY]
+        else
+          ::SecureHeaders::Configuration.send(:csp)
+        end
+        env[CSP_ENV_KEY] = config.merge(additions)
       end
-      env[CSP_ENV_KEY] = config.merge(additions)
     end
 
     def content_security_policy_nonce(env)
       unless env[NONCE_KEY]
-
-        env[NONCE_KEY] = SecureRandom.base64(32).chomp
+        @secure_headers_mutex.synchronize do
+          env[NONCE_KEY] = SecureRandom.base64(32).chomp
+        end
 
         # unsafe-inline is automatically added for backwards compatibility. The spec says to ignore unsafe-inline
         # when a nonce is present
@@ -135,6 +142,10 @@ module SecureHeaders
   end
 
   module InstanceMethods
+    def secure_headers_config
+      request.env[SECURE_HEADERS_CONFIG]
+    end
+
     def content_security_policy_nonce
       self.class.content_security_policy_nonce(request.env)
     end
