@@ -1,3 +1,4 @@
+require 'request_store_rails'
 require "secure_headers/version"
 require "secure_headers/header"
 require "secure_headers/headers/public_key_pins"
@@ -16,19 +17,14 @@ require "secure_headers/view_helper"
 # or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
   CSP = SecureHeaders::ContentSecurityPolicy
-  @secure_headers_mutex = Mutex.new
 
   OPT_OUT = :optout_of_protection
   SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
-  HASHES_ENV_KEY = 'secure_headers.script_hashes'
-  CSP_ENV_KEY = "secure_headers.#{ContentSecurityPolicy::CONFIG_KEY}"
-  XFO_ENV_KEY = "secure_headers.#{XFrameOptions::CONFIG_KEY}"
-  HPKP_ENV_KEY = "secure_headers.#{PublicKeyPins::CONFIG_KEY}"
   SECURE_HEADERS_CONFIG = "secure_headers"
-  NONCE_KEY = "secure_headers.content_security_policy_nonce"
+  NONCE_KEY = "content_security_policy_nonce"
 
   ALL_HEADER_CLASSES = [
-    SecureHeaders::ContentSecurityPolicy,
+    SecureHeaders::CSP,
     SecureHeaders::StrictTransportSecurity,
     SecureHeaders::PublicKeyPins,
     SecureHeaders::XContentTypeOptions,
@@ -53,7 +49,7 @@ module SecureHeaders
 
       def validate_config!
         StrictTransportSecurity.validate_config!(self.hsts)
-        ContentSecurityPolicy.validate_config!(self.csp)
+        CSP.validate_config!(self.csp)
         XFrameOptions.validate_config!(self.x_frame_options)
         XContentTypeOptions.validate_config!(self.x_content_type_options)
         XXssProtection.validate_config!(self.x_xss_protection)
@@ -73,18 +69,19 @@ module SecureHeaders
       end
     end
 
-    def header_hash(env = {})
+    def header_hash(env)
+      RequestLocals.store[SECURE_HEADERS_CONFIG] ||= {}
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
-        config = env["secure_headers.#{klass::Constants::CONFIG_KEY}"] ||
-          env[klass::Constants::CONFIG_KEY]                            ||
-          ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
+        header_config = env[klass::Constants::CONFIG_KEY] ||
+          RequestLocals.fetch(SECURE_HEADERS_CONFIG) { {} }[klass::Constants::CONFIG_KEY] ||
+          SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
 
-        unless config == OPT_OUT || (ssl_required?(klass) && env[:ssl] != true)
-          header = if klass == SecureHeaders::ContentSecurityPolicy
-            config.merge!(:ua => env["HTTP_USER_AGENT"]) if config
-            ContentSecurityPolicy.new(config)
+        unless header_config == OPT_OUT || (ssl_required?(klass) && env[:ssl] != true)
+          header = if klass == SecureHeaders::CSP
+            header_config.merge!(:ua => env["HTTP_USER_AGENT"]) if header_config
+            CSP.new(header_config)
           else
-            klass.new(config)
+            klass.new(header_config)
           end
 
           memo[header.name] = header.value
@@ -94,45 +91,32 @@ module SecureHeaders
       end
     end
 
-    def append_content_security_policy_source(env, additions)
-      @secure_headers_mutex.synchronize do
-        config = if env[CSP_ENV_KEY]
-          env[CSP_ENV_KEY]
-        else
-          ::SecureHeaders::Configuration.send(:csp)
-        end
-
-        config.merge!(additions) do |_, lhs, rhs|
-          lhs | rhs
-        end
-        env[CSP_ENV_KEY] = config
-      end
-    end
-
-   # Overrides the previously set source list for the provided directives, override 'none' values
-    def override_content_security_policy_directive(env, additions)
-      @secure_headers_mutex.synchronize do
-        config = if env[CSP_ENV_KEY]
-          env[CSP_ENV_KEY]
-        else
-          ::SecureHeaders::Configuration.send(:csp)
-        end
-        env[CSP_ENV_KEY] = config.merge(additions)
-      end
-    end
-
-    def content_security_policy_nonce(env)
-      unless env[NONCE_KEY]
-        @secure_headers_mutex.synchronize do
-          env[NONCE_KEY] = SecureRandom.base64(32).chomp
-        end
+    def content_security_policy_nonce
+      puts "Calling nonce: #{RequestLocals.fetch(SECURE_HEADERS_CONFIG)}"
+      RequestLocals.store[SECURE_HEADERS_CONFIG] ||= {}
+      unless RequestLocals.fetch(SECURE_HEADERS_CONFIG)[NONCE_KEY]
+        RequestLocals.store[SECURE_HEADERS_CONFIG][NONCE_KEY] = SecureRandom.base64(32).chomp
 
         # unsafe-inline is automatically added for backwards compatibility. The spec says to ignore unsafe-inline
         # when a nonce is present
-        append_content_security_policy_source(env, script_src: ["'nonce-#{env[NONCE_KEY]}'", ContentSecurityPolicy::UNSAFE_INLINE])
+        append_content_security_policy_source(script_src: ["'nonce-#{RequestLocals.store[SECURE_HEADERS_CONFIG][NONCE_KEY]}'", CSP::UNSAFE_INLINE])
       end
 
-      env[NONCE_KEY]
+      RequestLocals.store[SECURE_HEADERS_CONFIG][NONCE_KEY]
+    end
+
+    def append_content_security_policy_source(additions)
+      RequestLocals.store[SECURE_HEADERS_CONFIG] ||= {}
+      config = if RequestLocals.fetch(SECURE_HEADERS_CONFIG)[SecureHeaders::CSP::CONFIG_KEY]
+        RequestLocals.store[SECURE_HEADERS_CONFIG][SecureHeaders::CSP::CONFIG_KEY]
+      else
+        ::SecureHeaders::Configuration.send(:csp)
+      end
+
+      config.merge!(additions) do |_, lhs, rhs|
+        lhs | rhs
+      end
+      RequestLocals.store[SECURE_HEADERS_CONFIG][SecureHeaders::CSP::CONFIG_KEY] = config
     end
 
     private
@@ -144,31 +128,37 @@ module SecureHeaders
 
   module InstanceMethods
     def secure_headers_config
-      request.env[SECURE_HEADERS_CONFIG]
+      RequestLocals.fetch(SECURE_HEADERS_CONFIG)
     end
 
     def content_security_policy_nonce
-      SecureHeaders.content_security_policy_nonce(request.env)
+      SecureHeaders::content_security_policy_nonce
     end
 
     # Append value to the source list for the provided directives, override 'none' values
     def append_content_security_policy_source(additions)
-      SecureHeaders.append_content_security_policy_source(request.env, additions)
+      SecureHeaders::append_content_security_policy_source(additions)
     end
 
     # Overrides the previously set source list for the provided directives, override 'none' values
     def override_content_security_policy_directive(additions)
-      SecureHeaders.override_content_security_policy_directive(request.env, additions)
+      RequestLocals.store[SECURE_HEADERS_CONFIG] ||= {}
+      config = if RequestLocals.fetch(SECURE_HEADERS_CONFIG)[SecureHeaders::CSP::CONFIG_KEY]
+        RequestLocals.store[SECURE_HEADERS_CONFIG][SecureHeaders::CSP::CONFIG_KEY]
+      else
+        ::SecureHeaders::Configuration.send(:csp)
+      end
+      RequestLocals.store[SECURE_HEADERS_CONFIG][SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
     end
 
     def override_x_frame_options(value)
-      raise "override_x_frame_options may only be called once per action." if request.env[XFO_ENV_KEY]
-      request.env[XFO_ENV_KEY] = value
+      raise "override_x_frame_options may only be called once per action." if RequestLocals.fetch(SECURE_HEADERS_CONFIG)[SecureHeaders::XFrameOptions::CONFIG_KEY]
+      RequestLocals.store[SECURE_HEADERS_CONFIG][SecureHeaders::XFrameOptions::CONFIG_KEY] = value
     end
 
     def override_hpkp(config)
-      raise "override_hpkp may only be called once per action." if request.env[HPKP_ENV_KEY]
-      request.env[HPKP_ENV_KEY] = config
+      raise "override_hpkp may only be called once per action." if RequestLocals.fetch(SECURE_HEADERS_CONFIG)[SecureHeaders::PublicKeyPins::CONFIG_KEY]
+      RequestLocals.store[SECURE_HEADERS_CONFIG][SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
     end
 
     def prep_script_hash

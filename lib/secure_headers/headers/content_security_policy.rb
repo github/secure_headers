@@ -162,7 +162,7 @@ module SecureHeaders
 
             value.each do |source_expression|
               if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
-                raise ContentSecurityPolicyConfigError.new("#{source_expression} contains an invalid keyword source. This value must be single quoted.")
+                raise ContentSecurityPolicyConfigError.new("#{key} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
               end
             end
           end
