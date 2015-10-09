@@ -2,6 +2,7 @@ Directive values must be an array of strings
 Old self/none/inline/eval not supported (will raise exceptions if validated)
 No httpadditions
 No proc support, at all
+False does not disable a header SecureHeaders::OPT_OUT does.
 No CSP tagging, you can do it yourself
 No hash config support (except csp|hpkp)
 No auto adding of data:

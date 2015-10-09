@@ -1,6 +1,6 @@
 module SecureHeaders
   describe XPermittedCrossDomainPolicies do
-    specify { expect(XPermittedCrossDomainPolicies.new.name).to eq(XPermittedCrossDomainPolicies::Constants::XPCDP_HEADER_NAME)}
+    specify { expect(XPermittedCrossDomainPolicies.new.name).to eq(XPermittedCrossDomainPolicies::XPCDP_HEADER_NAME)}
     specify { expect(XPermittedCrossDomainPolicies.new.value).to eq("none")}
     specify { expect(XPermittedCrossDomainPolicies.new('master-only').value).to eq('master-only')}
     specify { expect(XPermittedCrossDomainPolicies.new(:value => 'master-only').value).to eq('master-only') }

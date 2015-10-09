@@ -9,7 +9,7 @@ module SecureHeaders
   class ContentSecurityPolicy < Header
     module Constants
       DEFAULT_CSP_HEADER = "default-src https:;"
-      HEADER_NAME = "Content-Security-Policy"
+      CSP_HEADER_NAME = "Content-Security-Policy"
       DATA = "data:"
       SELF = "'self'"
       NONE = "'none'"
@@ -183,7 +183,7 @@ module SecureHeaders
     # Returns the name to use for the header. Either "Content-Security-Policy" or
     # "Content-Security-Policy-Report-Only"
     def name
-      base = HEADER_NAME
+      base = CSP_HEADER_NAME
       if !@enforce
         base += "-Report-Only"
       end

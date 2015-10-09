@@ -4,9 +4,6 @@ module SecureHeaders
   end
 
   module ViewHelpers
-    include SecureHeaders::HashHelper
-    SECURE_HEADERS_RAKE_TASK = "rake secure_headers:generate_hashes"
-
     def nonced_style_tag(content_or_options, &block)
       nonced_tag(:style, content_or_options, block)
     end

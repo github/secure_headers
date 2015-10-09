@@ -5,7 +5,7 @@ module SecureHeaders
     specify{ expect(StrictTransportSecurity.new.name).to eq("Strict-Transport-Security") }
 
     describe "#value" do
-      specify { expect(StrictTransportSecurity.new.value).to eq(StrictTransportSecurity::Constants::DEFAULT_VALUE)}
+      specify { expect(StrictTransportSecurity.new.value).to eq(StrictTransportSecurity::DEFAULT_VALUE)}
       specify { expect(StrictTransportSecurity.new("max-age=1234").value).to eq("max-age=1234")}
       specify { expect(StrictTransportSecurity.new("max-age=1234; includeSubdomains").value).to eq("max-age=1234; includeSubdomains")}
       specify { expect(StrictTransportSecurity.new("max-age=1234; includeSubdomains; preload").value).to eq("max-age=1234; includeSubdomains; preload")}

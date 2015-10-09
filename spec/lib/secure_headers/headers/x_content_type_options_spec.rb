@@ -3,7 +3,7 @@ module SecureHeaders
     specify{ expect(XContentTypeOptions.new.name).to eq("X-Content-Type-Options") }
 
     describe "#value" do
-      specify { expect(XContentTypeOptions.new.value).to eq(XContentTypeOptions::Constants::DEFAULT_VALUE)}
+      specify { expect(XContentTypeOptions.new.value).to eq(XContentTypeOptions::DEFAULT_VALUE)}
       specify { expect(XContentTypeOptions.new("nosniff").value).to eq("nosniff")}
 
       context "invalid configuration values" do

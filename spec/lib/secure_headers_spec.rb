@@ -48,12 +48,12 @@ describe SecureHeaders do
 
   describe "SecureHeaders#header_hash" do
     def expect_default_values(hash)
-      expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
-      expect(hash[XDO_HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::Constants::DEFAULT_VALUE)
-      expect(hash[HSTS_HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
-      expect(hash[X_XSS_PROTECTION_HEADER_NAME]).to eq(SecureHeaders::XXssProtection::Constants::DEFAULT_VALUE)
-      expect(hash[X_CONTENT_TYPE_OPTIONS_HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE)
-      expect(hash[XPCDP_HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::Constants::DEFAULT_VALUE)
+      expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
+      expect(hash[XDO_HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::DEFAULT_VALUE)
+      expect(hash[HSTS_HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::DEFAULT_VALUE)
+      expect(hash[X_XSS_PROTECTION_HEADER_NAME]).to eq(SecureHeaders::XXssProtection::DEFAULT_VALUE)
+      expect(hash[X_CONTENT_TYPE_OPTIONS_HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::DEFAULT_VALUE)
+      expect(hash[XPCDP_HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
     end
 
     it "produces a hash of headers given a hash as config" do
@@ -90,7 +90,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.hsts = 'lol'
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::STSConfigError)
     end
 
@@ -99,7 +98,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.csp = { SecureHeaders::CSP::DEFAULT_SRC => '123456'}
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::ContentSecurityPolicyConfigError)
     end
 
@@ -108,7 +106,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_frame_options = "NOPE"
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XFOConfigError)
     end
 
@@ -117,7 +114,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_content_type_options = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XContentTypeOptionsConfigError)
     end
 
@@ -126,7 +122,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_xss_protection = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XXssProtectionConfigError)
     end
 
@@ -135,7 +130,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_download_options = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XDOConfigError)
     end
 
@@ -144,7 +138,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.x_permitted_cross_domain_policies = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::XPCDPConfigError)
     end
 
@@ -153,7 +146,6 @@ describe SecureHeaders do
         ::SecureHeaders::Configuration.configure do |config|
           config.hpkp = "lol"
         end
-        ::SecureHeaders::Configuration.validate_config!
       }.to raise_error(SecureHeaders::PublicKeyPinsConfigError)
     end
 
@@ -174,15 +166,52 @@ describe SecureHeaders do
 
       hash = SecureHeaders::header_hash(ssl: true, :csp => {:default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA]})
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
-      expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
+      expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
       expect(hash[HSTS_HEADER_NAME]).to eq("max-age=123456")
       expect(hash[HPKP_HEADER_NAME]).to eq(%{max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains})
     end
 
     it "produces a hash of headers with default config" do
       hash = SecureHeaders::header_hash(ssl: true)
-      expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::Constants::DEFAULT_CSP_HEADER)
+      expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::DEFAULT_CSP_HEADER)
       expect_default_values(hash)
     end
+  end
+
+  it "caches default header values at configure time" do
+    ::SecureHeaders::Configuration.configure do |config|
+      config.hpkp = {
+        :enforce => true,
+        :max_age => 1000000,
+        :include_subdomains => true,
+        :report_uri => '//example.com/uri-directive',
+        :pins => [
+          {:sha256 => 'abc'},
+          {:sha256 => '123'}
+        ]
+      }
+      config.hsts = "max-age=11111111; includeSubDomains; preload"
+      config.x_frame_options = "DENY"
+      config.x_content_type_options = "nosniff"
+      config.x_xss_protection = "1; mode=block"
+      config.csp = {
+        default_src: %w('self'),
+        object_src: %w(pleasedontwhitelistflashever.com),
+        enforce: true
+      }
+      config.x_download_options = SecureHeaders::OPT_OUT
+      config.x_permitted_cross_domain_policies = SecureHeaders::OPT_OUT
+    end
+
+    hash = SecureHeaders::Configuration::default_headers
+    puts hash
+    expect(hash[CSP_HEADER_NAME]).to eq("default-src 'self'; object-src pleasedontwhitelistflashever.com")
+    expect(hash[XFO_HEADER_NAME]).to eq("DENY")
+    expect(hash[XDO_HEADER_NAME]).to be_nil
+    expect(hash[HSTS_HEADER_NAME]).to eq("max-age=11111111; includeSubDomains; preload")
+    expect(hash[X_XSS_PROTECTION_HEADER_NAME]).to eq("1; mode=block")
+    expect(hash[X_CONTENT_TYPE_OPTIONS_HEADER_NAME]).to eq("nosniff")
+    expect(hash[XPCDP_HEADER_NAME]).to be_nil
+    expect(hash[HPKP_HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
   end
 end

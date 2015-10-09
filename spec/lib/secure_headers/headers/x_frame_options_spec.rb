@@ -5,7 +5,7 @@ module SecureHeaders
     specify{ expect(XFrameOptions.new.name).to eq("X-Frame-Options") }
 
     describe "#value" do
-      specify { expect(XFrameOptions.new.value).to eq(XFrameOptions::Constants::DEFAULT_VALUE)}
+      specify { expect(XFrameOptions.new.value).to eq(XFrameOptions::DEFAULT_VALUE)}
       specify { expect(XFrameOptions.new("SAMEORIGIN").value).to eq("SAMEORIGIN")}
       specify { expect(XFrameOptions.new("DENY").value).to eq("DENY")}
 
