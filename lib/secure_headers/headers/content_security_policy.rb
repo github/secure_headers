@@ -139,30 +139,38 @@ module SecureHeaders
         sym.to_s.gsub('_', '-')
       end
 
+      def boolean?(value)
+        value.is_a?(TrueClass) || value.is_a?(FalseClass)
+      end
+
       def validate_config!(config)
-        return if config.nil?
+        return if config.nil? || config == SecureHeaders::OPT_OUT
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
           case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[key]
           when :boolean
-            unless value.is_a?(TrueClass) || value.is_a?(FalseClass)
+            unless boolean?(value)
               raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
             end
           when :string
             unless value.is_a?(String)
-              raise ContentSecurityPolicyConfigError.new("#{key} must be a string value")
+              raise ContentSecurityPolicyConfigError.new("#{key} Must be a string. Found #{config.class}: #{config} value")
             end
           else
-            unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
-              raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
-            end
-            unless value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
-              raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
-            end
+            if key == :enforce
+              boolean?(value)
+            else
+              unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
+                raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
+              end
+              unless value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
+                raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
+              end
 
-            value.each do |source_expression|
-              if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
-                raise ContentSecurityPolicyConfigError.new("#{key} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
+              value.each do |source_expression|
+                if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
+                  raise ContentSecurityPolicyConfigError.new("#{key} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
+                end
               end
             end
           end
@@ -173,10 +181,9 @@ module SecureHeaders
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil)
       return unless config
-
-      @parsed_ua = UserAgentParser.parse(config.delete(:ua))
-      @enforce = !!config.delete(:enforce)
       @config = config
+      @parsed_ua = UserAgentParser.parse(@config.delete(:ua))
+      @enforce = !!@config.delete(:enforce)
     end
 
     ##

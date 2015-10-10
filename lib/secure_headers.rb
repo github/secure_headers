@@ -72,11 +72,16 @@ module SecureHeaders
     end
 
     # Returns all headers for a given config, including headers that
-    # may not apply to a given request (e.g. hsts on non-ssl pages)
+    # may not apply to a given request (e.g. hsts on non-ssl pages).
+    #
+    # The value returned in the hash will be:
+    #
+    # 1. Checks the env parameter for overrides, uses that config
+    # 2. checks the request_config object for a per-request override
+    # 3. checks the default_header cache to use a configured app-wide default
+    # 4. builds the header from the app-wide configuration
+    # 5. it builds the default value of the header (the default value for the class)
     def all_header_hash(env = {})
-      puts "all headers"
-      puts env
-      puts request_config
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
         header_config = env[klass::CONFIG_KEY] ||
           request_config[klass::CONFIG_KEY]
@@ -87,8 +92,20 @@ module SecureHeaders
           end
           make_header(klass, header_config)
         else
-          SecureHeaders::Configuration::default_headers[klass::CONFIG_KEY] ||
-            make_header(klass, SecureHeaders::Configuration.send(klass::CONFIG_KEY))
+          # use the cached default, if available
+          if default_header = SecureHeaders::Configuration::default_headers[klass::CONFIG_KEY]
+            default_header
+          else
+            if default_config = SecureHeaders::Configuration.send(klass::CONFIG_KEY)
+              if default_config != SecureHeaders::OPT_OUT
+                # use the default configuration value
+                make_header(klass, default_config.dup)
+              end
+            else
+              # user the default value for the class
+              make_header(klass, nil)
+            end
+          end
         end
 
         memo[header.name] = header.value if header
@@ -104,7 +121,6 @@ module SecureHeaders
 
     # Strips out headers not applicable to this request
     def header_hash(env = {})
-      puts env
       unless env[:ssl]
         all_header_hash(env).merge(hsts: OPT_OUT, hpkp: OPT_OUT )
       else
@@ -113,7 +129,6 @@ module SecureHeaders
     end
 
     def content_security_policy_nonce
-      puts "Calling nonce: #{Thread.current[SECURE_HEADERS_CONFIG]}"
       unless request_config[NONCE_KEY]
         request_config[NONCE_KEY] = SecureRandom.base64(32).chomp
 

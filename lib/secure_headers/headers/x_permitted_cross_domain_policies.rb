@@ -29,8 +29,8 @@ module SecureHeaders
     end
 
     def self.validate_config!(config)
-      return if config.nil?
-      raise TypeError.new("Must be a string") unless config.is_a?(String)
+      return if config.nil? || config == SecureHeaders::OPT_OUT
+      raise TypeError.new("Must be a string. Found #{config.class}: #{config}") unless config.is_a?(String)
       unless VALID_POLICIES.include?(config.downcase)
         raise XPCDPConfigError.new("Value can only be one of #{VALID_POLICIES.join(', ')}")
       end

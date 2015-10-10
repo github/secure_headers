@@ -24,7 +24,7 @@ describe SecureHeaders do
 
   it "does not set the HSTS header if request is over HTTP" do
     ::SecureHeaders::Configuration.configure do |config|
-      config.hsts = { :max_age => '123456'}
+      config.hsts = "max-age=123456"
     end
     expect(SecureHeaders::header_hash(ssl: false)[HSTS_HEADER_NAME]).to be_nil
   end
@@ -204,7 +204,11 @@ describe SecureHeaders do
     end
 
     hash = SecureHeaders::Configuration::default_headers
+    puts "*" * 10
     puts hash
+    puts "*" * 20
+    puts SecureHeaders::header_hash
+    puts "*" * 30
     expect(hash[CSP_HEADER_NAME]).to eq("default-src 'self'; object-src pleasedontwhitelistflashever.com")
     expect(hash[XFO_HEADER_NAME]).to eq("DENY")
     expect(hash[XDO_HEADER_NAME]).to be_nil
@@ -212,6 +216,6 @@ describe SecureHeaders do
     expect(hash[X_XSS_PROTECTION_HEADER_NAME]).to eq("1; mode=block")
     expect(hash[X_CONTENT_TYPE_OPTIONS_HEADER_NAME]).to eq("nosniff")
     expect(hash[XPCDP_HEADER_NAME]).to be_nil
-    expect(hash[HPKP_HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
+    expect(hash[HPKP_HEADER_NAME]).to eq(%(max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains))
   end
 end
