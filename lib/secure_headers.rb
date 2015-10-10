@@ -65,7 +65,7 @@ module SecureHeaders
   class << self
     def append_features(base)
       # HPKP is the only header not set by default, so opt it out here
-      ::SecureHeaders::Configuration.send(:hpkp=, OPT_OUT)
+      SecureHeaders::Configuration.send(:hpkp=, OPT_OUT)
       base.module_eval do
         include InstanceMethods
       end
@@ -122,7 +122,7 @@ module SecureHeaders
     # Strips out headers not applicable to this request
     def header_hash(env = {})
       unless env[:ssl]
-        all_header_hash(env).merge(hsts: OPT_OUT, hpkp: OPT_OUT )
+        all_header_hash(env.merge(hsts: OPT_OUT, hpkp: OPT_OUT))
       else
         all_header_hash(env)
       end
@@ -150,7 +150,7 @@ module SecureHeaders
 
     def append_content_security_policy_source(additions)
       config = request_config[SecureHeaders::CSP::CONFIG_KEY] ||
-        ::SecureHeaders::Configuration.send(:csp).dup
+        SecureHeaders::Configuration.send(:csp).dup
 
       config.merge!(additions) do |_, lhs, rhs|
         lhs | rhs
@@ -160,7 +160,7 @@ module SecureHeaders
 
     def override_content_security_policy_directives(additions)
       config = request_config[SecureHeaders::CSP::CONFIG_KEY] ||
-        ::SecureHeaders::Configuration.send(:csp).dup
+        SecureHeaders::Configuration.send(:csp).dup
       request_config[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
     end
 

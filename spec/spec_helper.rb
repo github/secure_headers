@@ -11,14 +11,14 @@ rescue LoadError
   # damn you 1.8.7
 end
 
-include ::SecureHeaders::PublicKeyPins::Constants
-include ::SecureHeaders::StrictTransportSecurity::Constants
-include ::SecureHeaders::ContentSecurityPolicy::Constants
-include ::SecureHeaders::XFrameOptions::Constants
-include ::SecureHeaders::XXssProtection::Constants
-include ::SecureHeaders::XContentTypeOptions::Constants
-include ::SecureHeaders::XDownloadOptions::Constants
-include ::SecureHeaders::XPermittedCrossDomainPolicies::Constants
+include SecureHeaders::PublicKeyPins::Constants
+include SecureHeaders::StrictTransportSecurity::Constants
+include SecureHeaders::ContentSecurityPolicy::Constants
+include SecureHeaders::XFrameOptions::Constants
+include SecureHeaders::XXssProtection::Constants
+include SecureHeaders::XContentTypeOptions::Constants
+include SecureHeaders::XDownloadOptions::Constants
+include SecureHeaders::XPermittedCrossDomainPolicies::Constants
 
 USER_AGENTS = {
   :firefox => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1',
@@ -33,7 +33,7 @@ USER_AGENTS = {
 }
 
 class DummyClass
-  include ::SecureHeaders
+  include SecureHeaders
 end
 
 def should_assign_header name, value

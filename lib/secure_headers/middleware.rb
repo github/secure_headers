@@ -12,11 +12,7 @@ module SecureHeaders
       end
       [status, headers, response]
     ensure
-      puts "Ensure"
-      puts Thread.current
-      puts SecureHeaders::request_config
       SecureHeaders::request_config = nil
-      puts SecureHeaders::request_config
     end
   end
 end

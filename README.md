@@ -36,7 +36,7 @@ The following methods are going to be called, unless they are provided in a `ski
 **NOTE: All CSP config values accept procs for one way of dynamically setting values**
 
 ```ruby
-::SecureHeaders::Configuration.configure do |config|
+SecureHeaders::Configuration.configure do |config|
   config.hsts = {:max_age => 20.years.to_i, :include_subdomains => true}
   config.x_frame_options = 'DENY'
   config.x_content_type_options = "nosniff"
@@ -96,7 +96,7 @@ ensure_security_headers(
 Sometimes you need to override your content security policy for a given endpoint. Rather than applying the exception globally, you have a few options:
 
 1. Use procs as config values as mentioned above.
-1. Specifying `ensure_security_headers csp: ::SecureHeaders::Configuration.csp.merge(script_src: shadyhost.com)` in a descendent controller will override the settings for that controller only.
+1. Specifying `ensure_security_headers csp: SecureHeaders::Configuration.csp.merge(script_src: shadyhost.com)` in a descendent controller will override the settings for that controller only.
 1. Override the `secure_header_options_for` class instance method. e.g.
 
 ```ruby
@@ -304,7 +304,7 @@ If you find you have many hashes or the content of the script tags change freque
 ```ruby
 # config.ru
 require 'secure_headers/headers/content_security_policy/script_hash_middleware'
-use ::SecureHeaders::ContentSecurityPolicy::ScriptHashMiddleware
+use SecureHeaders::ContentSecurityPolicy::ScriptHashMiddleware
 ```
 
 ```ruby
@@ -381,7 +381,7 @@ require 'sinatra'
 require 'haml'
 require 'secure_headers'
 
-::SecureHeaders::Configuration.configure do |config|
+SecureHeaders::Configuration.configure do |config|
   config.hsts = {:max_age => 99, :include_subdomains => true}
   config.x_frame_options = 'DENY'
   config.x_content_type_options = "nosniff"
@@ -439,7 +439,7 @@ and in `config/boot.rb`:
 
 ```ruby
 def before_load
-  ::SecureHeaders::Configuration.configure do |config|
+  SecureHeaders::Configuration.configure do |config|
     config.hsts                   = {:max_age => 99, :include_subdomains => true}
     config.x_frame_options        = 'DENY'
     config.x_content_type_options = "nosniff"
