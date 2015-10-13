@@ -10,6 +10,7 @@ module SecureHeaders
 
     def initialize(config = nil)
       @config = config
+      self.class.validate_config!(config) if ENV['RAILS_ENV'] == "development"
     end
 
     def name

@@ -17,6 +17,7 @@ module SecureHeaders
 
     def initialize(config=nil)
       @config = config
+      self.class.validate_config!(config) if ENV['RAILS_ENV'] == "development"
 
       @pins = @config.fetch(:pins, nil)
       @report_uri = @config.fetch(:report_uri, nil)

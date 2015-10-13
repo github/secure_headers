@@ -158,7 +158,9 @@ module SecureHeaders
             end
           else
             if key == :enforce
-              boolean?(value)
+              raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value)
+            elsif key == :ua
+              raise ContentSecurityPolicyConfigError.new("#{key} must be a string value") unless value.is_a?(String)
             else
               unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
                 raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
@@ -181,6 +183,7 @@ module SecureHeaders
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil)
       return unless config
+      self.class.validate_config!(config) if ENV['RAILS_ENV'] == "development"
       @config = config
       @parsed_ua = UserAgentParser.parse(@config.delete(:ua))
       @enforce = !!@config.delete(:enforce)
