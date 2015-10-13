@@ -6,7 +6,7 @@ describe SecureHeaders do
   end
 
   def reset_config
-    SecureHeaders::request_config = nil
+    SecureHeaders::secure_headers_request_config = nil
     SecureHeaders::Configuration.configure do |config|
       config.hpkp = SecureHeaders::OPT_OUT
       config.hsts = nil

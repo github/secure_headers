@@ -7,12 +7,10 @@ module SecureHeaders
     def call(env)
       req = Rack::Request.new(env)
       status, headers, response = @app.call(env)
-      if headers["Content-Type"] && headers["Content-Type"].include?("text/html")
-        headers.merge!(SecureHeaders::header_hash(env.merge(ssl: req.scheme == 'https')))
-      end
+      headers.merge!(SecureHeaders::header_hash(env.merge(ssl: req.scheme == 'https')))
       [status, headers, response]
     ensure
-      SecureHeaders::request_config = nil
+      SecureHeaders::secure_headers_request_config = nil
     end
   end
 end

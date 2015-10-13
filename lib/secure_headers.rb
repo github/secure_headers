@@ -44,6 +44,7 @@ module SecureHeaders
       end
 
       def configure(&block)
+        self.hpkp = OPT_OUT
         instance_eval &block
         validate_config!
         @default_headers = SecureHeaders::all_header_hash
@@ -65,7 +66,6 @@ module SecureHeaders
   class << self
     def append_features(base)
       # HPKP is the only header not set by default, so opt it out here
-      SecureHeaders::Configuration.send(:hpkp=, OPT_OUT)
       base.module_eval do
         include InstanceMethods
       end
@@ -77,14 +77,14 @@ module SecureHeaders
     # The value returned in the hash will be:
     #
     # 1. Checks the env parameter for overrides, uses that config
-    # 2. checks the request_config object for a per-request override
+    # 2. checks the secure_headers_request_config object for a per-request override
     # 3. checks the default_header cache to use a configured app-wide default
     # 4. builds the header from the app-wide configuration
     # 5. it builds the default value of the header (the default value for the class)
     def all_header_hash(env = {})
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
         header_config = env[klass::CONFIG_KEY] ||
-          request_config[klass::CONFIG_KEY]
+          secure_headers_request_config[klass::CONFIG_KEY]
 
         header = if header_config
           if klass == SecureHeaders::CSP && header_config != SecureHeaders::OPT_OUT
@@ -129,39 +129,39 @@ module SecureHeaders
     end
 
     def content_security_policy_nonce
-      unless request_config[NONCE_KEY]
-        request_config[NONCE_KEY] = SecureRandom.base64(32).chomp
+      unless secure_headers_request_config[NONCE_KEY]
+        secure_headers_request_config[NONCE_KEY] = SecureRandom.base64(32).chomp
 
         # unsafe-inline is automatically added for backwards compatibility. The spec says to ignore unsafe-inline
         # when a nonce is present
-        append_content_security_policy_source(script_src: ["'nonce-#{request_config[NONCE_KEY]}'", CSP::UNSAFE_INLINE])
+        append_content_security_policy_source(script_src: ["'nonce-#{secure_headers_request_config[NONCE_KEY]}'", CSP::UNSAFE_INLINE])
       end
 
-      request_config[NONCE_KEY]
+      secure_headers_request_config[NONCE_KEY]
     end
 
-    def request_config
+    def secure_headers_request_config
       Thread.current[SECURE_HEADERS_CONFIG] ||= {}
     end
 
-    def request_config=(config)
+    def secure_headers_request_config=(config)
       Thread.current[SECURE_HEADERS_CONFIG] = config
     end
 
     def append_content_security_policy_source(additions)
-      config = request_config[SecureHeaders::CSP::CONFIG_KEY] ||
+      config = secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] ||
         SecureHeaders::Configuration.send(:csp).dup
 
       config.merge!(additions) do |_, lhs, rhs|
         lhs | rhs
       end
-      request_config[SecureHeaders::CSP::CONFIG_KEY] = config
+      secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] = config
     end
 
     def override_content_security_policy_directives(additions)
-      config = request_config[SecureHeaders::CSP::CONFIG_KEY] ||
+      config = secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] ||
         SecureHeaders::Configuration.send(:csp).dup
-      request_config[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
+      secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
     end
 
     private
@@ -172,8 +172,8 @@ module SecureHeaders
   end
 
   module InstanceMethods
-    def request_config
-      SecureHeaders::request_config
+    def secure_headers_request_config
+      SecureHeaders::secure_headers_request_config
     end
 
     def content_security_policy_nonce
@@ -191,13 +191,13 @@ module SecureHeaders
     end
 
     def override_x_frame_options(value)
-      raise "override_x_frame_options may only be called once per action." if SecureHeaders::request_config[SecureHeaders::XFrameOptions::CONFIG_KEY]
-      SecureHeaders::request_config[SecureHeaders::XFrameOptions::CONFIG_KEY] = value
+      raise "override_x_frame_options may only be called once per action." if SecureHeaders::secure_headers_request_config[SecureHeaders::XFrameOptions::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config[SecureHeaders::XFrameOptions::CONFIG_KEY] = value
     end
 
     def override_hpkp(config)
-      raise "override_hpkp may only be called once per action." if SecureHeaders::request_config[SecureHeaders::PublicKeyPins::CONFIG_KEY]
-      SecureHeaders::request_config[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
+      raise "override_hpkp may only be called once per action." if SecureHeaders::secure_headers_request_config[SecureHeaders::PublicKeyPins::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
     end
   end
 end

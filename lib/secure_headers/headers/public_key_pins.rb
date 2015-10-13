@@ -16,6 +16,7 @@ module SecureHeaders
     include Constants
 
     def initialize(config=nil)
+      return if config.nil?
       @config = config
       self.class.validate_config!(config) if ENV['RAILS_ENV'] == "development"
 

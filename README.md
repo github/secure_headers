@@ -124,10 +124,10 @@ You really shouldn't have to do this, but if you must:
 ```ruby
 class MyController < ApplicationController
   def index
-    request_config[:x_xss_protection] = SecureHeaders::OPT_OUT
-    request_config[:hsts] = SecureHeaders::OPT_OUT
-    request_config[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = SecureHeaders::OPT_OUT
-    request_config[SecureHeaders::CSP::CONFIG_KEY].merge(script_src: %w('none'))
+    secure_headers_request_config[:x_xss_protection] = SecureHeaders::OPT_OUT
+    secure_headers_request_config[:hsts] = SecureHeaders::OPT_OUT
+    secure_headers_request_config[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = SecureHeaders::OPT_OUT
+    secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY].merge(script_src: %w('none'))
     etc...
   end
 ```
