@@ -19,9 +19,10 @@ module SecureHeaders
   CSP = SecureHeaders::ContentSecurityPolicy
 
   OPT_OUT = :optout_of_protection
-  SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
-  SECURE_HEADERS_CONFIG = "secure_headers"
-  NONCE_KEY = "content_security_policy_nonce"
+  SCRIPT_HASH_CONFIG_FILE = "config/script_hashes.yml".freeze
+  SECURE_HEADERS_CONFIG = "secure_headers".freeze
+  NONCE_KEY = "content_security_policy_nonce".freeze
+  HTTPS = "https".freeze
 
   ALL_HEADER_CLASSES = [
     SecureHeaders::ContentSecurityPolicy,
@@ -48,7 +49,8 @@ module SecureHeaders
         self.hpkp = OPT_OUT
         instance_eval &block
         validate_config!
-        @default_headers = SecureHeaders::all_header_hash
+        # TODO pre-generate all header values, including matrix support for CSP
+        # @default_headers = SecureHeaders::generate_default_headers
       end
 
       def validate_config!
@@ -72,24 +74,21 @@ module SecureHeaders
       end
     end
 
-    # Returns all headers for a given config, including headers that
-    # may not apply to a given request (e.g. hsts on non-ssl pages).
-    #
-    # The value returned in the hash will be:
-    #
-    # 1. Checks the env parameter for overrides, uses that config
-    # 2. checks the secure_headers_request_config object for a per-request override
-    # 3. checks the default_header cache to use a configured app-wide default
-    # 4. builds the header from the app-wide configuration
-    # 5. it builds the default value of the header (the default value for the class)
-    def all_header_hash(env = {})
+    # Strips out headers not applicable to this request
+    def header_hash_for(request)
+      unless request.scheme == HTTPS
+        secure_headers_request_config(request)[SecureHeaders::StrictTransportSecurity::CONFIG_KEY] = SecureHeaders::OPT_OUT
+        secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY] = SecureHeaders::OPT_OUT
+      end
+
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
-        header_config = env[klass::CONFIG_KEY] ||
-          secure_headers_request_config[klass::CONFIG_KEY]
+        header_config = request.env[klass::CONFIG_KEY] ||
+          secure_headers_request_config(request)[klass::CONFIG_KEY]
 
         header = if header_config
+          # TODO generate policies bucketed by browser capabilities
           if klass == SecureHeaders::CSP && header_config != SecureHeaders::OPT_OUT
-            header_config.merge!(:ua => env["HTTP_USER_AGENT"])
+            header_config.merge!(:ua => request.user_agent)
           end
           make_header(klass, header_config)
         else
@@ -98,12 +97,10 @@ module SecureHeaders
             default_header
           else
             if default_config = SecureHeaders::Configuration.send(klass::CONFIG_KEY)
-              if default_config != SecureHeaders::OPT_OUT
-                # use the default configuration value
-                make_header(klass, default_config.dup)
-              end
+              # use the default configuration value
+              make_header(klass, default_config.dup)
             else
-              # user the default value for the class
+              # use the default value for the class
               make_header(klass, nil)
             end
           end
@@ -120,49 +117,40 @@ module SecureHeaders
       end
     end
 
-    # Strips out headers not applicable to this request
-    def header_hash(env = {})
-      unless env[:ssl]
-        all_header_hash(env.merge(hsts: OPT_OUT, hpkp: OPT_OUT))
-      else
-        all_header_hash(env)
-      end
-    end
-
-    def content_security_policy_nonce
-      unless secure_headers_request_config[NONCE_KEY]
-        secure_headers_request_config[NONCE_KEY] = SecureRandom.base64(32).chomp
+    def content_security_policy_nonce(request)
+      unless secure_headers_request_config(request)[NONCE_KEY]
+        secure_headers_request_config(request)[NONCE_KEY] = SecureRandom.base64(32).chomp
 
         # unsafe-inline is automatically added for backwards compatibility. The spec says to ignore unsafe-inline
         # when a nonce is present
-        append_content_security_policy_source(script_src: ["'nonce-#{secure_headers_request_config[NONCE_KEY]}'", CSP::UNSAFE_INLINE])
+        append_content_security_policy_source(request, script_src: ["'nonce-#{secure_headers_request_config(request)[NONCE_KEY]}'", CSP::UNSAFE_INLINE])
       end
 
-      secure_headers_request_config[NONCE_KEY]
+      secure_headers_request_config(request)[NONCE_KEY]
     end
 
-    def secure_headers_request_config
-      Thread.current[SECURE_HEADERS_CONFIG] ||= {}
+    def secure_headers_request_config(request)
+      request.env[SECURE_HEADERS_CONFIG] ||= {}
     end
 
-    def secure_headers_request_config=(config)
-      Thread.current[SECURE_HEADERS_CONFIG] = config
+    def secure_headers_request_config=(request, config)
+      request.env[SECURE_HEADERS_CONFIG] = config
     end
 
-    def append_content_security_policy_source(additions)
-      config = secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] ||
+    def append_content_security_policy_source(request, additions)
+      config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
         SecureHeaders::Configuration.send(:csp).dup
 
       config.merge!(additions) do |_, lhs, rhs|
         lhs | rhs
       end
-      secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] = config
+      secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config
     end
 
-    def override_content_security_policy_directives(additions)
-      config = secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] ||
+    def override_content_security_policy_directives(request, additions)
+      config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
         SecureHeaders::Configuration.send(:csp).dup
-      secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
+      secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
     end
 
     private
@@ -174,16 +162,16 @@ module SecureHeaders
 
   module InstanceMethods
     def secure_headers_request_config
-      SecureHeaders::secure_headers_request_config
+      SecureHeaders::secure_headers_request_config(request)
     end
 
     def content_security_policy_nonce
-      SecureHeaders::content_security_policy_nonce
+      SecureHeaders::content_security_policy_nonce(request)
     end
 
     # Append value to the source list for the provided directives, override 'none' values
     def append_content_security_policy_source(additions)
-      SecureHeaders::append_content_security_policy_source(additions)
+      SecureHeaders::append_content_security_policy_source(request, additions)
     end
 
     # Overrides the previously set source list for the provided directives, override 'none' values
@@ -192,13 +180,13 @@ module SecureHeaders
     end
 
     def override_x_frame_options(value)
-      raise "override_x_frame_options may only be called once per action." if SecureHeaders::secure_headers_request_config[SecureHeaders::XFrameOptions::CONFIG_KEY]
-      SecureHeaders::secure_headers_request_config[SecureHeaders::XFrameOptions::CONFIG_KEY] = value
+      raise "override_x_frame_options may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY] = value
     end
 
     def override_hpkp(config)
-      raise "override_hpkp may only be called once per action." if SecureHeaders::secure_headers_request_config[SecureHeaders::PublicKeyPins::CONFIG_KEY]
-      SecureHeaders::secure_headers_request_config[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
+      raise "override_hpkp may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
     end
   end
 end
