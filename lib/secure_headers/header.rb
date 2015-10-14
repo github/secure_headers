@@ -2,7 +2,7 @@ module SecureHeaders
   class Header
     class << self
       def validate_config?
-        ENV["RAILS_ENV"] == "development"
+        ["development", "test"].include?(ENV["RAILS_ENV"])
       end
     end
   end

@@ -2,12 +2,9 @@ require 'spec_helper'
 
 module SecureHeaders
   describe XFrameOptions do
-    specify{ expect(XFrameOptions.new.name).to eq("X-Frame-Options") }
-
     describe "#value" do
-      specify { expect(XFrameOptions.new.value).to eq(XFrameOptions::DEFAULT_VALUE)}
-      specify { expect(XFrameOptions.new("SAMEORIGIN").value).to eq("SAMEORIGIN")}
-      specify { expect(XFrameOptions.new("DENY").value).to eq("DENY")}
+      specify { expect(XFrameOptions.make_header).to eq([XFrameOptions::HEADER_NAME, XFrameOptions::DEFAULT_VALUE])}
+      specify { expect(XFrameOptions.make_header("DENY")).to eq([XFrameOptions::HEADER_NAME, "DENY"])}
 
       context "with invalid configuration" do
         it "allows SAMEORIGIN" do

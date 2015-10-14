@@ -1,10 +1,7 @@
 module SecureHeaders
   describe XXssProtection do
-    specify { expect(XXssProtection.new.name).to eq(X_XSS_PROTECTION_HEADER_NAME)}
-    specify { expect(XXssProtection.new.value).to eq("1")}
-    specify { expect(XXssProtection.new("0").value).to eq("0")}
-    specify { expect(XXssProtection.new("1; mode=block").value).to eq('1; mode=block') }
-    specify { expect(XXssProtection.new("1; mode=block; report=https://www.secure.com/reports").value).to eq('1; mode=block; report=https://www.secure.com/reports') }
+    specify { expect(XXssProtection.make_header).to eq([XXssProtection::HEADER_NAME, XXssProtection::DEFAULT_VALUE])}
+    specify { expect(XXssProtection.make_header("1; mode=block; report=https://www.secure.com/reports")).to eq([XXssProtection::HEADER_NAME, '1; mode=block; report=https://www.secure.com/reports']) }
 
     context "with invalid configuration" do
       it "should raise an error when providing a string that is not valid" do

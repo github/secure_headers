@@ -7,14 +7,14 @@ require 'json'
 module SecureHeaders
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy < Header
-    DEFAULT_CSP_HEADER = "default-src https:;"
-    CSP_HEADER_NAME = "Content-Security-Policy"
-    DATA = "data:"
-    SELF = "'self'"
-    NONE = "'none'"
-    STAR = "*"
-    UNSAFE_INLINE = "'unsafe-inline'"
-    UNSAFE_EVAL = "'unsafe-eval'"
+    DEFAULT_CSP_HEADER = "default-src https:;".freeze
+    HEADER_NAME = "Content-Security-Policy".freeze
+    DATA = "data:".freeze
+    SELF = "'self'".freeze
+    NONE = "'none'".freeze
+    STAR = "*".freeze
+    UNSAFE_INLINE = "'unsafe-inline'".freeze
+    UNSAFE_EVAL = "'unsafe-eval'".freeze
 
     SOURCE_VALUES = [
       STAR,
@@ -23,9 +23,10 @@ module SecureHeaders
       NONE,
       UNSAFE_EVAL,
       UNSAFE_INLINE
-    ]
+    ].freeze
 
-    DEPRECATED_SOURCE_VALUES = SOURCE_VALUES.map { |value| value.gsub("'", "")}
+    # leftover deprecated values that will be in common use upon upgrading.
+    DEPRECATED_SOURCE_VALUES = [SELF, NONE, UNSAFE_EVAL, UNSAFE_INLINE, "inline", "eval"].map { |value| value.gsub("'", "")}.freeze
 
     DEFAULT_SRC = :default_src
     CONNECT_SRC = :connect_src
@@ -133,6 +134,7 @@ module SecureHeaders
 
     class << self
       def make_header(config)
+        validate_config!(config) if validate_config?
         header = new(config)
         [header.name, header.value]
       end
@@ -160,9 +162,9 @@ module SecureHeaders
             end
           else
             if key == :enforce
-              raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value)
+              raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
             elsif key == :ua
-              raise ContentSecurityPolicyConfigError.new("#{key} must be a string value") unless value.is_a?(String)
+              raise ContentSecurityPolicyConfigError.new("#{key} must be a string value") unless value.is_a?(String) || value.nil?
             else
               unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
                 raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
@@ -185,7 +187,6 @@ module SecureHeaders
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config=nil)
       return unless config
-      self.class.validate_config!(config) if ENV['RAILS_ENV'] == "development"
       @config = config
       @parsed_ua = UserAgentParser.parse(@config.delete(:ua))
       @enforce = !!@config.delete(:enforce)
@@ -195,7 +196,7 @@ module SecureHeaders
     # Returns the name to use for the header. Either "Content-Security-Policy" or
     # "Content-Security-Policy-Report-Only"
     def name
-      base = CSP_HEADER_NAME
+      base = HEADER_NAME
       if !@enforce
         base += "-Report-Only"
       end

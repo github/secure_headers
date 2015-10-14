@@ -1,15 +1,15 @@
 module SecureHeaders
   class XXssProtectionConfigError < StandardError; end
   class XXssProtection < Header
-    X_XSS_PROTECTION_HEADER_NAME = 'X-XSS-Protection'
+    HEADER_NAME = 'X-XSS-Protection'
     DEFAULT_VALUE = "1"
     VALID_X_XSS_HEADER = /\A[01](; mode=block)?(; report=.*)?\z/i
     CONFIG_KEY = :x_xss_protection
 
     class << self
-      def make_header(config)
+      def make_header(config = nil)
         validate_config!(config) if validate_config?
-        [X_XSS_PROTECTION_HEADER_NAME, config || DEFAULT_VALUE]
+        [HEADER_NAME, config || DEFAULT_VALUE]
       end
 
       def validate_config!(config)

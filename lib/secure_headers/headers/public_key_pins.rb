@@ -1,13 +1,14 @@
 module SecureHeaders
   class PublicKeyPinsConfigError < StandardError; end
   class PublicKeyPins < Header
-    HPKP_HEADER_NAME = "Public-Key-Pins"
+    HEADER_NAME = "Public-Key-Pins"
     HASH_ALGORITHMS = [:sha256]
     DIRECTIVES = [:max_age]
     CONFIG_KEY = :hpkp
 
     class << self
       def make_header(config)
+        validate_config!(config) if validate_config?
         header = new(config)
         [header.name, header.value]
       end
@@ -20,8 +21,6 @@ module SecureHeaders
     def initialize(config=nil)
       return if config.nil?
       @config = config
-      self.class.validate_config!(config) if ENV['RAILS_ENV'] == "development"
-
       @pins = @config.fetch(:pins, nil)
       @report_uri = @config.fetch(:report_uri, nil)
       @app_name = @config.fetch(:app_name, nil)
@@ -31,7 +30,7 @@ module SecureHeaders
     end
 
     def name
-      base = HPKP_HEADER_NAME
+      base = HEADER_NAME
       if !@enforce
         base += "-Report-Only"
       end

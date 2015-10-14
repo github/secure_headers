@@ -1,7 +1,7 @@
 module SecureHeaders
   class XFOConfigError < StandardError; end
   class XFrameOptions < Header
-    XFO_HEADER_NAME = "X-Frame-Options"
+    HEADER_NAME = "X-Frame-Options"
     VALID_XFO_HEADER = /\A(SAMEORIGIN\z|DENY\z|ALLOW-FROM[:\s])/i
     CONFIG_KEY = :x_frame_options
     SAMEOROGIN = "SAMEORIGIN"
@@ -10,9 +10,9 @@ module SecureHeaders
     DEFAULT_VALUE = SAMEOROGIN
 
     class << self
-      def make_header(config)
-        validate_config!(config) if ENV["RAILS_ENV"] == "development"
-        [XFO_HEADER_NAME, config || DEFAULT_VALUE]
+      def make_header(config = nil)
+        validate_config!(config) if validate_config?
+        [HEADER_NAME, config || DEFAULT_VALUE]
       end
 
       def validate_config!(config)

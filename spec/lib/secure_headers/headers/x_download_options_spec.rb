@@ -1,8 +1,7 @@
 module SecureHeaders
   describe XDownloadOptions do
-    specify { expect(XDownloadOptions.new.name).to eq(XDO_HEADER_NAME)}
-    specify { expect(XDownloadOptions.new.value).to eq("noopen")}
-    specify { expect(XDownloadOptions.new('noopen').value).to eq('noopen')}
+    specify { expect(XDownloadOptions.make_header).to eq([XDownloadOptions::HEADER_NAME, XDownloadOptions::DEFAULT_VALUE])}
+    specify { expect(XDownloadOptions.make_header('noopen')).to eq([XDownloadOptions::HEADER_NAME, 'noopen'])}
 
     context "invalid configuration values" do
       it "accepts noopen" do

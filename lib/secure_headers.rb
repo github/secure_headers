@@ -155,14 +155,8 @@ module SecureHeaders
 
     def override_content_security_policy_directives(request, additions)
       config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
-        SecureHeaders::Configuration.fetch(:csp)
+        SecureHeaders::Configuration.fetch(:csp) || {}
       secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
-    end
-
-    private
-
-    def ssl_required?(klass)
-      [SecureHeaders::StrictTransportSecurity, SecureHeaders::PublicKeyPins].include?(klass)
     end
   end
 

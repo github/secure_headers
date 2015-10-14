@@ -1,14 +1,14 @@
 module SecureHeaders
   class XDOConfigError < StandardError; end
   class XDownloadOptions < Header
-    XDO_HEADER_NAME = "X-Download-Options"
+    HEADER_NAME = "X-Download-Options"
     DEFAULT_VALUE = 'noopen'
     CONFIG_KEY = :x_download_options
 
     class << self
-      def make_header(config)
-        validate_config!(config) if ENV["RAILS_ENV"] == "development"
-        [XDO_HEADER_NAME, config || DEFAULT_VALUE]
+      def make_header(config = nil)
+        validate_config!(config) if validate_config?
+        [HEADER_NAME, config || DEFAULT_VALUE]
       end
 
       def validate_config!(config)

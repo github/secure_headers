@@ -1,15 +1,15 @@
 module SecureHeaders
   class XPCDPConfigError < StandardError; end
   class XPermittedCrossDomainPolicies < Header
-    XPCDP_HEADER_NAME = "X-Permitted-Cross-Domain-Policies"
+    HEADER_NAME = "X-Permitted-Cross-Domain-Policies"
     DEFAULT_VALUE = 'none'
     VALID_POLICIES = %w(all none master-only by-content-type by-ftp-filename)
     CONFIG_KEY = :x_permitted_cross_domain_policies
 
     class << self
-      def make_header(config)
-        validate_config!(config) if ENV["RAILS_ENV"] == "development"
-        [XPCDP_HEADER_NAME, config || DEFAULT_VALUE]
+      def make_header(config = nil)
+        validate_config!(config) if validate_config?
+        [HEADER_NAME, config || DEFAULT_VALUE]
       end
 
       def validate_config!(config)

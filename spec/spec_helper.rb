@@ -5,21 +5,14 @@ require 'rack'
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'secure_headers')
 
+ENV["RAILS_ENV"] = "test"
+
 begin
   require 'coveralls'
   Coveralls.wear!
 rescue LoadError
   # damn you 1.8.7
 end
-
-include SecureHeaders::PublicKeyPins::Constants
-include SecureHeaders::StrictTransportSecurity::Constants
-include SecureHeaders::ContentSecurityPolicy::Constants
-include SecureHeaders::XFrameOptions::Constants
-include SecureHeaders::XXssProtection::Constants
-include SecureHeaders::XContentTypeOptions::Constants
-include SecureHeaders::XDownloadOptions::Constants
-include SecureHeaders::XPermittedCrossDomainPolicies::Constants
 
 USER_AGENTS = {
   :firefox => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1',

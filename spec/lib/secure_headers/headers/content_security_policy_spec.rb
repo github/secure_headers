@@ -23,11 +23,11 @@ module SecureHeaders
 
     describe "#name" do
       context "when in report-only mode" do
-        specify { expect(ContentSecurityPolicy.new(default_opts).name).to eq(CSP_HEADER_NAME + "-Report-Only")}
+        specify { expect(ContentSecurityPolicy.new(default_opts).name).to eq(ContentSecurityPolicy::HEADER_NAME + "-Report-Only")}
       end
 
       context "when in enforce mode" do
-        specify { expect(ContentSecurityPolicy.new(default_opts.merge(:enforce => true)).name).to eq(CSP_HEADER_NAME) }
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(:enforce => true)).name).to eq(ContentSecurityPolicy::HEADER_NAME) }
       end
     end
 
@@ -123,7 +123,7 @@ module SecureHeaders
 
       context "browser sniffing" do
         let(:complex_opts) do
-          ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = %w('self'); memo }.
+          ContentSecurityPolicy::ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = %w('self'); memo }.
           merge(:block_all_mixed_content => true, :reflected_xss => "block").
           merge(:script_src => %w('self' 'nonce-123456' 'sha256-abc123'))
 

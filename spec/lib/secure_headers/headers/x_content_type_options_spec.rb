@@ -1,10 +1,10 @@
+require 'spec_helper'
+
 module SecureHeaders
   describe XContentTypeOptions do
-    specify{ expect(XContentTypeOptions.new.name).to eq("X-Content-Type-Options") }
-
     describe "#value" do
-      specify { expect(XContentTypeOptions.new.value).to eq(XContentTypeOptions::DEFAULT_VALUE)}
-      specify { expect(XContentTypeOptions.new("nosniff").value).to eq("nosniff")}
+      specify { expect(XContentTypeOptions.make_header).to eq([XContentTypeOptions::HEADER_NAME, XContentTypeOptions::DEFAULT_VALUE])}
+      specify { expect(XContentTypeOptions.make_header("nosniff")).to eq([XContentTypeOptions::HEADER_NAME, "nosniff"])}
 
       context "invalid configuration values" do
         it "accepts nosniff" do
