@@ -15,6 +15,7 @@ module SecureHeaders
     STAR = "*".freeze
     UNSAFE_INLINE = "'unsafe-inline'".freeze
     UNSAFE_EVAL = "'unsafe-eval'".freeze
+    REPORT_ONLY = "-Report-Only".freeze
 
     SOURCE_VALUES = [
       STAR,
@@ -139,44 +140,55 @@ module SecureHeaders
         [header.name, header.value]
       end
 
-      def boolean?(value)
-        value.is_a?(TrueClass) || value.is_a?(FalseClass)
-      end
-
       def validate_config!(config)
         return if config.nil? || config == SecureHeaders::OPT_OUT
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
-          case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[key]
-          when :boolean
-            unless boolean?(value)
-              raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
-            end
-          when :string
-            unless value.is_a?(String)
-              raise ContentSecurityPolicyConfigError.new("#{key} Must be a string. Found #{config.class}: #{config} value")
-            end
+          if key == :enforce
+            raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
+          elsif key == :ua
+            raise ContentSecurityPolicyConfigError.new("#{key} must be a string value") unless value.is_a?(String) || value.nil?
           else
-            if key == :enforce
-              raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
-            elsif key == :ua
-              raise ContentSecurityPolicyConfigError.new("#{key} must be a string value") unless value.is_a?(String) || value.nil?
-            else
-              unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
-                raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
-              end
-              unless value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
-                raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
-              end
-
-              value.each do |source_expression|
-                if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
-                  raise ContentSecurityPolicyConfigError.new("#{key} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
-                end
-              end
-            end
+            validate_directive!(key, value)
           end
         end
+      end
+
+      private
+
+      def validate_directive!(key, value)
+        case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[key]
+        when :boolean
+          unless boolean?(value)
+            raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
+          end
+        when :string
+          unless value.is_a?(String)
+            raise ContentSecurityPolicyConfigError.new("#{key} Must be a string. Found #{config.class}: #{config} value")
+          end
+        else
+          validate_source_expression!(key, value)
+        end
+      end
+
+      def validate_source_expression!(key, value)
+        # source expressions
+        unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
+          raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
+        end
+        unless value.is_a?(Array) && value.all? {|v| v.is_a?(String)}
+          raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
+        end
+
+        value.each do |source_expression|
+          if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
+            raise ContentSecurityPolicyConfigError.new("#{key} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
+          end
+        end
+      end
+
+      def boolean?(value)
+        value.is_a?(TrueClass) || value.is_a?(FalseClass)
       end
     end
 
@@ -194,7 +206,7 @@ module SecureHeaders
     def name
       base = HEADER_NAME
       if !@enforce
-        base += "-Report-Only"
+        base += REPORT_ONLY
       end
       base
     end
@@ -264,7 +276,7 @@ module SecureHeaders
         STAR
       else
         # Discard any 'none' values if more directives are supplied since none may override values.
-        source_list.reject! { |value| value == NONE} if source_list.length > 1
+        source_list.reject! { |value| value == NONE } if source_list.length > 1
         # Discard nonces/hash for browsers that do not support them
         source_list.reject! do |value|
           value =~ NONCE_REGEXP && !supports_nonces? ||
@@ -278,8 +290,9 @@ module SecureHeaders
     end
 
     # Removes duplicates and sources that already match an existing wild card.
-    # Basically cargo culted from GitHub :P
+    # Basically cargo culted from GitHub.
     def dedup_source_list(sources)
+      sources = sources.uniq
       wild_sources = sources.select { |source| source =~ STAR_REGEXP }
 
       if wild_sources.any?
@@ -289,7 +302,7 @@ module SecureHeaders
         end
       else
         sources
-      end.uniq
+      end
     end
 
     def filter_unsupported_directives(directives)
@@ -316,7 +329,7 @@ module SecureHeaders
     end
 
     def supports_hashes?
-      ["Chrome", "Opera", "Firefox"].include?(@parsed_ua.family)
+      @supports_hashes ||= ["Chrome", "Opera", "Firefox"].include?(@parsed_ua.family)
     end
 
     def supports_nonces?
