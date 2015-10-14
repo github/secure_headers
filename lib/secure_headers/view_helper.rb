@@ -12,6 +12,10 @@ module SecureHeaders
       nonced_tag(:script, content_or_options, block)
     end
 
+    def content_security_policy_nonce
+      @_controller.content_security_policy_nonce
+    end
+
     private
 
     def nonced_tag(type, content_or_options, block)
@@ -22,7 +26,7 @@ module SecureHeaders
       else
         content_or_options.html_safe # :'(
       end
-      content_tag type, content, options.merge(nonce: @_controller.content_security_policy_nonce)
+      content_tag type, content, options.merge(nonce: content_security_policy_nonce)
     end
   end
 end

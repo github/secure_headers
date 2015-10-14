@@ -112,10 +112,11 @@ class MyController < ApplicationController
   end
 ```
 
-`append_content_security_policy_source(hash)`: appends each value to the corresponding CSP app-wide configuration.
-`override_content_security_policy_directive(hash)`: merges the hash into the app-wide configuration, overwriting any previous config`
-`override_x_frame_options(value)`: sets the `X-Frame-Options header` to `value`
-`override_hpkp(value)`: sets the `PublicKeyPins` to `value`
+The following methods are available as controller instance methods. They are also available as class methods, but require you to pass in the `request` object.
+* `append_content_security_policy_source(hash)`: appends each value to the corresponding CSP app-wide configuration.
+* `override_content_security_policy_directive(hash)`: merges the hash into the app-wide configuration, overwriting any previous config
+* `override_x_frame_options(value)`: sets the `X-Frame-Options header` to `value`
+* `override_hpkp(value)`: sets the `PublicKeyPins` to `value`
 
 ## Advanced override
 
@@ -139,7 +140,7 @@ script/style-nonce can be used to whitelist inline content. To do this, call the
 Setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
 
 ```erb
-<script nonce="<%= SecureHeaders::content_security_policy_nonce %>">
+<script nonce="<%= content_security_policy_nonce %>">
   console.log("whitelisted, will execute")
 </script>
 
