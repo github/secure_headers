@@ -178,7 +178,7 @@ The hash feature has been removed, for now.
 
 Be aware that pinning error reporting is governed by the same rules as everything else. If you have a pinning failure that tries to report back to the same origin, by definition this will not work.
 
-```
+```ruby
 config.hpkp = {
   max_age: 60.days.to_i,   # max_age is a required parameter
   include_subdomains: true, # whether or not to apply pins to subdomains
@@ -253,34 +253,6 @@ and in `config/boot.rb`:
 def before_load
   SecureHeaders::Configuration.configure do |config|
     ...
-  end
-end
-```
-
-### Using in rack middleware
-
-The `SecureHeaders::header_hash` generates a hash of all header values, which is useful for merging with rack middleware values.
-
-```ruby
-class MySecureHeaders
-  def initialize(app)
-  @app = app
- end
-
- def call(env)
-   status, headers, response = @app.call(env)
-   security_headers = if override?
-     SecureHeaders::header_hash(:csp => false) # uses global config, but overrides CSP config
-   else
-     SecureHeaders::header_hash # uses global config
-   end
-   [status, headers.merge(security_headers), [response.body]]
- end
-end
-
-module Testapp
-  class Application < Rails::Application
-    config.middleware.use MySecureHeaders
   end
 end
 ```
