@@ -7,134 +7,136 @@ require 'json'
 module SecureHeaders
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy < Header
-    module Constants
-      DEFAULT_CSP_HEADER = "default-src https:;"
-      CSP_HEADER_NAME = "Content-Security-Policy"
-      DATA = "data:"
-      SELF = "'self'"
-      NONE = "'none'"
-      STAR = "*"
-      UNSAFE_INLINE = "'unsafe-inline'"
-      UNSAFE_EVAL = "'unsafe-eval'"
+    DEFAULT_CSP_HEADER = "default-src https:;"
+    CSP_HEADER_NAME = "Content-Security-Policy"
+    DATA = "data:"
+    SELF = "'self'"
+    NONE = "'none'"
+    STAR = "*"
+    UNSAFE_INLINE = "'unsafe-inline'"
+    UNSAFE_EVAL = "'unsafe-eval'"
 
-      SOURCE_VALUES = [
-        STAR,
-        DATA,
-        SELF,
-        NONE,
-        UNSAFE_EVAL,
-        UNSAFE_INLINE
-      ]
+    SOURCE_VALUES = [
+      STAR,
+      DATA,
+      SELF,
+      NONE,
+      UNSAFE_EVAL,
+      UNSAFE_INLINE
+    ]
 
-      DEPRECATED_SOURCE_VALUES = SOURCE_VALUES.map { |value| value.gsub("'", "")}
+    DEPRECATED_SOURCE_VALUES = SOURCE_VALUES.map { |value| value.gsub("'", "")}
 
-      DEFAULT_SRC = :default_src
-      CONNECT_SRC = :connect_src
-      FONT_SRC = :font_src
-      FRAME_SRC = :frame_src
-      IMG_SRC = :img_src
-      MEDIA_SRC = :media_src
-      OBJECT_SRC = :object_src
-      SANDBOX = :sandbox
-      SCRIPT_SRC = :script_src
-      STYLE_SRC = :style_src
-      REPORT_URI = :report_uri
+    DEFAULT_SRC = :default_src
+    CONNECT_SRC = :connect_src
+    FONT_SRC = :font_src
+    FRAME_SRC = :frame_src
+    IMG_SRC = :img_src
+    MEDIA_SRC = :media_src
+    OBJECT_SRC = :object_src
+    SANDBOX = :sandbox
+    SCRIPT_SRC = :script_src
+    STYLE_SRC = :style_src
+    REPORT_URI = :report_uri
 
-      DIRECTIVES_1_0 = [
-        DEFAULT_SRC,
-        CONNECT_SRC,
-        FONT_SRC,
-        FRAME_SRC,
-        IMG_SRC,
-        MEDIA_SRC,
-        OBJECT_SRC,
-        SANDBOX,
-        SCRIPT_SRC,
-        STYLE_SRC,
-        REPORT_URI
-      ].freeze
+    DIRECTIVES_1_0 = [
+      DEFAULT_SRC,
+      CONNECT_SRC,
+      FONT_SRC,
+      FRAME_SRC,
+      IMG_SRC,
+      MEDIA_SRC,
+      OBJECT_SRC,
+      SANDBOX,
+      SCRIPT_SRC,
+      STYLE_SRC,
+      REPORT_URI
+    ].freeze
 
-      BASE_URI = :base_uri
-      CHILD_SRC = :child_src
-      FORM_ACTION = :form_action
-      FRAME_ANCESTORS = :frame_ancestors
-      PLUGIN_TYPES = :plugin_types
+    BASE_URI = :base_uri
+    CHILD_SRC = :child_src
+    FORM_ACTION = :form_action
+    FRAME_ANCESTORS = :frame_ancestors
+    PLUGIN_TYPES = :plugin_types
 
-      DIRECTIVES_2_0 = [
-        DIRECTIVES_1_0,
-        BASE_URI,
-        CHILD_SRC,
-        FORM_ACTION,
-        FRAME_ANCESTORS,
-        PLUGIN_TYPES
-      ].flatten.freeze
+    DIRECTIVES_2_0 = [
+      DIRECTIVES_1_0,
+      BASE_URI,
+      CHILD_SRC,
+      FORM_ACTION,
+      FRAME_ANCESTORS,
+      PLUGIN_TYPES
+    ].flatten.freeze
 
-      # All the directives currently under consideration for CSP level 3.
-      # https://w3c.github.io/webappsec/specs/CSP2/
-      MANIFEST_SRC = :manifest_src
-      REFLECTED_XSS = :reflected_xss
-      DIRECTIVES_3_0 = [
-        DIRECTIVES_2_0,
-        MANIFEST_SRC,
-        REFLECTED_XSS
-      ].flatten.freeze
+    # All the directives currently under consideration for CSP level 3.
+    # https://w3c.github.io/webappsec/specs/CSP2/
+    MANIFEST_SRC = :manifest_src
+    REFLECTED_XSS = :reflected_xss
+    DIRECTIVES_3_0 = [
+      DIRECTIVES_2_0,
+      MANIFEST_SRC,
+      REFLECTED_XSS
+    ].flatten.freeze
 
-      # All the directives that are not currently in a formal spec, but have
-      # been implemented somewhere.
-      BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
-      DIRECTIVES_DRAFT = [
-        BLOCK_ALL_MIXED_CONTENT
-      ].freeze
+    # All the directives that are not currently in a formal spec, but have
+    # been implemented somewhere.
+    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
+    DIRECTIVES_DRAFT = [
+      BLOCK_ALL_MIXED_CONTENT
+    ].freeze
 
-      SAFARI_DIRECTIVES = DIRECTIVES_1_0
+    SAFARI_DIRECTIVES = DIRECTIVES_1_0
 
-      FIREFOX_UNSUPPORTED_DIRECTIVES = [
-        BLOCK_ALL_MIXED_CONTENT,
-        CHILD_SRC,
-        PLUGIN_TYPES
-      ].freeze
+    FIREFOX_UNSUPPORTED_DIRECTIVES = [
+      BLOCK_ALL_MIXED_CONTENT,
+      CHILD_SRC,
+      PLUGIN_TYPES
+    ].freeze
 
-      FIREFOX_DIRECTIVES = (
-        DIRECTIVES_2_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
-      ).freeze
+    FIREFOX_DIRECTIVES = (
+      DIRECTIVES_2_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
+    ).freeze
 
-      CHROME_DIRECTIVES = (
-        DIRECTIVES_2_0 + DIRECTIVES_DRAFT
-      ).freeze
+    CHROME_DIRECTIVES = (
+      DIRECTIVES_2_0 + DIRECTIVES_DRAFT
+    ).freeze
 
-      ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
+    ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
 
-      DIRECTIVE_VALUE_TYPES = {
-        BASE_URI                => :source_list,
-        BLOCK_ALL_MIXED_CONTENT => :boolean,
-        CHILD_SRC               => :source_list,
-        CONNECT_SRC             => :source_list,
-        DEFAULT_SRC             => :source_list,
-        FONT_SRC                => :source_list,
-        FORM_ACTION             => :source_list,
-        FRAME_ANCESTORS         => :source_list,
-        FRAME_SRC               => :source_list,
-        IMG_SRC                 => :source_list,
-        MANIFEST_SRC            => :source_list,
-        MEDIA_SRC               => :source_list,
-        OBJECT_SRC              => :source_list,
-        PLUGIN_TYPES            => :source_list,
-        REFLECTED_XSS           => :string,
-        REPORT_URI              => :source_list,
-        SANDBOX                 => :string,
-        SCRIPT_SRC              => :source_list,
-        STYLE_SRC               => :source_list
-      }.freeze
+    DIRECTIVE_VALUE_TYPES = {
+      BASE_URI                => :source_list,
+      BLOCK_ALL_MIXED_CONTENT => :boolean,
+      CHILD_SRC               => :source_list,
+      CONNECT_SRC             => :source_list,
+      DEFAULT_SRC             => :source_list,
+      FONT_SRC                => :source_list,
+      FORM_ACTION             => :source_list,
+      FRAME_ANCESTORS         => :source_list,
+      FRAME_SRC               => :source_list,
+      IMG_SRC                 => :source_list,
+      MANIFEST_SRC            => :source_list,
+      MEDIA_SRC               => :source_list,
+      OBJECT_SRC              => :source_list,
+      PLUGIN_TYPES            => :source_list,
+      REFLECTED_XSS           => :string,
+      REPORT_URI              => :source_list,
+      SANDBOX                 => :string,
+      SCRIPT_SRC              => :source_list,
+      STYLE_SRC               => :source_list
+    }.freeze
 
-      CONFIG_KEY = :csp
-      STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
-      NONCE_REGEXP = /\A'nonce-/
-      HASH_REGEXP = /\A'sha/
-      HTTP_SCHEME_REGEX = %r(\Ahttps?://)
-    end
-    include Constants
+    CONFIG_KEY = :csp
+    STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
+    NONCE_REGEXP = /\A'nonce-/
+    HASH_REGEXP = /\A'sha/
+    HTTP_SCHEME_REGEX = %r(\Ahttps?://)
 
     class << self
+      def make_header(config)
+        header = new(config)
+        [header.name, header.value]
+      end
+
       def symbol_to_hyphen_case sym
         sym.to_s.gsub('_', '-')
       end

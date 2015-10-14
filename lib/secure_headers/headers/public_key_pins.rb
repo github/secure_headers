@@ -1,19 +1,21 @@
 module SecureHeaders
   class PublicKeyPinsConfigError < StandardError; end
   class PublicKeyPins < Header
-    module Constants
-      HPKP_HEADER_NAME = "Public-Key-Pins"
-      ENV_KEY = 'secure_headers.public_key_pins'
-      HASH_ALGORITHMS = [:sha256]
-      DIRECTIVES = [:max_age]
-      CONFIG_KEY = :hpkp
-    end
+    HPKP_HEADER_NAME = "Public-Key-Pins"
+    HASH_ALGORITHMS = [:sha256]
+    DIRECTIVES = [:max_age]
+    CONFIG_KEY = :hpkp
+
     class << self
+      def make_header(config)
+        header = new(config)
+        [header.name, header.value]
+      end
+
       def symbol_to_hyphen_case sym
         sym.to_s.gsub('_', '-')
       end
     end
-    include Constants
 
     def initialize(config=nil)
       return if config.nil?

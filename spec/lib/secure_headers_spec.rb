@@ -1,12 +1,15 @@
 require 'spec_helper'
 
 describe SecureHeaders do
+  before(:each) do
+    @request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
+  end
+
   after(:each) do
     reset_config
   end
 
   def reset_config
-    SecureHeaders::secure_headers_request_config = nil
     SecureHeaders::Configuration.configure do |config|
       config.hpkp = SecureHeaders::OPT_OUT
       config.hsts = nil
@@ -23,7 +26,7 @@ describe SecureHeaders do
     SecureHeaders::Configuration.configure do |config|
       config.hsts = "max-age=123456"
     end
-    expect(SecureHeaders::header_hash(ssl: false)[HSTS_HEADER_NAME]).to be_nil
+    expect(SecureHeaders::header_hash_for(Rack::Request.new({}))[HSTS_HEADER_NAME]).to be_nil
   end
 
   it "does not set the HPKP header if request is over HTTP" do
@@ -40,10 +43,10 @@ describe SecureHeaders do
       }
     end
 
-    expect(SecureHeaders::header_hash(ssl: false)[HPKP_HEADER_NAME]).to be_nil
+    expect(SecureHeaders::header_hash_for(Rack::Request.new({}))[HPKP_HEADER_NAME]).to be_nil
   end
 
-  describe "SecureHeaders#header_hash" do
+  describe "SecureHeaders#header_hash_for" do
     def expect_default_values(hash)
       expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
       expect(hash[XDO_HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::DEFAULT_VALUE)
@@ -54,13 +57,15 @@ describe SecureHeaders do
     end
 
     it "produces a hash of headers given a hash as config" do
-      hash = SecureHeaders::header_hash(ssl: true, csp: {default_src: %w('none'), img_src: [SecureHeaders::ContentSecurityPolicy::DATA]})
+      SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'), img_src: [SecureHeaders::ContentSecurityPolicy::DATA])
+      hash = SecureHeaders::header_hash_for(@request)
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
       expect_default_values(hash)
     end
 
     it "allows you to opt out of headers" do
-      hash = SecureHeaders::header_hash(csp: SecureHeaders::OPT_OUT)
+      SecureHeaders::opt_out_of(@request, SecureHeaders::CSP::CONFIG_KEY)
+      hash = SecureHeaders::header_hash_for(@request)
       expect(hash['Content-Security-Policy-Report-Only']).to be_nil
       expect(hash['Content-Security-Policy']).to be_nil
     end
@@ -69,16 +74,24 @@ describe SecureHeaders do
       SecureHeaders::Configuration.configure do |config|
         config.csp = {
           :default_src => %w('self'),
-          :script_src => %w(mycdn.com)
+          :script_src => %w(mycdn.com 'unsafe-inline')
         }
       end
       env = {"HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/537.22 (KHTML like Gecko) Chrome/25.0.1364.99 Safari/537.22"}
-      nonce = SecureHeaders::content_security_policy_nonce
-      hash = SecureHeaders::header_hash(env)
+      nonce = SecureHeaders::content_security_policy_nonce(@request)
+      hash = SecureHeaders::header_hash_for(@request)
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}' 'unsafe-inline'")
+    end
 
+    it "does not append a nonce when the browser does not support it" do
+      SecureHeaders::Configuration.configure do |config|
+        config.csp = {
+          :default_src => %w('self'),
+          :script_src => %w(mycdn.com 'unsafe-inline')
+        }
+      end
       env = {"HTTP_USER_AGENT" => "Mozilla/4.0 totally a legit browser"}
-      hash = SecureHeaders::header_hash(env)
+      hash = SecureHeaders::header_hash_for(@request)
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'")
     end
 
@@ -97,7 +110,8 @@ describe SecureHeaders do
         }
       end
 
-      hash = SecureHeaders::header_hash(ssl: true, :csp => {:default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA]})
+      SecureHeaders::override_content_security_policy_directives(@request, :default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA])
+      hash = SecureHeaders::header_hash_for(@request)
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
       expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
       expect(hash[HSTS_HEADER_NAME]).to eq("max-age=123456")
@@ -105,7 +119,7 @@ describe SecureHeaders do
     end
 
     it "produces a hash of headers with default config" do
-      hash = SecureHeaders::header_hash(ssl: true)
+      hash = SecureHeaders::header_hash_for(@request)
       expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::DEFAULT_CSP_HEADER)
       expect_default_values(hash)
     end
