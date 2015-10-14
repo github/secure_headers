@@ -158,6 +158,16 @@ module SecureHeaders
         SecureHeaders::Configuration.fetch(:csp) || {}
       secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
     end
+
+    def override_x_frame_options(request, value)
+      raise "override_x_frame_options may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY] = value
+    end
+
+    def override_hpkp(request, config)
+      raise "override_hpkp may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
+    end
   end
 
   module InstanceMethods
@@ -184,13 +194,11 @@ module SecureHeaders
     end
 
     def override_x_frame_options(value)
-      raise "override_x_frame_options may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY]
-      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY] = value
+      SecureHeaders::override_x_frame_options(request, value)
     end
 
-    def override_hpkp(config)
-      raise "override_hpkp may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY]
-      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
+    def override_hpkp(value)
+      SecureHeaders::override_hpkp(request, value)
     end
   end
 end

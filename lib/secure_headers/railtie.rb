@@ -22,7 +22,6 @@ if defined?(Rails::Railtie)
               Rails.application.config.action_dispatch.default_headers.delete(header)
             end
           end
-
         end
       end
     end
