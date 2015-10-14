@@ -139,10 +139,6 @@ module SecureHeaders
         [header.name, header.value]
       end
 
-      def symbol_to_hyphen_case sym
-        sym.to_s.gsub('_', '-')
-      end
-
       def boolean?(value)
         value.is_a?(TrueClass) || value.is_a?(FalseClass)
       end

@@ -12,10 +12,6 @@ module SecureHeaders
         header = new(config)
         [header.name, header.value]
       end
-
-      def symbol_to_hyphen_case sym
-        sym.to_s.gsub('_', '-')
-      end
     end
 
     def initialize(config=nil)
