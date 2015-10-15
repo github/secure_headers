@@ -78,10 +78,11 @@ For the easy headers, you should not expect to change the values per request. Ho
 ```ruby
 # Given a config of:
 ::SecureHeaders::Configuration.configure do |config|
- config.csp = {
-   default_src: %w('self'),
-   script_src: %w('self')
- }
+   config.csp = {
+     default_src: %w('self'),
+     script_src: %w('self')
+   }
+ end
 
 class MyController < ApplicationController
   def index
@@ -122,10 +123,37 @@ The following methods are available as controller instance methods. They are als
 
 When manipulating content security policy, there are a few things to consider. The default header value is `default-src https:` which corresponds to a default configuration of `{ default_src: %w(https:)}`.
 
-
 #### Append to the policy with a directive other than `default_src`
 
-The value of `default_src` is joined with the addition. e.g. `append_content_security_policy_source(script_src: %w('self'))` produces `default-src https:; script-src https: 'self'`
+The value of `default_src` is joined with the addition. Note the `https:` is carried over from the `default-src` config. If you do not want this, use `override_content_security_policy_directives` instead. To illustrate:
+
+```ruby
+::SecureHeaders::Configuration.configure do |config|
+   config.csp = {
+     default_src: %w('self')
+   }
+ end
+ ```
+
+Code  | Result
+------------- | -------------
+`append_content_security_policy_source(script_src: %w(mycdn.com))` | `default-src 'self'; script-src 'self' mycdn.com`
+`override_content_security_policy_directives(script_src: %w(mycdn.com))`  | `default-src 'self'; script-src mycdn.com`
+
+#### Appending to an opted-out Policy
+
+If your policy is set to `SecureHeaders::OPT_OUT`, you will be appending to the default policy (`default-src https:`). This behaves the same way as the above example using the default configuration and will set the header based on the result.
+
+```ruby
+::SecureHeaders::Configuration.configure do |config|
+   config.csp = SecureHeaders::OPT_OUT
+ end
+ ```
+
+Code  | Result
+------------- | -------------
+`append_content_security_policy_source(script_src: %w(mycdn.com))` | `default-src https:; script-src https: mycdn.com`
+`override_content_security_policy_directives(script_src: %w(mycdn.com))`  | `default-src https:; script-src mycdn.com`
 
 ## Advanced override
 
