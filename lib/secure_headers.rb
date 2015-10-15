@@ -44,6 +44,7 @@ module SecureHeaders
 
       def configure(&block)
         self.hpkp = OPT_OUT
+        self.csp = SecureHeaders::CSP::DEFAULT_CONFIG
         instance_eval &block
 
         validate_config!
@@ -165,6 +166,13 @@ module SecureHeaders
     def append_content_security_policy_source(request, additions)
       config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
         SecureHeaders::Configuration.fetch(:csp)
+
+      # in case we would be appending to an empty directive, fill it with the default-src value
+      additions.each do |name, addition|
+        unless config[name]
+          config[name] = config[:default_src]
+        end
+      end
 
       config.merge!(additions) do |_, lhs, rhs|
         lhs | rhs

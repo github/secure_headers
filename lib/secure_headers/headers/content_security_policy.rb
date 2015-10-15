@@ -7,7 +7,8 @@ require 'json'
 module SecureHeaders
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy < Header
-    DEFAULT_CSP_HEADER = "default-src https:;".freeze
+    DEFAULT_CSP_HEADER = "default-src https:".freeze
+    DEFAULT_CONFIG = { default_src: %w(https:)}.freeze
     HEADER_NAME = "Content-Security-Policy".freeze
     DATA = "data:".freeze
     SELF = "'self'".freeze

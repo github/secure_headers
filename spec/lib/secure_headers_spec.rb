@@ -36,12 +36,10 @@ describe SecureHeaders do
 
     def reset_config
       SecureHeaders::Configuration.configure do |config|
-        config.hpkp = SecureHeaders::OPT_OUT
         config.hsts = nil
         config.x_frame_options = nil
         config.x_content_type_options = nil
         config.x_xss_protection = nil
-        config.csp = nil
         config.x_download_options = nil
         config.x_permitted_cross_domain_policies = nil
       end
@@ -107,6 +105,37 @@ describe SecureHeaders do
         nonce = SecureHeaders::content_security_policy_nonce(request)
         hash = SecureHeaders::header_hash_for(request)
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' 'nonce-#{nonce}'")
+      end
+
+      it "appends a value to csp directive" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self'),
+            :script_src => %w(mycdn.com 'unsafe-inline')
+          }
+        end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
+      end
+
+      it "appends the value to the default source when appending to directive without any config" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self')
+          }
+        end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+      end
+
+      it "appends a value to the default CSP configuration (for use without a configure block)" do
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: anothercdn.com")
       end
 
       it "does not append a nonce when the browser does not support it" do
