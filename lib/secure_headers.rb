@@ -167,6 +167,10 @@ module SecureHeaders
       config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
         SecureHeaders::Configuration.fetch(:csp)
 
+      if config == SecureHeaders::OPT_OUT
+        config = SecureHeaders::CSP::DEFAULT_CONFIG.dup
+      end
+
       # in case we would be appending to an empty directive, fill it with the default-src value
       additions.each do |name, addition|
         unless config[name]
@@ -174,15 +178,19 @@ module SecureHeaders
         end
       end
 
-      config.merge!(additions) do |_, lhs, rhs|
+      secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions) do |_, lhs, rhs|
         lhs | rhs
       end
-      secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config
     end
 
     def override_content_security_policy_directives(request, additions)
       config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
         SecureHeaders::Configuration.fetch(:csp) || {}
+
+      if config == SecureHeaders::OPT_OUT
+        config = SecureHeaders::CSP::DEFAULT_CONFIG.dup
+      end
+
       secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
     end
 

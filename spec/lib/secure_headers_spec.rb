@@ -138,6 +138,16 @@ describe SecureHeaders do
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: anothercdn.com")
       end
 
+      it "constructs a default policy when appending to a OPT_OUT policy" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = SecureHeaders::OPT_OUT
+        end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: anothercdn.com")
+      end
+
       it "does not append a nonce when the browser does not support it" do
         SecureHeaders::Configuration.configure do |config|
           config.csp = {
