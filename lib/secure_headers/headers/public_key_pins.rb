@@ -9,6 +9,7 @@ module SecureHeaders
 
     class << self
       def make_header(config)
+        return if config == SecureHeaders::OPT_OUT
         validate_config!(config) if validate_config?
         header = new(config)
         [header.name, header.value]

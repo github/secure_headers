@@ -23,6 +23,7 @@ module SecureHeaders
   SECURE_HEADERS_CONFIG = "secure_headers".freeze
   NONCE_KEY = "content_security_policy_nonce".freeze
   HTTPS = "https".freeze
+  USER_AGENT_PARSER = UserAgentParser::Parser.new
 
   ALL_HEADER_CLASSES = [
     SecureHeaders::ContentSecurityPolicy,
@@ -50,7 +51,7 @@ module SecureHeaders
         instance_eval &block
         validate_config!
         # TODO pre-generate all header values, including matrix support for CSP
-        # @default_headers = SecureHeaders::generate_default_headers
+        @default_headers = generate_default_headers
       end
 
       def fetch(key)
@@ -68,6 +69,30 @@ module SecureHeaders
         XDownloadOptions.validate_config!(self.x_download_options)
         XPermittedCrossDomainPolicies.validate_config!(self.x_permitted_cross_domain_policies)
         PublicKeyPins.validate_config!(self.hpkp)
+      end
+
+      private
+      def generate_default_headers
+        default_headers = {}
+        # generate defaults for the "easy" headers
+        (ALL_HEADER_CLASSES - [SecureHeaders::CSP]).each do |klass|
+          config = fetch(klass::CONFIG_KEY)
+          unless config == SecureHeaders::OPT_OUT
+            default_headers[klass::CONFIG_KEY] = klass.make_header(config)
+          end
+        end
+
+        unless self.csp == SecureHeaders::OPT_OUT
+          default_headers[SecureHeaders::CSP::CONFIG_KEY] = {}
+
+          SecureHeaders::CSP::VARIATIONS.each do |name, _|
+            csp_config = fetch(SecureHeaders::CSP::CONFIG_KEY)
+            csp = SecureHeaders::CSP.make_header(csp_config, UserAgentParser::UserAgent.new(name))
+            default_headers[SecureHeaders::CSP::CONFIG_KEY][name] = csp
+          end
+        end
+
+        default_headers
       end
     end
   end
@@ -92,15 +117,19 @@ module SecureHeaders
           secure_headers_request_config(request)[klass::CONFIG_KEY]
 
         header_name, header = if header_config
-          # TODO generate policies bucketed by browser capabilities
-          if klass == SecureHeaders::CSP && header_config != SecureHeaders::OPT_OUT
-            header_config.merge!(:ua => request.user_agent)
+          if klass == SecureHeaders::CSP
+            SecureHeaders::CSP.make_header(header_config, request.user_agent)
+          else
+            make_header(klass, header_config)
           end
-          make_header(klass, header_config)
         else
           # use the cached default, if available
           if default_header = SecureHeaders::Configuration::default_headers[klass::CONFIG_KEY]
-            default_header
+            if klass == SecureHeaders::CSP
+              default_csp_header_for_ua(default_header, request)
+            else
+              default_header
+            end
           else
             if default_config = SecureHeaders::Configuration.fetch(klass::CONFIG_KEY)
               # use the default configuration value
@@ -114,6 +143,15 @@ module SecureHeaders
 
         memo[header_name] = header if header
         memo
+      end
+    end
+
+    def default_csp_header_for_ua(headers, request)
+      family = SecureHeaders::USER_AGENT_PARSER.parse(request.user_agent).family
+      if SecureHeaders::CSP::VARIATIONS.key?(family)
+        headers[family]
+      else
+        headers[SecureHeaders::CSP::OTHER]
       end
     end
 

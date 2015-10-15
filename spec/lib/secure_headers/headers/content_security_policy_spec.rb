@@ -8,8 +8,7 @@ module SecureHeaders
         :img_src => %w(https: data:),
         :script_src => %w('unsafe-inline' 'unsafe-eval' https: data:),
         :style_src => %w('unsafe-inline' https: about:),
-        :report_uri => %w(/csp_report),
-        :ua => CHROME_25
+        :report_uri => %w(/csp_report)
       }
     end
 
@@ -130,22 +129,22 @@ module SecureHeaders
         end
 
         it "does not filter any directives for Chrome" do
-          policy = ContentSecurityPolicy.new(complex_opts.merge(ua: CHROME))
+          policy = ContentSecurityPolicy.new(complex_opts, CHROME)
           expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456' 'sha256-abc123'; style-src 'self'; report-uri 'self'")
         end
 
         it "does not filter any directives for Opera" do
-          policy = ContentSecurityPolicy.new(complex_opts.merge(ua: OPERA))
+          policy = ContentSecurityPolicy.new(complex_opts, OPERA)
           expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456' 'sha256-abc123'; style-src 'self'; report-uri 'self'")
         end
 
         it "filters blocked-all-mixed-content, child-src, and plugin-types, and hash sources for firefox" do
-          policy = ContentSecurityPolicy.new(complex_opts.merge(ua: FIREFOX))
+          policy = ContentSecurityPolicy.new(complex_opts, FIREFOX)
           expect(policy.value).to eq("default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self' 'nonce-123456' 'sha256-abc123'; style-src 'self'; report-uri 'self'")
         end
 
         it "filters base-uri, blocked-all-mixed-content, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for safari" do
-          policy = ContentSecurityPolicy.new(complex_opts.merge(ua: SAFARI))
+          policy = ContentSecurityPolicy.new(complex_opts, SAFARI)
           expect(policy.value).to eq("default-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self'; style-src 'self'; report-uri 'self'")
         end
       end

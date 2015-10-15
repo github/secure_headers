@@ -105,6 +105,16 @@ module SecureHeaders
 
     ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
 
+    VARIATIONS = {
+      "Chrome" => CHROME_DIRECTIVES,
+      "Opera" => CHROME_DIRECTIVES,
+      "Firefox" => FIREFOX_DIRECTIVES,
+      "Safari" => SAFARI_DIRECTIVES,
+      "Other" => DIRECTIVES_1_0
+    }.freeze
+
+    OTHER = "Other".freeze
+
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                => :source_list,
       BLOCK_ALL_MIXED_CONTENT => :boolean,
@@ -134,9 +144,10 @@ module SecureHeaders
     HTTP_SCHEME_REGEX = %r(\Ahttps?://)
 
     class << self
-      def make_header(config)
+      def make_header(config, user_agent)
+        return if config == SecureHeaders::OPT_OUT
         validate_config!(config) if validate_config?
-        header = new(config)
+        header = new(config, user_agent)
         [header.name, header.value]
       end
 
@@ -146,8 +157,6 @@ module SecureHeaders
         config.each do |key, value|
           if key == :enforce
             raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
-          elsif key == :ua
-            raise ContentSecurityPolicyConfigError.new("#{key} must be a string value") unless value.is_a?(String) || value.nil?
           else
             validate_directive!(key, value)
           end
@@ -193,10 +202,14 @@ module SecureHeaders
     end
 
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
-    def initialize(config=nil)
+    def initialize(config = nil, user_agent = OTHER)
       return unless config
       @config = config
-      @parsed_ua = UserAgentParser.parse(@config.delete(:ua))
+      @parsed_ua = if user_agent.is_a?(UserAgentParser::UserAgent)
+        user_agent
+      else
+        SecureHeaders::USER_AGENT_PARSER.parse(user_agent)
+      end
       @enforce = !!@config.delete(:enforce)
     end
 
@@ -250,7 +263,6 @@ module SecureHeaders
       header_value = [build_directive(DEFAULT_SRC)]
 
       directives = filter_unsupported_directives(ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI])
-
       directives.select { |directive| @config[directive]}.each do |directive_name|
         header_value << case DIRECTIVE_VALUE_TYPES[directive_name]
         when :boolean
@@ -263,7 +275,6 @@ module SecureHeaders
       end
 
       header_value << build_directive(REPORT_URI) if @config[REPORT_URI]
-
       header_value.join("; ")
     end
 
@@ -316,16 +327,7 @@ module SecureHeaders
     end
 
     def supported_directives
-      @supported_directives ||= case @parsed_ua.family
-      when "Chrome", "Opera"
-        CHROME_DIRECTIVES
-      when "Safari"
-        SAFARI_DIRECTIVES
-      when "Firefox"
-        FIREFOX_DIRECTIVES
-      else
-        DIRECTIVES_1_0
-      end
+      @supported_directives ||= VARIATIONS[@parsed_ua.family] || VARIATIONS[OTHER]
     end
 
     def supports_hashes?

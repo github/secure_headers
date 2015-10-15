@@ -190,8 +190,7 @@ describe SecureHeaders do
     end
   end
 
-  # TODO test caching of CSP per bucket of user agents
-  xit "caches default header values at configure time" do
+  it "caches default header values at configure time" do
     SecureHeaders::Configuration.configure do |config|
       config.hpkp = {
         :enforce => true,
@@ -209,6 +208,8 @@ describe SecureHeaders do
       config.x_xss_protection = "1; mode=block"
       config.csp = {
         default_src: %w('self'),
+        # intentionally use a directive that is not supported by all browsers
+        child_src: %w('self'),
         object_src: %w(pleasedontwhitelistflashever.com),
         enforce: true
       }
@@ -217,13 +218,20 @@ describe SecureHeaders do
     end
 
     hash = SecureHeaders::Configuration::default_headers
-    expect(hash[SecureHeaders::ContentSecurityPolicy::HEADER_NAME]).to eq("default-src 'self'; object-src pleasedontwhitelistflashever.com")
-    expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq("DENY")
-    expect(hash[SecureHeaders::XDownloadOptions::HEADER_NAME]).to be_nil
-    expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=11111111; includeSubDomains; preload")
-    expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq("1; mode=block")
-    expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq("nosniff")
-    expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::HEADER_NAME]).to be_nil
-    expect(hash[SecureHeaders::PublicKeyPins::HEADER_NAME]).to eq(%(max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains))
+    expect(hash[SecureHeaders::XFrameOptions::CONFIG_KEY]).to eq([SecureHeaders::XFrameOptions::HEADER_NAME, "DENY"])
+    expect(hash[SecureHeaders::XDownloadOptions::CONFIG_KEY]).to be_nil
+    expect(hash[SecureHeaders::StrictTransportSecurity::CONFIG_KEY]).to eq([SecureHeaders::StrictTransportSecurity::HEADER_NAME, "max-age=11111111; includeSubDomains; preload"])
+    expect(hash[SecureHeaders::XXssProtection::CONFIG_KEY]).to eq([SecureHeaders::XXssProtection::HEADER_NAME, "1; mode=block"])
+    expect(hash[SecureHeaders::XContentTypeOptions::CONFIG_KEY]).to eq([SecureHeaders::XContentTypeOptions::HEADER_NAME, "nosniff"])
+    expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::CONFIG_KEY]).to be_nil
+    expect(hash[SecureHeaders::PublicKeyPins::CONFIG_KEY]).to eq([SecureHeaders::PublicKeyPins::HEADER_NAME, %(max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains)])
+    SecureHeaders::CSP::VARIATIONS.each do |name, _|
+      expected = if ["Chrome", "Opera"].include?(name)
+        "default-src 'self'; child-src 'self'; object-src pleasedontwhitelistflashever.com"
+      else
+        "default-src 'self'; object-src pleasedontwhitelistflashever.com"
+      end
+      expect(hash[SecureHeaders::ContentSecurityPolicy::CONFIG_KEY][name]).to eq([SecureHeaders::ContentSecurityPolicy::HEADER_NAME, expected])
+    end
   end
 end

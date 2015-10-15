@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'rspec'
 require 'rack'
+require 'pry-nav'
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'secure_headers')
 
