@@ -18,30 +18,6 @@ describe SecureHeaders do
     @request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
   end
 
-  it "uses cached headers when no overrides are present" do
-    SecureHeaders::Configuration.configure do |config|
-      config.x_frame_options = "DENY"
-    end
-    SecureHeaders::ALL_HEADER_CLASSES.each do |klass|
-      expect(klass).not_to receive(:make_header)
-    end
-
-    SecureHeaders::header_hash_for(@request)
-  end
-
-  it "uses generates new headers when values are overridden" do
-    SecureHeaders::Configuration.configure do |config|
-      config.x_frame_options = "DENY"
-    end
-    (SecureHeaders::ALL_HEADER_CLASSES - [SecureHeaders::ContentSecurityPolicy]).each do |klass|
-      expect(klass).not_to receive(:make_header)
-    end
-    expect(SecureHeaders::ContentSecurityPolicy).to receive(:make_header)
-
-    SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'))
-    SecureHeaders::header_hash_for(@request)
-  end
-
   context "dynamic config" do
     before(:each) do
       reset_config
@@ -83,45 +59,11 @@ describe SecureHeaders do
         expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
       end
 
-      it "produces a hash of headers given a hash as config" do
-        SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'), img_src: [SecureHeaders::ContentSecurityPolicy::DATA])
-        hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
-        expect_default_values(hash)
-      end
-
       it "allows you to opt out of headers" do
         SecureHeaders::opt_out_of(@request, SecureHeaders::CSP::CONFIG_KEY)
         hash = SecureHeaders::header_hash_for(@request)
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
         expect(hash['Content-Security-Policy']).to be_nil
-      end
-
-      it "allows you to override opting out" do
-        SecureHeaders::Configuration.configure do |config|
-          config.hsts = SecureHeaders::OPT_OUT
-          config.x_frame_options = SecureHeaders::OPT_OUT
-          config.x_content_type_options = SecureHeaders::OPT_OUT
-          config.x_xss_protection = SecureHeaders::OPT_OUT
-          config.x_download_options = SecureHeaders::OPT_OUT
-          config.x_permitted_cross_domain_policies = SecureHeaders::OPT_OUT
-          config.csp = SecureHeaders::OPT_OUT
-          config.hpkp = SecureHeaders::OPT_OUT
-        end
-
-        SecureHeaders::append_content_security_policy_source(@request, script_src: %w('self'))
-        SecureHeaders::override_x_frame_options(@request, SecureHeaders::XFrameOptions::SAMEORIGIN)
-        SecureHeaders::override_hpkp(@request, example_hpkp_config)
-        SecureHeaders::secure_headers_request_config(@request)[:x_xss_protection] = "1; mode=block"
-        SecureHeaders::secure_headers_request_config(@request)[:hsts] = "max-age=12345"
-        SecureHeaders::secure_headers_request_config(@request)[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = "nosniff"
-
-        hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: 'self'")
-        expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::SAMEORIGIN)
-        expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq("1; mode=block")
-        expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=12345")
-        expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq("nosniff")
       end
 
       it "appends a nonce to the script-src/style-src when used" do
@@ -151,7 +93,7 @@ describe SecureHeaders do
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
       end
 
-      it "appends the value to the default source when appending to directive without any config" do
+      it "copies the default-src and appends an expression if the directive has no configuration" do
         SecureHeaders::Configuration.configure do |config|
           config.csp = {
             :default_src => %w('self')
@@ -163,10 +105,29 @@ describe SecureHeaders do
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
       end
 
-      it "appends a value to the default CSP configuration (for use without a configure block)" do
+      it "appends a value to the default CSP configuration" do
         SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
         hash = SecureHeaders::header_hash_for(@request)
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: anothercdn.com")
+      end
+
+      it "allows overriding of individual directives" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self')
+          }
+        end
+        SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'")
+        expect_default_values(hash)
+      end
+
+      it "sets the value of an unconfigured directive when overriding" do
+        SecureHeaders::override_content_security_policy_directives(@request, img_src: [SecureHeaders::ContentSecurityPolicy::DATA])
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; img-src data:")
+        expect_default_values(hash)
       end
 
       it "constructs a default policy when appending to a OPT_OUT policy" do
@@ -191,26 +152,41 @@ describe SecureHeaders do
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'")
       end
 
-      it "produces a hash with a mix of config values, override values, and default values" do
-        SecureHeaders::Configuration.configure do |config|
-          config.hsts = "max-age=123456"
-          config.hpkp = example_hpkp_config
-        end
-
-        SecureHeaders::override_content_security_policy_directives(@request, :default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA])
-        hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
-        expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
-        expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=123456")
-        expect(hash[SecureHeaders::PublicKeyPins::HEADER_NAME]).to eq(example_hpkp_config_value)
-      end
-
       it "produces a hash of headers with default config" do
         hash = SecureHeaders::header_hash_for(@request)
         expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::DEFAULT_CSP_HEADER)
         expect_default_values(hash)
       end
 
+      it "allows you to override opting out" do
+        SecureHeaders::Configuration.configure do |config|
+          config.hsts = SecureHeaders::OPT_OUT
+          config.x_frame_options = SecureHeaders::OPT_OUT
+          config.x_content_type_options = SecureHeaders::OPT_OUT
+          config.x_xss_protection = SecureHeaders::OPT_OUT
+          config.x_download_options = SecureHeaders::OPT_OUT
+          config.x_permitted_cross_domain_policies = SecureHeaders::OPT_OUT
+          config.csp = SecureHeaders::OPT_OUT
+          config.hpkp = SecureHeaders::OPT_OUT
+        end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w('self'))
+        SecureHeaders::override_x_frame_options(@request, SecureHeaders::XFrameOptions::SAMEORIGIN)
+        SecureHeaders::override_hpkp(@request, example_hpkp_config)
+        SecureHeaders::secure_headers_request_config(@request)[:x_xss_protection] = "1; mode=block"
+        SecureHeaders::secure_headers_request_config(@request)[:hsts] = "max-age=12345"
+        SecureHeaders::secure_headers_request_config(@request)[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = "nosniff"
+
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: 'self'")
+        expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::SAMEORIGIN)
+        expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq("1; mode=block")
+        expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=12345")
+        expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq("nosniff")
+      end
+    end
+
+    context "validation" do
       it "validates your hsts config upon configuration" do
         expect {
           SecureHeaders::Configuration.configure do |config|
@@ -275,7 +251,9 @@ describe SecureHeaders do
         }.to raise_error(SecureHeaders::PublicKeyPinsConfigError)
       end
     end
+  end
 
+  context "cached config" do
     it "caches default header values at configure time" do
       SecureHeaders::Configuration.configure do |config|
         config.hpkp = example_hpkp_config
@@ -310,6 +288,30 @@ describe SecureHeaders do
         end
         expect(hash[SecureHeaders::ContentSecurityPolicy::CONFIG_KEY][name]).to eq([SecureHeaders::ContentSecurityPolicy::HEADER_NAME, expected])
       end
+    end
+
+    it "uses cached headers when no overrides are present" do
+      SecureHeaders::Configuration.configure do |config|
+        config.x_frame_options = "DENY"
+      end
+      SecureHeaders::ALL_HEADER_CLASSES.each do |klass|
+        expect(klass).not_to receive(:make_header)
+      end
+
+      SecureHeaders::header_hash_for(@request)
+    end
+
+    it "uses generates new headers when values are overridden" do
+      SecureHeaders::Configuration.configure do |config|
+        config.x_frame_options = "DENY"
+      end
+      (SecureHeaders::ALL_HEADER_CLASSES - [SecureHeaders::ContentSecurityPolicy]).each do |klass|
+        expect(klass).not_to receive(:make_header)
+      end
+      expect(SecureHeaders::ContentSecurityPolicy).to receive(:make_header)
+
+      SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'))
+      SecureHeaders::header_hash_for(@request)
     end
   end
 end
