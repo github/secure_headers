@@ -233,7 +233,7 @@ module SecureHeaders
 
     # Overrides the previously set source list for the provided directives, override 'none' values
     def override_content_security_policy_directives(additions)
-      SecureHeaders::override_content_security_policy_directive(additions)
+      SecureHeaders::override_content_security_policy_directives(request, additions)
     end
 
     def override_x_frame_options(value)
