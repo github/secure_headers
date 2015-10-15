@@ -142,21 +142,6 @@ module SecureHeaders
       end
     end
 
-    def default_csp_header_for_ua(headers, request)
-      family = SecureHeaders::USER_AGENT_PARSER.parse(request.user_agent).family
-      if SecureHeaders::CSP::VARIATIONS.key?(family)
-        headers[family]
-      else
-        headers[SecureHeaders::CSP::OTHER]
-      end
-    end
-
-    def make_header(klass, header_config)
-      unless header_config == OPT_OUT
-        klass.make_header(header_config)
-      end
-    end
-
     def opt_out_of(request, header_key)
       SecureHeaders::secure_headers_request_config(request)[header_key] = SecureHeaders::OPT_OUT
     end
@@ -201,6 +186,22 @@ module SecureHeaders
     def override_hpkp(request, config)
       raise "override_hpkp may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY]
       SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
+    end
+
+    private
+    def default_csp_header_for_ua(headers, request)
+      family = SecureHeaders::USER_AGENT_PARSER.parse(request.user_agent).family
+      if SecureHeaders::CSP::VARIATIONS.key?(family)
+        headers[family]
+      else
+        headers[SecureHeaders::CSP::OTHER]
+      end
+    end
+
+    def make_header(klass, header_config)
+      unless header_config == OPT_OUT
+        klass.make_header(header_config)
+      end
     end
   end
 
