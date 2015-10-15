@@ -40,17 +40,13 @@ module SecureHeaders
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
         :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
-        :hpkp
-
-      def default_headers
-        @default_headers ||= {}
-      end
+        :hpkp, :default_headers
 
       def configure(&block)
         self.hpkp = OPT_OUT
         instance_eval &block
+
         validate_config!
-        # TODO pre-generate all header values, including matrix support for CSP
         @default_headers = generate_default_headers
       end
 
@@ -92,7 +88,7 @@ module SecureHeaders
           end
         end
 
-        default_headers
+        default_headers.freeze
       end
     end
   end

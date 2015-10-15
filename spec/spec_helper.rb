@@ -25,15 +25,3 @@ USER_AGENTS = {
   :safari5_1 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/534.55.3 (KHTML, like Gecko) Version/5.1.3 Safari/534.53.10",
   :safari6 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/536.30.1 (KHTML like Gecko) Version/6.0.5 Safari/536.30.1"
 }
-
-class DummyClass
-  include SecureHeaders
-end
-
-def should_assign_header name, value
-  expect(response.headers).to receive(:[]=).with(name, value)
-end
-
-def should_not_assign_header name
-  expect(response.headers).not_to receive(:[]=).with(name, anything)
-end
