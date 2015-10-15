@@ -4,10 +4,10 @@ module SecureHeaders
     HEADER_NAME = "X-Frame-Options"
     VALID_XFO_HEADER = /\A(SAMEORIGIN\z|DENY\z|ALLOW-FROM[:\s])/i
     CONFIG_KEY = :x_frame_options
-    SAMEOROGIN = "SAMEORIGIN"
+    SAMEORIGIN = "SAMEORIGIN"
     DENY = "DENY"
     ALLOW_FROM = "ALLOW-FROM"
-    DEFAULT_VALUE = SAMEOROGIN
+    DEFAULT_VALUE = SAMEORIGIN
 
     class << self
       def make_header(config = nil)

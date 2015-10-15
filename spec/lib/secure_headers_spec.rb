@@ -1,6 +1,19 @@
 require 'spec_helper'
 
 describe SecureHeaders do
+  example_hpkp_config = {
+    :enforce => true,
+    :max_age => 1000000,
+    :include_subdomains => true,
+    :report_uri => '//example.com/uri-directive',
+    :pins => [
+      {:sha256 => 'abc'},
+      {:sha256 => '123'}
+    ]
+  }
+
+  example_hpkp_config_value = %{max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains}
+
   before(:each) do
     @request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
   end
@@ -54,16 +67,7 @@ describe SecureHeaders do
 
     it "does not set the HPKP header if request is over HTTP" do
       SecureHeaders::Configuration.configure do |config|
-        config.hpkp = {
-          :enforce => true,
-          :max_age => 1000000,
-          :include_subdomains => true,
-          :report_uri => '//example.com/uri-directive',
-          :pins => [
-            {:sha256 => 'abc'},
-            {:sha256 => '123'}
-          ]
-        }
+        config.hpkp = example_hpkp_config
       end
 
       expect(SecureHeaders::header_hash_for(Rack::Request.new({}))[SecureHeaders::PublicKeyPins::HEADER_NAME]).to be_nil
@@ -91,6 +95,33 @@ describe SecureHeaders do
         hash = SecureHeaders::header_hash_for(@request)
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
         expect(hash['Content-Security-Policy']).to be_nil
+      end
+
+      it "allows you to override opting out" do
+        SecureHeaders::Configuration.configure do |config|
+          config.hsts = SecureHeaders::OPT_OUT
+          config.x_frame_options = SecureHeaders::OPT_OUT
+          config.x_content_type_options = SecureHeaders::OPT_OUT
+          config.x_xss_protection = SecureHeaders::OPT_OUT
+          config.x_download_options = SecureHeaders::OPT_OUT
+          config.x_permitted_cross_domain_policies = SecureHeaders::OPT_OUT
+          config.csp = SecureHeaders::OPT_OUT
+          config.hpkp = SecureHeaders::OPT_OUT
+        end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w('self'))
+        SecureHeaders::override_x_frame_options(@request, SecureHeaders::XFrameOptions::SAMEORIGIN)
+        SecureHeaders::override_hpkp(@request, example_hpkp_config)
+        SecureHeaders::secure_headers_request_config(@request)[:x_xss_protection] = "1; mode=block"
+        SecureHeaders::secure_headers_request_config(@request)[:hsts] = "max-age=12345"
+        SecureHeaders::secure_headers_request_config(@request)[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = "nosniff"
+
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: 'self'")
+        expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::SAMEORIGIN)
+        expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq("1; mode=block")
+        expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=12345")
+        expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq("nosniff")
       end
 
       it "appends a nonce to the script-src/style-src when used" do
@@ -163,16 +194,7 @@ describe SecureHeaders do
       it "produces a hash with a mix of config values, override values, and default values" do
         SecureHeaders::Configuration.configure do |config|
           config.hsts = "max-age=123456"
-          config.hpkp = {
-            :enforce => true,
-            :max_age => 1000000,
-            :include_subdomains => true,
-            :report_uri => '//example.com/uri-directive',
-            :pins => [
-              {:sha256 => 'abc'},
-              {:sha256 => '123'}
-            ]
-          }
+          config.hpkp = example_hpkp_config
         end
 
         SecureHeaders::override_content_security_policy_directives(@request, :default_src => %w('none'), :img_src => [SecureHeaders::ContentSecurityPolicy::DATA])
@@ -180,7 +202,7 @@ describe SecureHeaders do
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:")
         expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
         expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=123456")
-        expect(hash[SecureHeaders::PublicKeyPins::HEADER_NAME]).to eq(%{max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains})
+        expect(hash[SecureHeaders::PublicKeyPins::HEADER_NAME]).to eq(example_hpkp_config_value)
       end
 
       it "produces a hash of headers with default config" do
@@ -256,16 +278,7 @@ describe SecureHeaders do
 
     it "caches default header values at configure time" do
       SecureHeaders::Configuration.configure do |config|
-        config.hpkp = {
-          :enforce => true,
-          :max_age => 1000000,
-          :include_subdomains => true,
-          :report_uri => '//example.com/uri-directive',
-          :pins => [
-            {:sha256 => 'abc'},
-            {:sha256 => '123'}
-          ]
-        }
+        config.hpkp = example_hpkp_config
         config.hsts = "max-age=11111111; includeSubDomains; preload"
         config.x_frame_options = "DENY"
         config.x_content_type_options = "nosniff"
@@ -288,7 +301,7 @@ describe SecureHeaders do
       expect(hash[SecureHeaders::XXssProtection::CONFIG_KEY]).to eq([SecureHeaders::XXssProtection::HEADER_NAME, "1; mode=block"])
       expect(hash[SecureHeaders::XContentTypeOptions::CONFIG_KEY]).to eq([SecureHeaders::XContentTypeOptions::HEADER_NAME, "nosniff"])
       expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::CONFIG_KEY]).to be_nil
-      expect(hash[SecureHeaders::PublicKeyPins::CONFIG_KEY]).to eq([SecureHeaders::PublicKeyPins::HEADER_NAME, %(max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains)])
+      expect(hash[SecureHeaders::PublicKeyPins::CONFIG_KEY]).to eq([SecureHeaders::PublicKeyPins::HEADER_NAME, example_hpkp_config_value])
       SecureHeaders::CSP::VARIATIONS.each do |name, _|
         expected = if ["Chrome", "Opera"].include?(name)
           "default-src 'self'; child-src 'self'; object-src pleasedontwhitelistflashever.com"

@@ -118,6 +118,15 @@ The following methods are available as controller instance methods. They are als
 * `override_x_frame_options(value)`: sets the `X-Frame-Options header` to `value`
 * `override_hpkp(value)`: sets the `PublicKeyPins` to `value`
 
+## Appending / overriding Content Security Policy
+
+When manipulating content security policy, there are a few things to consider. The default header value is `default-src https:` which corresponds to a default configuration of `{ default_src: %w(https:)}`.
+
+
+#### Append to the policy with a directive other than `default_src`
+
+The value of `default_src` is joined with the addition. e.g. `append_content_security_policy_source(script_src: %w('self'))` produces `default-src https:; script-src https: 'self'`
+
 ## Advanced override
 
 You really shouldn't have to do this, but if you must:
