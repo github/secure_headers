@@ -20,8 +20,8 @@ All `nil` values will fallback to their default value. `SecureHeaders::OPT_OUT` 
 
 ```ruby
 SecureHeaders::Configuration.configure do |config|
-  config.hsts = 20.years.to_i
-  config.x_frame_options = 'DENY'
+  config.hsts = 20.years.to_i.to_s
+  config.x_frame_options = "DENY"
   config.x_content_type_options = "nosniff"
   config.x_xss_protection = "1; mode=block"
   config.x_download_options = "noopen"
@@ -50,10 +50,10 @@ SecureHeaders::Configuration.configure do |config|
   config.hpkp = {
     :max_age => 60.days.to_i,
     :include_subdomains => true,
-    :report_uri => '//example.com/uri-directive',
+    :report_uri => "https//example.com/uri-directive",
     :pins => [
-      {:sha256 => 'abc'},
-      {:sha256 => '123'}
+      {:sha256 => "abc"},
+      {:sha256 => "123"}
     ]
   }
 end
