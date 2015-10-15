@@ -30,7 +30,7 @@ describe SecureHeaders do
   end
 
   context "dynamic config" do
-    after(:each) do
+    before(:each) do
       reset_config
     end
 
