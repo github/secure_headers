@@ -1,40 +1,27 @@
 module SecureHeaders
-  class XFOBuildError < StandardError; end
+  class XFOConfigError < StandardError; end
   class XFrameOptions < Header
-    module Constants
-      XFO_HEADER_NAME = "X-Frame-Options"
-      DEFAULT_VALUE = 'SAMEORIGIN'
-      VALID_XFO_HEADER = /\A(SAMEORIGIN\z|DENY\z|ALLOW-FROM[:\s])/i
-      CONFIG_KEY = :x_frame_options
-    end
-    include Constants
+    HEADER_NAME = "X-Frame-Options"
+    VALID_XFO_HEADER = /\A(SAMEORIGIN\z|DENY\z|ALLOW-FROM[:\s])/i
+    CONFIG_KEY = :x_frame_options
+    SAMEORIGIN = "SAMEORIGIN"
+    DENY = "DENY"
+    ALLOW_FROM = "ALLOW-FROM"
+    DEFAULT_VALUE = SAMEORIGIN
 
-    def initialize(config = nil)
-      @config = config
-      validate_config unless @config.nil?
-    end
-
-    def name
-      XFO_HEADER_NAME
-    end
-
-    def value
-      case @config
-      when NilClass
-        DEFAULT_VALUE
-      when String
-        @config
-      else
-        @config[:value]
+    class << self
+      def make_header(config = nil)
+        return if config == SecureHeaders::OPT_OUT
+        validate_config!(config) if validate_config?
+        [HEADER_NAME, config || DEFAULT_VALUE]
       end
-    end
 
-    private
-
-    def validate_config
-      value = @config.is_a?(Hash) ? @config[:value] : @config
-      unless value =~ VALID_XFO_HEADER
-        raise XFOBuildError.new("Value must be SAMEORIGIN|DENY|ALLOW-FROM:")
+      def validate_config!(config)
+        return if config.nil? || config == SecureHeaders::OPT_OUT
+        raise TypeError.new("Must be a string. Found #{config.class}: #{config}") unless config.is_a?(String)
+        unless config =~ VALID_XFO_HEADER
+          raise XFOConfigError.new("Value must be SAMEORIGIN|DENY|ALLOW-FROM:")
+        end
       end
     end
   end

@@ -1,3 +1,4 @@
+require 'request_store_rails'
 require "secure_headers/version"
 require "secure_headers/header"
 require "secure_headers/headers/public_key_pins"
@@ -8,13 +9,21 @@ require "secure_headers/headers/x_xss_protection"
 require "secure_headers/headers/x_content_type_options"
 require "secure_headers/headers/x_download_options"
 require "secure_headers/headers/x_permitted_cross_domain_policies"
+require "secure_headers/middleware"
 require "secure_headers/railtie"
-require "secure_headers/hash_helper"
 require "secure_headers/view_helper"
 
+# All headers (except for hpkp) have a default value. Provide SecureHeaders::OPT_OUT
+# or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
-  SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
-  HASHES_ENV_KEY = 'secure_headers.script_hashes'
+  CSP = SecureHeaders::ContentSecurityPolicy
+
+  OPT_OUT = :optout_of_protection
+  SCRIPT_HASH_CONFIG_FILE = "config/script_hashes.yml".freeze
+  SECURE_HEADERS_CONFIG = "secure_headers".freeze
+  NONCE_KEY = "content_security_policy_nonce".freeze
+  HTTPS = "https".freeze
+  USER_AGENT_PARSER = UserAgentParser::Parser.new
 
   ALL_HEADER_CLASSES = [
     SecureHeaders::ContentSecurityPolicy,
@@ -30,14 +39,60 @@ module SecureHeaders
   module Configuration
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
-        :x_xss_protection, :csp, :x_download_options, :script_hashes,
-        :x_permitted_cross_domain_policies, :hpkp
+        :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
+        :hpkp
 
-      def configure &block
+      def default_headers
+        @default_headers ||= generate_default_headers
+      end
+
+      def configure(&block)
+        self.hpkp = OPT_OUT
+        self.csp = SecureHeaders::CSP::DEFAULT_CONFIG.dup
         instance_eval &block
-        if File.exists?(SCRIPT_HASH_CONFIG_FILE)
-          ::SecureHeaders::Configuration.script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
+        validate_config!
+        @default_headers = generate_default_headers
+      end
+
+      def fetch(key)
+        config = self.send(key)
+        config = config.dup if config.is_a?(Hash)
+        config
+      end
+
+      def validate_config!
+        StrictTransportSecurity.validate_config!(self.hsts)
+        ContentSecurityPolicy.validate_config!(self.csp)
+        XFrameOptions.validate_config!(self.x_frame_options)
+        XContentTypeOptions.validate_config!(self.x_content_type_options)
+        XXssProtection.validate_config!(self.x_xss_protection)
+        XDownloadOptions.validate_config!(self.x_download_options)
+        XPermittedCrossDomainPolicies.validate_config!(self.x_permitted_cross_domain_policies)
+        PublicKeyPins.validate_config!(self.hpkp)
+      end
+
+      private
+      def generate_default_headers
+        default_headers = {}
+        # generate defaults for the "easy" headers
+        (ALL_HEADER_CLASSES - [SecureHeaders::CSP]).each do |klass|
+          config = fetch(klass::CONFIG_KEY)
+          unless config == SecureHeaders::OPT_OUT
+            default_headers[klass::CONFIG_KEY] = klass.make_header(config)
+          end
         end
+
+        unless self.csp == SecureHeaders::OPT_OUT
+          default_headers[SecureHeaders::CSP::CONFIG_KEY] = {}
+
+          SecureHeaders::CSP::VARIATIONS.each do |name, _|
+            csp_config = fetch(SecureHeaders::CSP::CONFIG_KEY)
+            csp = SecureHeaders::CSP.make_header(csp_config, UserAgentParser::UserAgent.new(name))
+            default_headers[SecureHeaders::CSP::CONFIG_KEY][name] = csp
+          end
+        end
+
+        default_headers.freeze
       end
     end
   end
@@ -45,181 +100,158 @@ module SecureHeaders
   class << self
     def append_features(base)
       base.module_eval do
-        extend ClassMethods
         include InstanceMethods
       end
     end
 
-    def header_hash(options = nil)
+    # Strips out headers not applicable to this request
+    def header_hash_for(request)
+      unless request.scheme == HTTPS
+        secure_headers_request_config(request)[SecureHeaders::StrictTransportSecurity::CONFIG_KEY] = SecureHeaders::OPT_OUT
+        secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY] = SecureHeaders::OPT_OUT
+      end
+
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
-        config = if options.is_a?(Hash) && options[klass::Constants::CONFIG_KEY]
-          options[klass::Constants::CONFIG_KEY]
+        header_config = request.env[klass::CONFIG_KEY] ||
+          secure_headers_request_config(request)[klass::CONFIG_KEY]
+
+        header_name, header = if header_config
+          make_header(klass, header_config, request.user_agent)
         else
-          ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
+          # use the cached default, if available
+          if default_header = SecureHeaders::Configuration::default_headers[klass::CONFIG_KEY]
+            if klass == SecureHeaders::CSP
+              default_csp_header_for_ua(default_header, request)
+            else
+              default_header
+            end
+          else
+            if default_config = SecureHeaders::Configuration.fetch(klass::CONFIG_KEY)
+              # use the default configuration value
+              make_header(klass, default_config, request.user_agent)
+            else
+              # use the default value for the class
+              make_header(klass, nil, request.user_agent)
+            end
+          end
         end
 
-        unless klass == SecureHeaders::PublicKeyPins && !config.is_a?(Hash)
-          header = get_a_header(klass::Constants::CONFIG_KEY, klass, config)
-          memo[header.name] = header.value
-        end
+        memo[header_name] = header if header
         memo
       end
     end
 
-    def get_a_header(name, klass, options)
-      return if options == false
-      klass.new(options)
+    def opt_out_of(request, header_key)
+      SecureHeaders::secure_headers_request_config(request)[header_key] = SecureHeaders::OPT_OUT
     end
-  end
 
-  module ClassMethods
-    attr_writer :secure_headers_options
-    def secure_headers_options
-      if @secure_headers_options
-        @secure_headers_options
-      elsif superclass.respond_to?(:secure_headers_options) # stop at application_controller
-        superclass.secure_headers_options
+    def content_security_policy_nonce(request)
+      unless secure_headers_request_config(request)[NONCE_KEY]
+        secure_headers_request_config(request)[NONCE_KEY] = SecureRandom.base64(32).chomp
+
+        # unsafe-inline is automatically added for backwards compatibility. The spec says to ignore unsafe-inline
+        # when a nonce is present
+        append_content_security_policy_source(request, script_src: ["'nonce-#{secure_headers_request_config(request)[NONCE_KEY]}'", CSP::UNSAFE_INLINE])
+      end
+
+      secure_headers_request_config(request)[NONCE_KEY]
+    end
+
+    def secure_headers_request_config(request)
+      request.env[SECURE_HEADERS_CONFIG] ||= {}
+    end
+
+    def append_content_security_policy_source(request, additions)
+      config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
+        SecureHeaders::Configuration.fetch(:csp)
+
+      if config == SecureHeaders::OPT_OUT
+        config = SecureHeaders::CSP::DEFAULT_CONFIG.dup
+      end
+
+      # in case we would be appending to an empty directive, fill it with the default-src value
+      additions.each do |name, addition|
+        unless config[name]
+          config[name] = config[:default_src]
+        end
+      end
+
+      secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions) do |_, lhs, rhs|
+        lhs | rhs
+      end
+    end
+
+    def override_content_security_policy_directives(request, additions)
+      config = secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] ||
+        SecureHeaders::Configuration.fetch(:csp) || {}
+
+      if config == SecureHeaders::OPT_OUT
+        config = SecureHeaders::CSP::DEFAULT_CONFIG.dup
+      end
+
+      secure_headers_request_config(request)[SecureHeaders::CSP::CONFIG_KEY] = config.merge(additions)
+    end
+
+    def override_x_frame_options(request, value)
+      raise "override_x_frame_options may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::XFrameOptions::CONFIG_KEY] = value
+    end
+
+    def override_hpkp(request, config)
+      raise "override_hpkp may only be called once per action." if SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY]
+      SecureHeaders::secure_headers_request_config(request)[SecureHeaders::PublicKeyPins::CONFIG_KEY] = config
+    end
+
+    private
+    def default_csp_header_for_ua(headers, request)
+      family = SecureHeaders::USER_AGENT_PARSER.parse(request.user_agent).family
+      if SecureHeaders::CSP::VARIATIONS.key?(family)
+        headers[family]
       else
-        {}
+        headers[SecureHeaders::CSP::OTHER]
       end
     end
 
-    def ensure_security_headers options = {}
-      if RUBY_VERSION == "1.8.7"
-        warn "[DEPRECATION] secure_headers ruby 1.8.7 support will dropped in the next release"
+    def make_header(klass, header_config, user_agent = nil)
+      unless header_config == OPT_OUT
+        if klass == SecureHeaders::CSP
+          klass.make_header(header_config, user_agent)
+        else
+          klass.make_header(header_config)
+        end
       end
-      self.secure_headers_options = options
-      before_filter :prep_script_hash
-      before_filter :set_hsts_header
-      before_filter :set_hpkp_header
-      before_filter :set_x_frame_options_header
-      before_filter :set_csp_header
-      before_filter :set_x_xss_protection_header
-      before_filter :set_x_content_type_options_header
-      before_filter :set_x_download_options_header
-      before_filter :set_x_permitted_cross_domain_policies_header
     end
   end
 
   module InstanceMethods
-    def set_security_headers(options = self.class.secure_headers_options)
-      set_csp_header(request, options[:csp])
-      set_hsts_header(options[:hsts])
-      set_hpkp_header(options[:hpkp])
-      set_x_frame_options_header(options[:x_frame_options])
-      set_x_xss_protection_header(options[:x_xss_protection])
-      set_x_content_type_options_header(options[:x_content_type_options])
-      set_x_download_options_header(options[:x_download_options])
-      set_x_permitted_cross_domain_policies_header(options[:x_permitted_cross_domain_policies])
+    def secure_headers_request_config
+      SecureHeaders::secure_headers_request_config(request)
     end
 
-    # set_csp_header - uses the request accessor and SecureHeader::Configuration settings
-    # set_csp_header(+Rack::Request+) - uses the parameter and and SecureHeader::Configuration settings
-    # set_csp_header(+Hash+) - uses the request accessor and options from parameters
-    # set_csp_header(+Rack::Request+, +Hash+)
-    def set_csp_header(req = nil, config=nil)
-      if req.is_a?(Hash) || req.is_a?(FalseClass)
-        config = req
-      end
-
-      config = self.class.secure_headers_options[:csp] if config.nil?
-      config = secure_header_options_for :csp, config
-
-      return if config == false
-
-      if config && config[:script_hash_middleware]
-        ContentSecurityPolicy.add_to_env(request, self, config)
-      else
-        csp_header = ContentSecurityPolicy.new(config, :request => request, :controller => self)
-        set_header(csp_header)
-      end
+    def content_security_policy_nonce
+      SecureHeaders::content_security_policy_nonce(request)
     end
 
-
-    def prep_script_hash
-      if ::SecureHeaders::Configuration.script_hashes
-        @script_hashes = ::SecureHeaders::Configuration.script_hashes.dup
-        ActiveSupport::Notifications.subscribe("render_partial.action_view") do |event_name, start_at, end_at, id, payload|
-          save_hash_for_later payload
-        end
-
-        ActiveSupport::Notifications.subscribe("render_template.action_view") do |event_name, start_at, end_at, id, payload|
-          save_hash_for_later payload
-        end
-      end
+    def opt_out_of(header_key)
+      SecureHeaders::opt_out_of(request, header_key)
     end
 
-    def save_hash_for_later payload
-      matching_hashes = @script_hashes[payload[:identifier].gsub(Rails.root.to_s + "/", "")] || []
-
-      if payload[:layout]
-        # We're assuming an html.erb layout for now. Will need to handle mustache too, just not sure of the best way to do this
-        layout_hashes = @script_hashes[File.join("app", "views", payload[:layout]) + '.html.erb']
-
-        matching_hashes << layout_hashes if layout_hashes
-      end
-
-      if matching_hashes.any?
-        request.env[HASHES_ENV_KEY] = ((request.env[HASHES_ENV_KEY] || []) << matching_hashes).flatten
-      end
+    # Append value to the source list for the provided directives, override 'none' values
+    def append_content_security_policy_source(additions)
+      SecureHeaders::append_content_security_policy_source(request, additions)
     end
 
-    def set_x_frame_options_header(options=self.class.secure_headers_options[:x_frame_options])
-      set_a_header(:x_frame_options, XFrameOptions, options)
+    # Overrides the previously set source list for the provided directives, override 'none' values
+    def override_content_security_policy_directives(additions)
+      SecureHeaders::override_content_security_policy_directives(request, additions)
     end
 
-    def set_x_content_type_options_header(options=self.class.secure_headers_options[:x_content_type_options])
-      set_a_header(:x_content_type_options, XContentTypeOptions, options)
+    def override_x_frame_options(value)
+      SecureHeaders::override_x_frame_options(request, value)
     end
 
-    def set_x_xss_protection_header(options=self.class.secure_headers_options[:x_xss_protection])
-      set_a_header(:x_xss_protection, XXssProtection, options)
-    end
-
-    def set_hsts_header(options=self.class.secure_headers_options[:hsts])
-      return unless request.ssl?
-      set_a_header(:hsts, StrictTransportSecurity, options)
-    end
-
-    def set_hpkp_header(options=self.class.secure_headers_options[:hpkp])
-      return unless request.ssl?
-      config = secure_header_options_for :hpkp, options
-
-      return if config == false || config.nil?
-
-      hpkp_header = PublicKeyPins.new(config)
-      set_header(hpkp_header)
-    end
-
-    def set_x_download_options_header(options=self.class.secure_headers_options[:x_download_options])
-      set_a_header(:x_download_options, XDownloadOptions, options)
-    end
-
-    def set_x_permitted_cross_domain_policies_header(options=self.class.secure_headers_options[:x_permitted_cross_domain_policies])
-      set_a_header(:x_permitted_cross_domain_policies, XPermittedCrossDomainPolicies, options)
-    end
-
-    private
-
-    # we can't use ||= because I'm overloading false => disable, nil => default
-    # both of which trigger the conditional assignment
-    def secure_header_options_for(type, options)
-      options.nil? ? ::SecureHeaders::Configuration.send(type) : options
-    end
-
-    def set_a_header(name, klass, options=nil)
-      options = secure_header_options_for(name, options)
-      return if options == false
-      set_header(SecureHeaders::get_a_header(name, klass, options))
-    end
-
-    def set_header(name_or_header, value=nil)
-      if name_or_header.is_a?(Header)
-        header = name_or_header
-        response.headers[header.name] = header.value
-      else
-        response.headers[name_or_header] = value
-      end
+    def override_hpkp(value)
+      SecureHeaders::override_hpkp(request, value)
     end
   end
 end

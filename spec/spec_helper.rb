@@ -1,7 +1,11 @@
 require 'rubygems'
 require 'rspec'
+require 'rack'
+require 'pry-nav'
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'secure_headers')
+
+ENV["RAILS_ENV"] = "test"
 
 begin
   require 'coveralls'
@@ -9,15 +13,6 @@ begin
 rescue LoadError
   # damn you 1.8.7
 end
-
-include ::SecureHeaders::PublicKeyPins::Constants
-include ::SecureHeaders::StrictTransportSecurity::Constants
-include ::SecureHeaders::ContentSecurityPolicy::Constants
-include ::SecureHeaders::XFrameOptions::Constants
-include ::SecureHeaders::XXssProtection::Constants
-include ::SecureHeaders::XContentTypeOptions::Constants
-include ::SecureHeaders::XDownloadOptions::Constants
-include ::SecureHeaders::XPermittedCrossDomainPolicies::Constants
 
 USER_AGENTS = {
   :firefox => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1',
@@ -31,14 +26,12 @@ USER_AGENTS = {
   :safari6 => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/536.30.1 (KHTML like Gecko) Version/6.0.5 Safari/536.30.1"
 }
 
-class DummyClass
-  include ::SecureHeaders
-end
-
-def should_assign_header name, value
-  expect(response.headers).to receive(:[]=).with(name, value)
-end
-
-def should_not_assign_header name
-  expect(response.headers).not_to receive(:[]=).with(name, anything)
+def expect_default_values(hash)
+  expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq(SecureHeaders::CSP::DEFAULT_VALUE)
+  expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
+  expect(hash[SecureHeaders::XDownloadOptions::HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::DEFAULT_VALUE)
+  expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::DEFAULT_VALUE)
+  expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq(SecureHeaders::XXssProtection::DEFAULT_VALUE)
+  expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::DEFAULT_VALUE)
+  expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
 end

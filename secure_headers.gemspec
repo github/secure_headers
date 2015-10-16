@@ -20,4 +20,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.add_development_dependency "rake"
   gem.add_dependency "user_agent_parser"
+  gem.add_dependency "request_store_rails"
 end

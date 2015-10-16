@@ -1,23 +1,37 @@
 module SecureHeaders
-  class PublicKeyPinsBuildError < StandardError; end
+  class PublicKeyPinsConfigError < StandardError; end
   class PublicKeyPins < Header
-    module Constants
-      HPKP_HEADER_NAME = "Public-Key-Pins"
-      ENV_KEY = 'secure_headers.public_key_pins'
-      HASH_ALGORITHMS = [:sha256]
-      DIRECTIVES = [:max_age]
-      CONFIG_KEY = :hpkp
-    end
+    HEADER_NAME = "Public-Key-Pins".freeze
+    HASH_ALGORITHMS = [:sha256].freeze
+    DIRECTIVES = [:max_age].freeze
+    CONFIG_KEY = :hpkp
+    REPORT_ONLY = "-Report-Only".freeze
+
     class << self
-      def symbol_to_hyphen_case sym
-        sym.to_s.gsub('_', '-')
+      def make_header(config)
+        return if config == SecureHeaders::OPT_OUT || config == nil
+        validate_config!(config) if validate_config?
+        header = new(config)
+        [header.name, header.value]
+      end
+
+      def validate_config!(config)
+        return if config.nil? || config == SecureHeaders::OPT_OUT
+        raise PublicKeyPinsConfigError.new("config must be a hash.") unless config.is_a? Hash
+
+        if !config[:max_age]
+          raise PublicKeyPinsConfigError.new("max-age is a required directive.")
+        elsif config[:max_age].to_s !~ /\A\d+\z/
+          raise PublicKeyPinsConfigError.new("max-age must be a number.
+                                            #{config[:max_age]} was supplied.")
+        elsif config[:pins] && config[:pins].length < 2
+          raise PublicKeyPinsConfigError.new("A minimum of 2 pins are required.")
+        end
       end
     end
-    include Constants
 
-    def initialize(config=nil)
-      @config = validate_config(config)
-
+    def initialize(config)
+      @config = config
       @pins = @config.fetch(:pins, nil)
       @report_uri = @config.fetch(:report_uri, nil)
       @app_name = @config.fetch(:app_name, nil)
@@ -27,9 +41,9 @@ module SecureHeaders
     end
 
     def name
-      base = HPKP_HEADER_NAME
+      base = HEADER_NAME
       if !@enforce
-        base += "-Report-Only"
+        base += REPORT_ONLY
       end
       base
     end
@@ -41,21 +55,6 @@ module SecureHeaders
         report_uri_directive,
         subdomain_directive
       ].compact.join('; ').strip
-    end
-
-    def validate_config(config)
-      raise PublicKeyPinsBuildError.new("config must be a hash.") unless config.is_a? Hash
-
-      if !config[:max_age]
-        raise PublicKeyPinsBuildError.new("max-age is a required directive.")
-      elsif config[:max_age].to_s !~ /\A\d+\z/
-        raise PublicKeyPinsBuildError.new("max-age must be a number.
-                                          #{config[:max_age]} was supplied.")
-      elsif config[:pins] && config[:pins].length < 2
-        raise PublicKeyPinsBuildError.new("A minimum of 2 pins are required.")
-      end
-
-      config
     end
 
     def pin_directives

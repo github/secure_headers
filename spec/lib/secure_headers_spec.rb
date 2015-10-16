@@ -1,360 +1,307 @@
 require 'spec_helper'
 
 describe SecureHeaders do
-  subject {DummyClass.new}
-  let(:headers) {double}
-  let(:response) {double(:headers => headers)}
-  let(:max_age) {99}
-  let(:request) {double(:ssl? => true, :url => 'https://example.com')}
+  example_hpkp_config = {
+    :enforce => true,
+    :max_age => 1000000,
+    :include_subdomains => true,
+    :report_uri => '//example.com/uri-directive',
+    :pins => [
+      {:sha256 => 'abc'},
+      {:sha256 => '123'}
+    ]
+  }
+
+  example_hpkp_config_value = %{max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains}
 
   before(:each) do
-    stub_user_agent(nil)
-    allow(headers).to receive(:[])
-    allow(subject).to receive(:response).and_return(response)
-    allow(subject).to receive(:request).and_return(request)
+    @request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
   end
 
-  def stub_user_agent val
-    allow(request).to receive_message_chain(:env, :[]).and_return(val)
-  end
-
-  def reset_config
-    ::SecureHeaders::Configuration.configure do |config|
-      config.hpkp = nil
-      config.hsts = nil
-      config.x_frame_options = nil
-      config.x_content_type_options = nil
-      config.x_xss_protection = nil
-      config.csp = nil
-      config.x_download_options = nil
-      config.x_permitted_cross_domain_policies = nil
-    end
-  end
-
-  def set_security_headers(subject)
-    subject.set_csp_header
-    subject.set_hpkp_header
-    subject.set_hsts_header
-    subject.set_x_frame_options_header
-    subject.set_x_content_type_options_header
-    subject.set_x_xss_protection_header
-    subject.set_x_download_options_header
-    subject.set_x_permitted_cross_domain_policies_header
-  end
-
-  describe "#set_header" do
-    it "accepts name/value pairs" do
-      should_assign_header("X-Hipster-Ipsum", "kombucha")
-      subject.send(:set_header, "X-Hipster-Ipsum", "kombucha")
+  context "dynamic config" do
+    before(:each) do
+      reset_config
     end
 
-    it "accepts header objects" do
-      should_assign_header("Strict-Transport-Security", SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
-      subject.send(:set_header, SecureHeaders::StrictTransportSecurity.new)
-    end
-  end
-
-  describe "#set_security_headers" do
-    USER_AGENTS.each do |name, useragent|
-      it "sets all default headers for #{name} (smoke test)" do
-        stub_user_agent(useragent)
-        number_of_headers = 7
-        expect(subject).to receive(:set_header).exactly(number_of_headers).times # a request for a given header
-        subject.set_csp_header
-        subject.set_x_frame_options_header
-        subject.set_hsts_header
-        subject.set_hpkp_header
-        subject.set_x_xss_protection_header
-        subject.set_x_content_type_options_header
-        subject.set_x_download_options_header
-        subject.set_x_permitted_cross_domain_policies_header
-      end
-    end
-
-    it "does not set the X-Content-Type-Options header if disabled" do
-      stub_user_agent(USER_AGENTS[:ie])
-      should_not_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME)
-      subject.set_x_content_type_options_header(false)
-    end
-
-    it "does not set the X-XSS-Protection header if disabled" do
-      should_not_assign_header(X_XSS_PROTECTION_HEADER_NAME)
-      subject.set_x_xss_protection_header(false)
-    end
-
-    it "does not set the X-Download-Options header if disabled" do
-      should_not_assign_header(XDO_HEADER_NAME)
-      subject.set_x_download_options_header(false)
-    end
-
-    it "does not set the X-Frame-Options header if disabled" do
-      should_not_assign_header(XFO_HEADER_NAME)
-      subject.set_x_frame_options_header(false)
-    end
-
-    it "does not set the X-Permitted-Cross-Domain-Policies header if disabled" do
-      should_not_assign_header(XPCDP_HEADER_NAME)
-      subject.set_x_permitted_cross_domain_policies_header(false)
-    end
-
-    it "does not set the HSTS header if disabled" do
-      should_not_assign_header(HSTS_HEADER_NAME)
-      subject.set_hsts_header(false)
-    end
-
-    it "does not set the HSTS header if request is over HTTP" do
-      allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
-      should_not_assign_header(HSTS_HEADER_NAME)
-      subject.set_hsts_header({:include_subdomains => true})
-    end
-
-    it "does not set the HPKP header if disabled" do
-      should_not_assign_header(HPKP_HEADER_NAME)
-      subject.set_hpkp_header
-    end
-
-    it "does not set the HPKP header if request is over HTTP" do
-      allow(subject).to receive_message_chain(:request, :ssl?).and_return(false)
-      should_not_assign_header(HPKP_HEADER_NAME)
-      subject.set_hpkp_header(:max_age => 1234)
-    end
-
-    it "does not set the CSP header if disabled" do
-      stub_user_agent(USER_AGENTS[:chrome])
-      should_not_assign_header(HEADER_NAME)
-      subject.set_csp_header(false)
-    end
-
-    it "saves the options to the env when using script hashes" do
-      opts = {
-        :default_src => "'self'",
-        :script_hash_middleware => true
-      }
-      stub_user_agent(USER_AGENTS[:chrome])
-
-      expect(SecureHeaders::ContentSecurityPolicy).to receive(:add_to_env)
-      subject.set_csp_header(opts)
-    end
-
-    context "when disabled by configuration settings" do
-      it "does not set any headers when disabled" do
-        ::SecureHeaders::Configuration.configure do |config|
-          config.hsts = false
-          config.hpkp = false
-          config.x_frame_options = false
-          config.x_content_type_options = false
-          config.x_xss_protection = false
-          config.csp = false
-          config.x_download_options = false
-          config.x_permitted_cross_domain_policies = false
-        end
-        expect(subject).not_to receive(:set_header)
-        set_security_headers(subject)
-        reset_config
-      end
-    end
-  end
-
-  describe "SecureHeaders#header_hash" do
-    def expect_default_values(hash)
-      expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
-      expect(hash[XDO_HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::Constants::DEFAULT_VALUE)
-      expect(hash[HSTS_HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
-      expect(hash[X_XSS_PROTECTION_HEADER_NAME]).to eq(SecureHeaders::XXssProtection::Constants::DEFAULT_VALUE)
-      expect(hash[X_CONTENT_TYPE_OPTIONS_HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE)
-      expect(hash[XPCDP_HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::Constants::DEFAULT_VALUE)
-    end
-
-    it "produces a hash of headers given a hash as config" do
-      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
-      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:;")
-      expect_default_values(hash)
-    end
-
-    it "produces a hash with a mix of config values, override values, and default values" do
-      ::SecureHeaders::Configuration.configure do |config|
-        config.hsts = { :max_age => '123456'}
-        config.hpkp = {
-          :enforce => true,
-          :max_age => 1000000,
-          :include_subdomains => true,
-          :report_uri => '//example.com/uri-directive',
-          :pins => [
-            {:sha256 => 'abc'},
-            {:sha256 => '123'}
-          ]
-        }
-      end
-
-      hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
-      ::SecureHeaders::Configuration.configure do |config|
+    def reset_config
+      SecureHeaders::Configuration.configure do |config|
+        config.hpkp = SecureHeaders::OPT_OUT
+        config.csp = SecureHeaders::CSP::DEFAULT_CONFIG
         config.hsts = nil
-        config.hpkp = nil
+        config.x_frame_options = nil
+        config.x_content_type_options = nil
+        config.x_xss_protection = nil
+        config.x_download_options = nil
+        config.x_permitted_cross_domain_policies = nil
       end
-
-      expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:;")
-      expect(hash[XFO_HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
-      expect(hash[HSTS_HEADER_NAME]).to eq("max-age=123456")
-      expect(hash[HPKP_HEADER_NAME]).to eq(%{max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains})
     end
 
     it "produces a hash of headers with default config" do
-      hash = SecureHeaders::header_hash
-      expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::Constants::DEFAULT_CSP_HEADER)
+      hash = SecureHeaders::header_hash_for(@request)
       expect_default_values(hash)
     end
-  end
 
-  describe "#set_x_frame_options_header" do
-    it "sets the X-Frame-Options header" do
-      should_assign_header(XFO_HEADER_NAME, SecureHeaders::XFrameOptions::Constants::DEFAULT_VALUE)
-      subject.set_x_frame_options_header
+    it "does not set the HSTS header if request is over HTTP" do
+      SecureHeaders::Configuration.configure do |config|
+        config.hsts = "max-age=123456"
+      end
+      expect(SecureHeaders::header_hash_for(Rack::Request.new({}))[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to be_nil
     end
 
-    it "allows a custom X-Frame-Options header" do
-      should_assign_header(XFO_HEADER_NAME, "DENY")
-      subject.set_x_frame_options_header(:value => 'DENY')
-    end
-  end
+    it "does not set the HPKP header if request is over HTTP" do
+      SecureHeaders::Configuration.configure do |config|
+        config.hpkp = example_hpkp_config
+      end
 
-  describe "#set_x_download_options_header" do
-    it "sets the X-Download-Options header" do
-      should_assign_header(XDO_HEADER_NAME, SecureHeaders::XDownloadOptions::Constants::DEFAULT_VALUE)
-      subject.set_x_download_options_header
+      expect(SecureHeaders::header_hash_for(Rack::Request.new({}))[SecureHeaders::PublicKeyPins::HEADER_NAME]).to be_nil
     end
 
-    it "allows a custom X-Download-Options header" do
-      should_assign_header(XDO_HEADER_NAME, "noopen")
-      subject.set_x_download_options_header(:value => 'noopen')
-    end
-  end
+    describe "SecureHeaders#header_hash_for" do
+      it "allows you to opt out of headers" do
+        SecureHeaders::opt_out_of(@request, SecureHeaders::CSP::CONFIG_KEY)
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to be_nil
+        expect(hash['Content-Security-Policy']).to be_nil
+      end
 
-  describe "#set_strict_transport_security" do
-    it "sets the Strict-Transport-Security header" do
-      should_assign_header(HSTS_HEADER_NAME, SecureHeaders::StrictTransportSecurity::Constants::DEFAULT_VALUE)
-      subject.set_hsts_header
-    end
-
-    it "allows you to specific a custom max-age value" do
-      should_assign_header(HSTS_HEADER_NAME, 'max-age=1234')
-      subject.set_hsts_header(:max_age => 1234)
-    end
-
-    it "allows you to specify includeSubdomains" do
-      should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains")
-      subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true)
-    end
-
-    it "allows you to specify preload" do
-      should_assign_header(HSTS_HEADER_NAME, "max-age=#{HSTS_MAX_AGE}; includeSubdomains; preload")
-      subject.set_hsts_header(:max_age => HSTS_MAX_AGE, :include_subdomains => true, :preload => true)
-    end
-  end
-
-  describe "#set_public_key_pins" do
-    it "sets the Public-Key-Pins header" do
-      should_assign_header(HPKP_HEADER_NAME + "-Report-Only", "max-age=1234")
-      subject.set_hpkp_header(:max_age => 1234)
-    end
-
-    it "allows you to enforce public key pinning" do
-      should_assign_header(HPKP_HEADER_NAME, "max-age=1234")
-      subject.set_hpkp_header(:max_age => 1234, :enforce => true)
-    end
-
-    it "allows you to specific a custom max-age value" do
-      should_assign_header(HPKP_HEADER_NAME + "-Report-Only", 'max-age=1234')
-      subject.set_hpkp_header(:max_age => 1234)
-    end
-
-    it "allows you to specify includeSubdomains" do
-      should_assign_header(HPKP_HEADER_NAME, "max-age=1234; includeSubDomains")
-      subject.set_hpkp_header(:max_age => 1234, :include_subdomains => true, :enforce => true)
-    end
-
-    it "allows you to specify a report-uri" do
-      should_assign_header(HPKP_HEADER_NAME, "max-age=1234; report-uri=\"https://foobar.com\"")
-      subject.set_hpkp_header(:max_age => 1234, :report_uri => "https://foobar.com", :enforce => true)
-    end
-
-    it "allows you to specify a report-uri with app_name" do
-      should_assign_header(HPKP_HEADER_NAME, "max-age=1234; report-uri=\"https://foobar.com?enforce=true&app_name=my_app\"")
-      subject.set_hpkp_header(:max_age => 1234, :report_uri => "https://foobar.com", :app_name => "my_app", :tag_report_uri => true, :enforce => true)
-    end
-  end
-
-  describe "#set_x_xss_protection" do
-    it "sets the X-XSS-Protection header" do
-      should_assign_header(X_XSS_PROTECTION_HEADER_NAME, SecureHeaders::XXssProtection::Constants::DEFAULT_VALUE)
-      subject.set_x_xss_protection_header
-    end
-
-    it "sets a custom X-XSS-Protection header" do
-      should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '0')
-      subject.set_x_xss_protection_header("0")
-    end
-
-    it "sets the block flag" do
-      should_assign_header(X_XSS_PROTECTION_HEADER_NAME, '1; mode=block')
-      subject.set_x_xss_protection_header(:mode => 'block', :value => 1)
-    end
-  end
-
-  describe "#set_x_content_type_options" do
-    USER_AGENTS.each do |useragent|
-      context "when using #{useragent}" do
-        before(:each) do
-          stub_user_agent(USER_AGENTS[useragent])
+      it "appends a nonce to the script-src/style-src when used" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self'),
+            :script_src => %w(mycdn.com 'unsafe-inline')
+          }
         end
 
-        it "sets the X-Content-Type-Options header" do
-          should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, SecureHeaders::XContentTypeOptions::Constants::DEFAULT_VALUE)
-          subject.set_x_content_type_options_header
+        request = Rack::Request.new(@request.env.merge("HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 1084) AppleWebKit/537.22 (KHTML like Gecko) Chrome/25.0.1364.99 Safari/537.22"))
+        nonce = SecureHeaders::content_security_policy_nonce(request)
+        hash = SecureHeaders::header_hash_for(request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' 'nonce-#{nonce}'")
+      end
+
+      it "appends a value to csp directive" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self'),
+            :script_src => %w(mycdn.com 'unsafe-inline')
+          }
         end
 
-        it "lets you override X-Content-Type-Options" do
-          should_assign_header(X_CONTENT_TYPE_OPTIONS_HEADER_NAME, 'nosniff')
-          subject.set_x_content_type_options_header(:value => 'nosniff')
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
+      end
+
+      it "copies the default-src and appends an expression if the directive has no configuration" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self')
+          }
         end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+      end
+
+      it "appends a value to the default CSP configuration" do
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; script-src https: anothercdn.com")
+      end
+
+      it "allows overriding of individual directives" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self')
+          }
+        end
+        SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'")
+      end
+
+      it "sets the value of an unconfigured directive when overriding" do
+        SecureHeaders::override_content_security_policy_directives(@request, img_src: [SecureHeaders::ContentSecurityPolicy::DATA])
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; img-src data:")
+      end
+
+      it "constructs a default policy when appending to a OPT_OUT policy" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = SecureHeaders::OPT_OUT
+        end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; script-src https: anothercdn.com")
+      end
+
+      it "does not append a nonce when the browser does not support it" do
+        SecureHeaders::Configuration.configure do |config|
+          config.csp = {
+            :default_src => %w('self'),
+            :script_src => %w(mycdn.com 'unsafe-inline')
+          }
+        end
+        env = {"HTTP_USER_AGENT" => "Mozilla/4.0 totally a legit browser"}
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'")
+      end
+
+      it "allows you to override opting out" do
+        SecureHeaders::Configuration.configure do |config|
+          config.hsts = SecureHeaders::OPT_OUT
+          config.x_frame_options = SecureHeaders::OPT_OUT
+          config.x_content_type_options = SecureHeaders::OPT_OUT
+          config.x_xss_protection = SecureHeaders::OPT_OUT
+          config.x_download_options = SecureHeaders::OPT_OUT
+          config.x_permitted_cross_domain_policies = SecureHeaders::OPT_OUT
+          config.csp = SecureHeaders::OPT_OUT
+          config.hpkp = SecureHeaders::OPT_OUT
+        end
+
+        SecureHeaders::append_content_security_policy_source(@request, script_src: %w('self'))
+        SecureHeaders::override_x_frame_options(@request, SecureHeaders::XFrameOptions::SAMEORIGIN)
+        SecureHeaders::override_hpkp(@request, example_hpkp_config)
+        SecureHeaders::secure_headers_request_config(@request)[:x_xss_protection] = "1; mode=block"
+        SecureHeaders::secure_headers_request_config(@request)[:hsts] = "max-age=12345"
+        SecureHeaders::secure_headers_request_config(@request)[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = "nosniff"
+
+        hash = SecureHeaders::header_hash_for(@request)
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; script-src https: 'self'")
+        expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::SAMEORIGIN)
+        expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq("1; mode=block")
+        expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=12345")
+        expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq("nosniff")
+      end
+    end
+
+    context "validation" do
+      it "validates your hsts config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.hsts = 'lol'
+          end
+        }.to raise_error(SecureHeaders::STSConfigError)
+      end
+
+      it "validates your csp config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.csp = { SecureHeaders::CSP::DEFAULT_SRC => '123456'}
+          end
+        }.to raise_error(SecureHeaders::ContentSecurityPolicyConfigError)
+      end
+
+      it "validates your xfo config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.x_frame_options = "NOPE"
+          end
+        }.to raise_error(SecureHeaders::XFOConfigError)
+      end
+
+      it "validates your xcto config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.x_content_type_options = "lol"
+          end
+        }.to raise_error(SecureHeaders::XContentTypeOptionsConfigError)
+      end
+
+      it "validates your x_xss config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.x_xss_protection = "lol"
+          end
+        }.to raise_error(SecureHeaders::XXssProtectionConfigError)
+      end
+
+      it "validates your xdo config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.x_download_options = "lol"
+          end
+        }.to raise_error(SecureHeaders::XDOConfigError)
+      end
+
+      it "validates your x_permitted_cross_domain_policies config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.x_permitted_cross_domain_policies = "lol"
+          end
+        }.to raise_error(SecureHeaders::XPCDPConfigError)
+      end
+
+      it "validates your hpkp config upon configuration" do
+        expect {
+          SecureHeaders::Configuration.configure do |config|
+            config.hpkp = "lol"
+          end
+        }.to raise_error(SecureHeaders::PublicKeyPinsConfigError)
       end
     end
   end
 
-  describe "#set_csp_header" do
-    context "when using Firefox" do
-      it "sets CSP headers" do
-        stub_user_agent(USER_AGENTS[:firefox])
-        should_assign_header(HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
-        subject.set_csp_header
+  context "cached config" do
+    it "caches default header values at configure time" do
+      SecureHeaders::Configuration.configure do |config|
+        config.hpkp = example_hpkp_config
+        config.hsts = "max-age=11111111; includeSubDomains; preload"
+        config.x_frame_options = "DENY"
+        config.x_content_type_options = "nosniff"
+        config.x_xss_protection = "1; mode=block"
+        config.csp = {
+          default_src: %w('self'),
+          # intentionally use a directive that is not supported by all browsers
+          child_src: %w('self'),
+          object_src: %w(pleasedontwhitelistflashever.com),
+          enforce: true
+        }
+        config.x_download_options = SecureHeaders::OPT_OUT
+        config.x_permitted_cross_domain_policies = SecureHeaders::OPT_OUT
+      end
+
+      hash = SecureHeaders::Configuration::default_headers
+      expect(hash[SecureHeaders::XFrameOptions::CONFIG_KEY]).to eq([SecureHeaders::XFrameOptions::HEADER_NAME, "DENY"])
+      expect(hash[SecureHeaders::XDownloadOptions::CONFIG_KEY]).to be_nil
+      expect(hash[SecureHeaders::StrictTransportSecurity::CONFIG_KEY]).to eq([SecureHeaders::StrictTransportSecurity::HEADER_NAME, "max-age=11111111; includeSubDomains; preload"])
+      expect(hash[SecureHeaders::XXssProtection::CONFIG_KEY]).to eq([SecureHeaders::XXssProtection::HEADER_NAME, "1; mode=block"])
+      expect(hash[SecureHeaders::XContentTypeOptions::CONFIG_KEY]).to eq([SecureHeaders::XContentTypeOptions::HEADER_NAME, "nosniff"])
+      expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::CONFIG_KEY]).to be_nil
+      expect(hash[SecureHeaders::PublicKeyPins::CONFIG_KEY]).to eq([SecureHeaders::PublicKeyPins::HEADER_NAME, example_hpkp_config_value])
+      SecureHeaders::CSP::VARIATIONS.each do |name, _|
+        expected = if ["Chrome", "Opera"].include?(name)
+          "default-src 'self'; child-src 'self'; object-src pleasedontwhitelistflashever.com"
+        else
+          "default-src 'self'; object-src pleasedontwhitelistflashever.com"
+        end
+        expect(hash[SecureHeaders::ContentSecurityPolicy::CONFIG_KEY][name]).to eq([SecureHeaders::ContentSecurityPolicy::HEADER_NAME, expected])
       end
     end
 
-    context "when using Chrome" do
-      it "sets default CSP header" do
-        stub_user_agent(USER_AGENTS[:chrome])
-        should_assign_header(HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
-        subject.set_csp_header
+    it "uses cached headers when no overrides are present" do
+      SecureHeaders::Configuration.configure do |config|
+        config.x_frame_options = "DENY"
       end
-    end
-
-    context "when using a browser besides chrome/firefox" do
-      it "sets the CSP header" do
-        stub_user_agent(USER_AGENTS[:opera])
-        should_assign_header(HEADER_NAME + "-Report-Only", DEFAULT_CSP_HEADER)
-        subject.set_csp_header
+      SecureHeaders::ALL_HEADER_CLASSES.each do |klass|
+        expect(klass).not_to receive(:make_header)
       end
-    end
-  end
 
-  describe "#set_x_permitted_cross_domain_policies_header" do
-    it "sets the X-Permitted-Cross-Domain-Policies header" do
-      should_assign_header(XPCDP_HEADER_NAME, SecureHeaders::XPermittedCrossDomainPolicies::Constants::DEFAULT_VALUE)
-      subject.set_x_permitted_cross_domain_policies_header
+      SecureHeaders::header_hash_for(@request)
     end
 
-    it "allows a custom X-Permitted-Cross-Domain-Policies header" do
-      should_assign_header(XPCDP_HEADER_NAME, "master-only")
-      subject.set_x_permitted_cross_domain_policies_header(:value => 'master-only')
+    it "uses generates new headers when values are overridden" do
+      SecureHeaders::Configuration.configure do |config|
+        config.x_frame_options = "DENY"
+      end
+      (SecureHeaders::ALL_HEADER_CLASSES - [SecureHeaders::ContentSecurityPolicy]).each do |klass|
+        expect(klass).not_to receive(:make_header)
+      end
+      expect(SecureHeaders::ContentSecurityPolicy).to receive(:make_header)
+
+      SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'))
+      SecureHeaders::header_hash_for(@request)
     end
   end
 end

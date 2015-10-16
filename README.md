@@ -10,243 +10,174 @@ The gem will automatically apply several headers that are related to security.  
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinnning  Specification](https://tools.ietf.org/html/rfc7469)
 
-## Usage
-
-- `ensure_security_headers` in a controller will set security-related headers automatically based on the configuration below.
-
-### Disabling
-
-Use the standard `skip_before_filter :filter_name, options` mechanism. e.g. `skip_before_filter :set_csp_header, :only => :tinymce_page`
-
-The following methods are going to be called, unless they are provided in a `skip_before_filter` block.
-
-* `:set_csp_header`
-* `:set_hsts_header`
-* `:set_hpkp_header`
-* `:set_x_frame_options_header`
-* `:set_x_xss_protection_header`
-* `:set_x_content_type_options_header`
-* `:set_x_download_options_header`
-* `:set_x_permitted_cross_domain_policies_header`
+`secure_headers` is a library with a global config, per request overrides, and rack milddleware that enables you customize your application settings.
 
 ## Configuration
 
-**Place the following in an initializer (recommended):**
+**Place the following in an initializer**
 
-**NOTE: All CSP config values accept procs for one way of dynamically setting values**
+All `nil` values will fallback to their default value. `SecureHeaders::OPT_OUT` will disable the header entirely.
 
 ```ruby
-::SecureHeaders::Configuration.configure do |config|
-  config.hsts = {:max_age => 20.years.to_i, :include_subdomains => true}
-  config.x_frame_options = 'DENY'
+SecureHeaders::Configuration.configure do |config|
+  config.hsts = 20.years.to_i.to_s
+  config.x_frame_options = "DENY"
   config.x_content_type_options = "nosniff"
-  config.x_xss_protection = {:value => 1, :mode => 'block'}
-  config.x_download_options = 'noopen'
-  config.x_permitted_cross_domain_policies = 'none'
+  config.x_xss_protection = "1; mode=block"
+  config.x_download_options = "noopen"
+  config.x_permitted_cross_domain_policies = "none"
   config.csp = {
-    :default_src => "https: 'self'",
-    :enforce => proc {|controller| controller.my_feature_flag_api.enabled? },
-    :frame_src => "https: http:.twimg.com http://itunes.apple.com",
-    :img_src => "https:",
-    :connect_src => "wws:"
-    :font_src => "'self' data:",
-    :frame_src => "'self'",
-    :img_src => "mycdn.com data:",
-    :media_src => "utoob.com",
-    :object_src => "'self'",
-    :script_src => "'self'",
-    :style_src => "'unsafe-inline'",
-    :base_uri => "'self'",
-    :child_src => "'self'",
-    :form_action => "'self' github.com",
-    :frame_ancestors => "'none'",
-    :plugin_types => 'application/x-shockwave-flash',
-    :block_all_mixed_content => '' # see [http://www.w3.org/TR/mixed-content/]()
-    :report_uri => '//example.com/uri-directive'
+    :default_src => %w(https: 'self'),
+    :enforce => true,
+    :frame_src => %w(https: http:.twimg.com http://itunes.apple.com),
+    :img_src => %w(https:),
+    :connect_src => %w(wws:),
+    :font_src => %w('self' data:),
+    :frame_src => %w('self'),
+    :img_src => %w(mycdn.com data:),
+    :media_src => %w(utoob.com),
+    :object_src => %w('self'),
+    :script_src => %w('self'),
+    :style_src => %w('unsafe-inline'),
+    :base_uri => %w('self'),
+    :child_src => %w('self'),
+    :form_action => %w('self' github.com),
+    :frame_ancestors => %w('none'),
+    :plugin_types => %w(application/x-shockwave-flash),
+    :block_all_mixed_content => true # see [http://www.w3.org/TR/mixed-content/]()
+    :report_uri => %w(https://example.com/uri-directive)
   }
   config.hpkp = {
     :max_age => 60.days.to_i,
     :include_subdomains => true,
-    :report_uri => '//example.com/uri-directive',
+    :report_uri => "https//example.com/uri-directive",
     :pins => [
-      {:sha256 => 'abc'},
-      {:sha256 => '123'}
+      {:sha256 => "abc"},
+      {:sha256 => "123"}
     ]
   }
 end
-
-# and then include this in application_controller.rb
-class ApplicationController < ActionController::Base
-  ensure_security_headers
-end
 ```
 
-Or do the config as a parameter to `ensure_security_headers`
+### rails 2
+
+`secure_headers` has a `railtie` that should automatically include the middleware.
 
 ```ruby
-ensure_security_headers(
-  :hsts => {:include_subdomains => true, :max_age => 20.years.to_i},
-  :x_frame_options => 'DENY',
-  :csp => false
-)
+use SecureHeaders::Middleware
 ```
+
+## Default values
+
+All headers except for PublicKeyPins have a default value. See the [corresponding classes for their defaults](https://github.com/twitter/secureheaders/tree/master/lib/secure_headers/headers).
 
 ## Per-action configuration
 
-Sometimes you need to override your content security policy for a given endpoint. Rather than applying the exception globally, you have a few options:
-
-1. Use procs as config values as mentioned above.
-1. Specifying `ensure_security_headers csp: ::SecureHeaders::Configuration.csp.merge(script_src: shadyhost.com)` in a descendent controller will override the settings for that controller only.
-1. Override the `secure_header_options_for` class instance method. e.g.
+For the easy headers, you should not expect to change the values per request. However, for `X-Frame-Options`, `Content-Security-Policy`, and `Public-Key-Pins` you may want to configure per controller, per request, etc. values. In the future, `Public-Key-Pins` may be removed from this list.
 
 ```ruby
-class SomethingController < ApplicationController
-  def wumbus
-    # gets style-src override
+# Given a config of:
+::SecureHeaders::Configuration.configure do |config|
+   config.csp = {
+     default_src: %w('self'),
+     script_src: %w('self')
+   }
+ end
+
+class MyController < ApplicationController
+  def index
+    # Append value to the source list, override 'none' values
+    # Produces: default-src 'self'; script-src 'self' s3.amazaonaws.com; object-src 'self' youtube.com
+    append_content_security_policy_source(script_src: %w(s3.amazaonaws.com), object_src: %w('self' youtube.com))
+
+    # Overrides the previously set source list, override 'none' values
+    # Produces: default-src 'self'; script-src s3.amazaonaws.com; object-src 'self'
+    override_content_security_policy_directive(script_src: "s3.amazaonaws.com", object_src: %w('self'))
+
+    # Global settings default to "sameorigin"
+    override_x_frame_options("DENY")
+
+    # Disable the header if set as a global config setting
+    override_hpkp(SecureHeaders::OPT_OUT)
+
+    # Or define the hpkp inline (if the global config is nil/false)
+    override_hpkp {
+      :max_age => 60.days.to_i,
+      :include_subdomains => true,
+      :report_uri => '//example.com/uri-directive',
+      :pins => [
+        {:sha256 => 'abc'},
+        {:sha256 => '123'}
+      ]
+    }
   end
+```
 
-  def diffendoofer
-    # does not get style-src override
+The following methods are available as controller instance methods. They are also available as class methods, but require you to pass in the `request` object.
+* `append_content_security_policy_source(hash)`: appends each value to the corresponding CSP app-wide configuration.
+* `override_content_security_policy_directive(hash)`: merges the hash into the app-wide configuration, overwriting any previous config
+* `override_x_frame_options(value)`: sets the `X-Frame-Options header` to `value`
+* `override_hpkp(value)`: sets the `PublicKeyPins` to `value`
+
+## Appending / overriding Content Security Policy
+
+When manipulating content security policy, there are a few things to consider. The default header value is `default-src https:` which corresponds to a default configuration of `{ default_src: %w(https:)}`.
+
+#### Append to the policy with a directive other than `default_src`
+
+The value of `default_src` is joined with the addition. Note the `https:` is carried over from the `default-src` config. If you do not want this, use `override_content_security_policy_directives` instead. To illustrate:
+
+```ruby
+::SecureHeaders::Configuration.configure do |config|
+   config.csp = {
+     default_src: %w('self')
+   }
+ end
+ ```
+
+Code  | Result
+------------- | -------------
+`append_content_security_policy_source(script_src: %w(mycdn.com))` | `default-src 'self'; script-src 'self' mycdn.com`
+`override_content_security_policy_directives(script_src: %w(mycdn.com))`  | `default-src 'self'; script-src mycdn.com`
+
+#### Appending to an opted-out Policy
+
+If your policy is set to `SecureHeaders::OPT_OUT`, you will be appending to the default policy (`default-src https:`). This behaves the same way as the above example using the default configuration and will set the header based on the result.
+
+```ruby
+::SecureHeaders::Configuration.configure do |config|
+   config.csp = SecureHeaders::OPT_OUT
+ end
+ ```
+
+Code  | Result
+------------- | -------------
+`append_content_security_policy_source(script_src: %w(mycdn.com))` | `default-src https:; script-src https: mycdn.com`
+`override_content_security_policy_directives(script_src: %w(mycdn.com))`  | `default-src https:; script-src mycdn.com`
+
+## Advanced override
+
+You really shouldn't have to do this, but if you must:
+
+```ruby
+class MyController < ApplicationController
+  def index
+    secure_headers_request_config[:x_xss_protection] = SecureHeaders::OPT_OUT
+    secure_headers_request_config[:hsts] = SecureHeaders::OPT_OUT
+    secure_headers_request_config[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = SecureHeaders::OPT_OUT
+    secure_headers_request_config[SecureHeaders::CSP::CONFIG_KEY].merge(script_src: %w('none'))
+    etc...
   end
-
-  def secure_header_options_for(header, options)
-    options = super
-    if params[:action] == "wumbus"
-      if header == :csp
-        options.merge(style_src: "'self'")
-      end
-    else
-      options
-    end
-  end
-end
 ```
-
-## Options for ensure\_security\_headers
-
-**To disable any of these headers, supply a value of false (e.g. :hsts => false), supplying nil will set the default value**
-
-Each header configuration can take a hash, or a string, or both. If a string
-is provided, that value is inserted verbatim.  If a hash is supplied, a
-header will be constructed using the supplied options.
-
-### The Easy Headers
-
-This configuration will likely work for most applications without modification.
-
-```ruby
-:hsts             => {:max_age => 631138519, :include_subdomains => false}
-:x_frame_options  => {:value => 'SAMEORIGIN'}
-:x_xss_protection => {:value => 1, :mode => 'block'}  # set the :mode option to false to use "warning only" mode
-:x_content_type_options => {:value => 'nosniff'}
-:x_download_options => {:value => 'noopen'}
-:x_permitted_cross_domain_policies => {:value => 'none'}
-```
-
-### Content Security Policy (CSP)
-
-```ruby
-:csp => {
-  :enforce     => false,        # sets header to report-only, by default
-  # default_src is required!
-  :default_src     => nil,      # sets the default-src/allow+options directives
-
-  # Where reports are sent. Use protocol relative URLs if you are posting to the same domain (TLD+1). Use paths if you are posting to the application serving the header
-  :report_uri  => '//mysite.example.com',
-
-  # these directives all take 'none', 'self', or a globbed pattern
-  :img_src     => nil,
-  :frame_src   => nil,
-  :connect_src => nil,
-  :font_src    => nil,
-  :media_src   => nil,
-  :object_src  => nil,
-  :style_src   => nil,
-  :script_src  => nil,
-
-  # http additions will be appended to the various directives when
-  # over http, relaxing the policy
-  # e.g.
-  # :csp => {
-  #   :img_src => 'https:',
-  #   :http_additions => {:img_src => 'http'}
-  # }
-  # would produce the directive: "img-src https: http:;"
-  # when over http, ignored for https requests
-  :http_additions => {}
-}
-```
-
-### Example CSP header config
-
-
-```ruby
-# most basic example
-:csp => {
-  :default_src => "https: 'unsafe-inline' 'unsafe-eval'",
-  :report_uri => '/uri-directive'
-}
-
-> "default-src 'unsafe-inline' 'unsafe-eval' https:; report-uri /uri-directive;"
-
-# turn off inline scripting/eval
-:csp => {
-  :default_src => 'https:',
-  :report_uri => '/uri-directive'
-}
-
-> "default-src  https:; report-uri /uri-directive;"
-
-# Auction site wants to allow images from anywhere, plugin content from a list of trusted media providers (including a content distribution network), and scripts only from its server hosting sanitized JavaScript
-:csp => {
-  :default_src => "'self'",
-  :img_src => '*',
-  :object_src => ['media1.com', 'media2.com', '*.cdn.com'],
-  # alternatively (NOT csv) :object_src => 'media1.com media2.com *.cdn.com'
-  :script_src => 'trustedscripts.example.com'
-}
-"default-src  'self'; img-src *; object-src media1.com media2.com *.cdn.com; script-src trustedscripts.example.com;"
-```
-
-### Tagging Requests
-
-It's often valuable to send extra information in the report uri that is not available in the reports themselves. Namely, "was the policy enforced" and "where did the report come from"
-
-```ruby
-{
-  :tag_report_uri => true,
-  :enforce => true,
-  :app_name => 'twitter',
-  :report_uri => 'csp_reports'
-}
-```
-
-Results in
-```
-report-uri csp_reports?enforce=true&app_name=twitter
-```
-
-### CSP Level 2 features
-
-*NOTE: Currently, only erb is supported. Mustache support isn't far off. Hash sources are valid for inline style blocks but are not yet supported by secure_headers.*
 
 #### Nonce
 
-script/style-nonce can be used to whitelist inline content. To do this, add "nonce" to your script/style-src configuration, then set the nonce attributes on the various tags.
+script/style-nonce can be used to whitelist inline content. To do this, call the SecureHeaders::content_security_policy_nonce then set the nonce attributes on the various tags.
 
 Setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
 
-```ruby
-:csp => {
-  :default_src => "'self'",
-  :script_src => "'self' nonce"
-}
-```
-
-> content-security-policy: default-src 'self'; script-src 'self' 'nonce-abc123' 'unsafe-inline'
-
 ```erb
-<script nonce="<%= @content_security_policy_nonce %>">
+<script nonce="<%= content_security_policy_nonce %>">
   console.log("whitelisted, will execute")
 </script>
 
@@ -258,7 +189,9 @@ Setting a nonce will also set 'unsafe-inline' for browsers that don't support no
   console.log("won't execute, not whitelisted")
 </script>
 ```
+
 You can use a view helper to automatically add nonces to script tags:
+
 ```erb
 <%= nonced_javascript_tag do %>
   console.log("nonced!")
@@ -276,86 +209,13 @@ console.log("nonced!")
 
 #### Hash
 
-setting hash source values will also set 'unsafe-inline' for browsers that don't support hash sources for backwards compatibility. 'unsafe-inline' is ignored if a hash is present in a directive in compliant browsers.
-
-Hash source support works by taking the hash value of the contents of an inline script block and adding the hash "fingerprint" to the CSP header.
-
-If you only have a few hashes, you can hardcode them for the entire app:
-
-```ruby
-  config.csp = {
-    :default_src => "https:",
-    :script_src => "'self'"
-    :script_hashes => ['sha1-abc', 'sha1-qwe']
-  }
-```
-
-The following will work as well, but may not be as clear:
-
-```ruby
-  config.csp = {
-    :default_src => "https:",
-    :script_src => "'self' 'sha1-qwe'"
-  }
-```
-
-If you find you have many hashes or the content of the script tags change frequently, you can apply these hashes in a more intelligent way. This method expects config/script_hashes.yml to contain a map of templates => [hashes]. When the individual templates, layouts, or partials are rendered the hash values for the script tags in those templates will be automatically added to the header. *Currently, only erb layouts are supported.* This requires the use of middleware:
-
-```ruby
-# config.ru
-require 'secure_headers/headers/content_security_policy/script_hash_middleware'
-use ::SecureHeaders::ContentSecurityPolicy::ScriptHashMiddleware
-```
-
-```ruby
-  config.csp = {
-    :default_src => "https:",
-    :script_src => "'self'",
-    :script_hash_middleware => true
-  }
-```
-
-Hashes are stored in a yaml file with a mapping of Filename => [list of hashes] in config/script_hashes.yml. You can automatically populate this file by running the following rake task:
-
-```$ bundle exec rake secure_headers:generate_hashes```
-
-Which will generate something like:
-
-```yaml
-# config/script_hashes.yml
-app/views/layouts/application.html.erb:
-- sha256-l8OLjZqYRnKilpdE0VosRMvhdYArjXT4NZaK2p7QVvs=
-app/templates/articles/edit.html.erb:
-- sha256-+7mij1/uCwtCQRWrof2NmOln5qX+5WdVwTLMpi8nuoA=
-- sha256-Ny4TRIhhFpnYnSeKC274P6bfAz4TOkezLabavIAU4dA=
-- sha256-I5e58Gqbu4WpO9dck18QxO7aYOHKrELIi70it4jIPi0=
-- sha256-Po4LMynwnAJHxiTp3DQaQ3YDBj3paN/xrDoKl4OyxY4=
-```
-
-In this example, if we visit /articles/edit/[id], the above hashes will automatically be added to the CSP header's
-script-src value!
-
-You can use plain "script" tags or you can use a built-in helper:
-
-```erb
-<%= hashed_javascript_tag do %>
-console.log("hashed automatically!")
-<% end %>
-```
-
-By using the helper, hash values will be computed dynamically in development/test environments. If a dynamically computed hash value does not match what is expected to be found in config/script_hashes.yml a warning message will be printed to the console. If you want to raise exceptions instead, use:
-
-```erb
-<%= hashed_javascript_tag(raise_error_on_unrecognized_hash = true) do %>
-console.log("will raise an exception if not in script_hashes.yml!")
-<% end %>
-```
+The hash feature has been removed, for now.
 
 ### Public Key Pins
 
 Be aware that pinning error reporting is governed by the same rules as everything else. If you have a pinning failure that tries to report back to the same origin, by definition this will not work.
 
-```
+```ruby
 config.hpkp = {
   max_age: 60.days.to_i,   # max_age is a required parameter
   include_subdomains: true, # whether or not to apply pins to subdomains
@@ -381,28 +241,17 @@ require 'sinatra'
 require 'haml'
 require 'secure_headers'
 
-::SecureHeaders::Configuration.configure do |config|
-  config.hsts = {:max_age => 99, :include_subdomains => true}
-  config.x_frame_options = 'DENY'
-  config.x_content_type_options = "nosniff"
-  config.x_xss_protection = {:value => 1, :mode => false}
-  config.x_download_options = 'noopen'
-  config.x_permitted_cross_domain_policies = 'none'
-  config.csp = {
-    :default_src => "https: inline eval",
-    :report_uri => '//example.com/uri-directive',
-    :img_src => "https: data:",
-    :frame_src => "https: http:.twimg.com http://itunes.apple.com"
-  }
-  config.hpkp = false
+use SecureHeaders::Middleware
+
+SecureHeaders::Configuration.configure do |config|
+  ...
 end
 
 class Donkey < Sinatra::Application
-  include SecureHeaders
   set :root, APP_ROOT
 
   get '/' do
-    set_csp_header
+    SecureHeaders.override_x_frame_options(SecureHeaders::OPT_OUT)
     haml :index
   end
 end
@@ -421,6 +270,7 @@ In your `Gemfile`:
 then in your `app.rb` file you can:
 
 ```ruby
+Padrino.use(SecureHeaders::Middleware)
 require 'secure_headers/padrino'
 
 module Web
@@ -428,7 +278,6 @@ module Web
     register SecureHeaders::Padrino
 
     get '/' do
-      set_csp_header
       render 'index'
     end
   end
@@ -439,48 +288,8 @@ and in `config/boot.rb`:
 
 ```ruby
 def before_load
-  ::SecureHeaders::Configuration.configure do |config|
-    config.hsts                   = {:max_age => 99, :include_subdomains => true}
-    config.x_frame_options        = 'DENY'
-    config.x_content_type_options = "nosniff"
-    config.x_xss_protection       = {:value   => '1', :mode => false}
-    config.x_download_options     = 'noopen'
-    config.x_permitted_cross_domain_policies = 'none'
-    config.csp                    = {
-      :default_src => "https: inline eval",
-      :report_uri => '//example.com/uri-directive',
-      :img_src => "https: data:",
-      :frame_src => "https: http:.twimg.com http://itunes.apple.com"
-    }
-  end
-end
-```
-
-### Using in rack middleware
-
-The `SecureHeaders::header_hash` generates a hash of all header values, which is useful for merging with rack middleware values.
-
-```ruby
-class MySecureHeaders
-  include SecureHeaders
-  def initialize(app)
-  @app = app
- end
-
- def call(env)
-   status, headers, response = @app.call(env)
-   security_headers = if override?
-     SecureHeaders::header_hash(:csp => false) # uses global config, but overrides CSP config
-   else
-     SecureHeaders::header_hash # uses global config
-   end
-   [status, headers.merge(security_headers), [response.body]]
- end
-end
-
-module Testapp
-  class Application < Rails::Application
-    config.middleware.use MySecureHeaders
+  SecureHeaders::Configuration.configure do |config|
+    ...
   end
 end
 ```
@@ -494,18 +303,6 @@ end
 * ASP.NET - [NWebsec](https://github.com/NWebsec/NWebsec/wiki)
 * Python - [django-csp](https://github.com/mozilla/django-csp) + [commonware](https://github.com/jsocol/commonware/); [django-security](https://github.com/sdelements/django-security)
 * Go - [secureheader](https://github.com/kr/secureheader)
-
-## Authors
-
-* Neil Matatall [@ndm](https://twitter.com/ndm) - primary author.
-* Nicholas Green [@nickgreen](https://twitter.com/nickgreen) - code contributions, main reviewer.
-
-## Acknowledgements
-
-* Justin Collins [@presidentbeef](https://twitter.com/presidentbeef) & Jim O'Leary [@jimio](https://twitter.com/jimio) for reviews.
-* Ian Melven [@imelven](https://twitter.com/imelven) - Discussions/info about CSP in general, made us aware of the [userCSP](https://addons.mozilla.org/en-US/firefox/addon/newusercspdesign/) Mozilla extension.
-* Sumit Shah [@omnidactyl](https://twitter.com/omnidactyl) - For being an eager guinea pig.
-* Chris Aniszczyk [@cra](https://twitter.com/cra) - For running an awesome open source program at Twitter.
 
 ## License
 
