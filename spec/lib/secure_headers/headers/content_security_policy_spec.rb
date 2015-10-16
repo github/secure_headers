@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module SecureHeaders
   describe ContentSecurityPolicy do
-    let(:default_opts) do
+    let (:default_opts) do
       {
         :default_src => %w(https:),
         :img_src => %w(https: data:),
@@ -121,7 +121,7 @@ module SecureHeaders
       end
 
       context "browser sniffing" do
-        let(:complex_opts) do
+        let (:complex_opts) do
           ContentSecurityPolicy::ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = %w('self'); memo }.
           merge(:block_all_mixed_content => true, :reflected_xss => "block").
           merge(:script_src => %w('self' 'nonce-123456' 'sha256-abc123'))

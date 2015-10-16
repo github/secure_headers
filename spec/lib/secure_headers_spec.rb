@@ -25,6 +25,8 @@ describe SecureHeaders do
 
     def reset_config
       SecureHeaders::Configuration.configure do |config|
+        config.hpkp = SecureHeaders::OPT_OUT
+        config.csp = SecureHeaders::CSP::DEFAULT_CONFIG
         config.hsts = nil
         config.x_frame_options = nil
         config.x_content_type_options = nil
@@ -32,6 +34,11 @@ describe SecureHeaders do
         config.x_download_options = nil
         config.x_permitted_cross_domain_policies = nil
       end
+    end
+
+    it "produces a hash of headers with default config" do
+      hash = SecureHeaders::header_hash_for(@request)
+      expect_default_values(hash)
     end
 
     it "does not set the HSTS header if request is over HTTP" do
@@ -50,15 +57,6 @@ describe SecureHeaders do
     end
 
     describe "SecureHeaders#header_hash_for" do
-      def expect_default_values(hash)
-        expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
-        expect(hash[SecureHeaders::XDownloadOptions::HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::DEFAULT_VALUE)
-        expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::DEFAULT_VALUE)
-        expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq(SecureHeaders::XXssProtection::DEFAULT_VALUE)
-        expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::DEFAULT_VALUE)
-        expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
-      end
-
       it "allows you to opt out of headers" do
         SecureHeaders::opt_out_of(@request, SecureHeaders::CSP::CONFIG_KEY)
         hash = SecureHeaders::header_hash_for(@request)
@@ -108,7 +106,7 @@ describe SecureHeaders do
       it "appends a value to the default CSP configuration" do
         SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
         hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: anothercdn.com")
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; script-src https: anothercdn.com")
       end
 
       it "allows overriding of individual directives" do
@@ -120,14 +118,12 @@ describe SecureHeaders do
         SecureHeaders::override_content_security_policy_directives(@request, default_src: %w('none'))
         hash = SecureHeaders::header_hash_for(@request)
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'")
-        expect_default_values(hash)
       end
 
       it "sets the value of an unconfigured directive when overriding" do
         SecureHeaders::override_content_security_policy_directives(@request, img_src: [SecureHeaders::ContentSecurityPolicy::DATA])
         hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; img-src data:")
-        expect_default_values(hash)
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; img-src data:")
       end
 
       it "constructs a default policy when appending to a OPT_OUT policy" do
@@ -137,7 +133,7 @@ describe SecureHeaders do
 
         SecureHeaders::append_content_security_policy_source(@request, script_src: %w(anothercdn.com))
         hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: anothercdn.com")
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; script-src https: anothercdn.com")
       end
 
       it "does not append a nonce when the browser does not support it" do
@@ -150,12 +146,6 @@ describe SecureHeaders do
         env = {"HTTP_USER_AGENT" => "Mozilla/4.0 totally a legit browser"}
         hash = SecureHeaders::header_hash_for(@request)
         expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'")
-      end
-
-      it "produces a hash of headers with default config" do
-        hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq(SecureHeaders::ContentSecurityPolicy::DEFAULT_CSP_HEADER)
-        expect_default_values(hash)
       end
 
       it "allows you to override opting out" do
@@ -178,7 +168,7 @@ describe SecureHeaders do
         SecureHeaders::secure_headers_request_config(@request)[SecureHeaders::XContentTypeOptions::CONFIG_KEY] = "nosniff"
 
         hash = SecureHeaders::header_hash_for(@request)
-        expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src https:; script-src https: 'self'")
+        expect(hash[SecureHeaders::CSP::HEADER_NAME]).to eq("default-src https:; script-src https: 'self'")
         expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::SAMEORIGIN)
         expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq("1; mode=block")
         expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq("max-age=12345")

@@ -40,13 +40,16 @@ module SecureHeaders
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
         :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
-        :hpkp, :default_headers
+        :hpkp
+
+      def default_headers
+        @default_headers ||= generate_default_headers
+      end
 
       def configure(&block)
         self.hpkp = OPT_OUT
-        self.csp = SecureHeaders::CSP::DEFAULT_CONFIG
+        self.csp = SecureHeaders::CSP::DEFAULT_CONFIG.dup
         instance_eval &block
-
         validate_config!
         @default_headers = generate_default_headers
       end
@@ -96,7 +99,6 @@ module SecureHeaders
 
   class << self
     def append_features(base)
-      # HPKP is the only header not set by default, so opt it out here
       base.module_eval do
         include InstanceMethods
       end
@@ -114,11 +116,7 @@ module SecureHeaders
           secure_headers_request_config(request)[klass::CONFIG_KEY]
 
         header_name, header = if header_config
-          if klass == SecureHeaders::CSP
-            SecureHeaders::CSP.make_header(header_config, request.user_agent)
-          else
-            make_header(klass, header_config)
-          end
+          make_header(klass, header_config, request.user_agent)
         else
           # use the cached default, if available
           if default_header = SecureHeaders::Configuration::default_headers[klass::CONFIG_KEY]
@@ -130,10 +128,10 @@ module SecureHeaders
           else
             if default_config = SecureHeaders::Configuration.fetch(klass::CONFIG_KEY)
               # use the default configuration value
-              make_header(klass, default_config)
+              make_header(klass, default_config, request.user_agent)
             else
               # use the default value for the class
-              make_header(klass, nil)
+              make_header(klass, nil, request.user_agent)
             end
           end
         end
@@ -214,9 +212,13 @@ module SecureHeaders
       end
     end
 
-    def make_header(klass, header_config)
+    def make_header(klass, header_config, user_agent = nil)
       unless header_config == OPT_OUT
-        klass.make_header(header_config)
+        if klass == SecureHeaders::CSP
+          klass.make_header(header_config, user_agent)
+        else
+          klass.make_header(header_config)
+        end
       end
     end
   end

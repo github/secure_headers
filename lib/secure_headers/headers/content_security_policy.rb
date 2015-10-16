@@ -7,8 +7,8 @@ require 'json'
 module SecureHeaders
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy < Header
-    DEFAULT_CSP_HEADER = "default-src https:".freeze
-    DEFAULT_CONFIG = { default_src: %w(https:)}.freeze
+    DEFAULT_VALUE = "default-src https:".freeze
+    DEFAULT_CONFIG = { default_src: %w(https:), enforce: true }.freeze
     HEADER_NAME = "Content-Security-Policy".freeze
     DATA = "data:".freeze
     SELF = "'self'".freeze
@@ -204,7 +204,7 @@ module SecureHeaders
 
     # :report used to determine what :ssl_request, :ua, and :request_uri are set to
     def initialize(config = nil, user_agent = OTHER)
-      return unless config
+      config = DEFAULT_CONFIG.dup unless config
       @config = config
       @parsed_ua = if user_agent.is_a?(UserAgentParser::UserAgent)
         user_agent
@@ -232,7 +232,7 @@ module SecureHeaders
       @value ||= if @config
         build_value
       else
-        DEFAULT_CSP_HEADER
+        DEFAULT_VALUE
       end
     end
 
