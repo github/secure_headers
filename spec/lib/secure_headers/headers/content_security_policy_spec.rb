@@ -142,6 +142,14 @@ module SecureHeaders
     end
 
     describe "#value" do
+      it "does not mutate shared state" do
+        opts = default_opts.merge(enforce: true)
+        policy = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
+        expect(policy.name).to eq("Content-Security-Policy")
+        policy = ContentSecurityPolicy.new(opts, :request => request_for(CHROME))
+        expect(policy.name).to eq("Content-Security-Policy")
+      end
+
       context "browser sniffing" do
         let(:complex_opts) do
           ALL_DIRECTIVES.inject({}) { |memo, directive| memo[directive] = "'self'"; memo }.merge(:block_all_mixed_content => '')
