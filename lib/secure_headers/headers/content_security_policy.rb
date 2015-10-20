@@ -133,15 +133,6 @@ module SecureHeaders
       @ua = options[:ua]
       @ssl_request = !!options.delete(:ssl)
       @request_uri = options.delete(:request_uri)
-      @http_additions = config.delete(:http_additions)
-      @disable_img_src_data_uri = !!config.delete(:disable_img_src_data_uri)
-      @tag_report_uri = !!config.delete(:tag_report_uri)
-      @script_hashes = config.delete(:script_hashes) || []
-      @app_name = config.delete(:app_name)
-      @app_name = @app_name.call(@controller) if @app_name.respond_to?(:call)
-      @enforce = config.delete(:enforce)
-      @enforce = @enforce.call(@controller) if @enforce.respond_to?(:call)
-      @enforce = !!@enforce
 
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
@@ -153,13 +144,21 @@ module SecureHeaders
               translate_dir_value(val)
             end.flatten.uniq
           end
-        elsif key != :script_hash_middleware
-          raise ArgumentError.new("Unknown directive supplied: #{key}")
         end
 
         hash[key] = config_val
         hash
       end
+
+      @http_additions = @config.delete(:http_additions)
+      @disable_img_src_data_uri = !!@config.delete(:disable_img_src_data_uri)
+      @tag_report_uri = !!@config.delete(:tag_report_uri)
+      @script_hashes = @config.delete(:script_hashes) || []
+      @app_name = @config.delete(:app_name)
+      @app_name = @app_name.call(@controller) if @app_name.respond_to?(:call)
+      @enforce = @config.delete(:enforce)
+      @enforce = @enforce.call(@controller) if @enforce.respond_to?(:call)
+      @enforce = !!@enforce
 
       # normalize and tag the report-uri
       if @config[:report_uri]
