@@ -11,6 +11,7 @@ module SecureHeaders
       DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https: about: javascript:; img-src data:"
       HEADER_NAME = "Content-Security-Policy"
       ENV_KEY = 'secure_headers.content_security_policy'
+      USER_AGENT_PARSER = UserAgentParser::Parser.new
 
       DIRECTIVES_1_0 = [
         :default_src,
@@ -304,7 +305,7 @@ module SecureHeaders
     end
 
     def supported_directives
-      @supported_directives ||= case UserAgentParser.parse(@ua).family
+      @supported_directives ||= case USER_AGENT_PARSER.parse(@ua).family
       when "Chrome"
         CHROME_DIRECTIVES
       when "Safari"
@@ -317,7 +318,7 @@ module SecureHeaders
     end
 
     def supports_nonces?
-      parsed_ua = UserAgentParser.parse(@ua)
+      parsed_ua = USER_AGENT_PARSER.parse(@ua)
       ["Chrome", "Opera", "Firefox"].include?(parsed_ua.family)
     end
   end
