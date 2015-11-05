@@ -39,20 +39,6 @@ module SecureHeaders
     (ALL_HEADER_CLASSES - [StrictTransportSecurity, PublicKeyPins]).freeze
 
   class << self
-    # Public: opts out of setting a given header by creating a temporary config
-    # and setting the given headers config to OPT_OUT.
-    def opt_out_of_header(request, header_key)
-      config = config_for(request).dup
-      config.send("#{header_key}=", OPT_OUT)
-      override_secure_headers_request_config(request, config)
-    end
-
-    # Public: opts out of setting all headers by telling secure_headers to use
-    # the NOOP configuration.
-    def opt_out_of_all_protection(request)
-      use_secure_headers_override(request, Configuration::NOOP_CONFIGURATION)
-    end
-
     # Public: override a given set of directives for the current request. If a
     # value already exists for a given directive, it will be overridden.
     #
@@ -90,6 +76,20 @@ module SecureHeaders
       default_config = config_for(request).dup
       default_config.x_frame_options = value
       override_secure_headers_request_config(request, default_config)
+    end
+
+    # Public: opts out of setting a given header by creating a temporary config
+    # and setting the given headers config to OPT_OUT.
+    def opt_out_of_header(request, header_key)
+      config = config_for(request).dup
+      config.send("#{header_key}=", OPT_OUT)
+      override_secure_headers_request_config(request, config)
+    end
+
+    # Public: opts out of setting all headers by telling secure_headers to use
+    # the NOOP configuration.
+    def opt_out_of_all_protection(request)
+      use_secure_headers_override(request, Configuration::NOOP_CONFIGURATION)
     end
 
     # Public: Builds the hash of headers that should be applied base on the
@@ -136,7 +136,7 @@ module SecureHeaders
 
     # Public: gets or creates a nonce for CSP.
     #
-    # The nonce will be added to script_src
+    # The nonce will be added to style_src
     #
     # Returns the nonce
     def content_security_policy_style_nonce(request)
