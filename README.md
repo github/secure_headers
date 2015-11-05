@@ -29,7 +29,7 @@ SecureHeaders::Configuration.default do |config|
   config.csp = {
     :default_src => %w(https: 'self'),
     :report_only => false,
-    :frame_src => %w(https: http:.twimg.com http://itunes.apple.com),
+    :frame_src => %w(*.twimg.com itunes.apple.com),
     :connect_src => %w(wws:),
     :font_src => %w('self' data:),
     :frame_src => %w('self'),
@@ -47,9 +47,10 @@ SecureHeaders::Configuration.default do |config|
     :report_uri => %w(https://example.com/uri-directive)
   }
   config.hpkp = {
+    :report_only => false,
     :max_age => 60.days.to_i,
     :include_subdomains => true,
-    :report_uri => "https//example.com/uri-directive",
+    :report_uri => "https://example.com/uri-directive",
     :pins => [
       {:sha256 => "abc"},
       {:sha256 => "123"}
@@ -118,8 +119,6 @@ By default, a noop configuration is provided. No headers will be set when this d
 class MyController < ApplicationController
   def index
     SecureHeaders::opt_out_of_all_protection(request)
-    # or
-    use_secure_headers_override(SecureHeaders::Configuration::NOOP_CONFIGURATION)
   end
 end
 ```
@@ -178,16 +177,6 @@ Code  | Result
 `append_content_security_policy_directives(script_src: %w(mycdn.com))` | `default-src 'self'; script-src 'self' mycdn.com`
 `override_content_security_policy_directives(script_src: %w(mycdn.com))`  | `default-src 'self'; script-src mycdn.com`
 
-#### Appending to an opted-out Policy
-
-If your policy is set to `SecureHeaders::OPT_OUT`, you will be appending to the default policy (`default-src https:`). This behaves the same way as the above example using the default configuration and will set the header based on the result.
-
-```ruby
-::SecureHeaders::Configuration.configure do |config|
-   config.csp = SecureHeaders::OPT_OUT
- end
- ```
-
 Code  | Result
 ------------- | -------------
 `append_content_security_policy_directives(script_src: %w(mycdn.com))` | `default-src https:; script-src https: mycdn.com`
@@ -217,9 +206,14 @@ You can use a view helper to automatically add nonces to script tags:
 
 ```erb
 <%= nonced_javascript_tag do %>
-  console.log("nonced!")
+console.log("hai");
 <% end %>
-<%= nonced_javascript_tag("nonced without a block!") %>
+
+<%= nonced_style_tag do %>
+body {
+  background-color: black;
+}
+<% end %>
 ```
 
 becomes:
@@ -228,6 +222,11 @@ becomes:
 <script nonce="/jRAxuLJsDXAxqhNBB7gg7h55KETtDQBXe4ZL+xIXwI=">
 console.log("nonced!")
 </script>
+<style nonce="/jRAxuLJsDXAxqhNBB7gg7h55KETtDQBXe4ZL+xIXwI=">
+body {
+  background-color: black;
+}
+</style>
 ```
 
 #### Hash
