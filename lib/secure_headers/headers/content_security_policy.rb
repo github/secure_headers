@@ -294,7 +294,6 @@ module SecureHeaders
     ##
     # Return the value of the CSP header
     def value
-      return @config if @config.is_a?(String)
       @value ||= if @config
         build_value
       else
@@ -321,7 +320,7 @@ module SecureHeaders
         else
           build_directive(directive_name)
         end
-      end.compact.join("; ")
+      end.join("; ")
     end
 
     # Private: builds a string that represents one directive in a minified form.
@@ -333,9 +332,7 @@ module SecureHeaders
     #
     # Returns a string representing a directive.
     def build_directive(directive_name)
-      source_list = @config[directive_name]
-      return unless source_list
-      source_list.compact!
+      source_list = @config[directive_name].compact
 
       value = if source_list.include?(STAR)
         # Discard trailing entries since * accomplishes the same.
@@ -400,8 +397,8 @@ module SecureHeaders
     # starting with default-src and ending with report-uri.
     def directives
       [DEFAULT_SRC,
-        BODY_DIRECTIVES.select { |key| supported_directives.include?(key) }.select { |directive| @config.key?(directive) },
-        REPORT_URI].flatten
+        BODY_DIRECTIVES.select { |key| supported_directives.include?(key) },
+        REPORT_URI].flatten.select { |directive| @config.key?(directive) }
     end
 
     # Private: Remove scheme from source expressions.
