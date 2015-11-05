@@ -19,15 +19,6 @@ module SecureHeaders
     UNSAFE_INLINE = "'unsafe-inline'".freeze
     UNSAFE_EVAL = "'unsafe-eval'".freeze
 
-    SOURCE_VALUES = [
-      STAR,
-      DATA_PROTOCOL,
-      SELF,
-      NONE,
-      UNSAFE_EVAL,
-      UNSAFE_INLINE
-    ].freeze
-
     # leftover deprecated values that will be in common use upon upgrading.
     DEPRECATED_SOURCE_VALUES = [SELF, NONE, UNSAFE_EVAL, UNSAFE_INLINE, "inline", "eval"].map { |value| value.delete("'") }.freeze
 
