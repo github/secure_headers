@@ -155,14 +155,6 @@ module SecureHeaders
       request.env[NONCE_KEY]
     end
 
-    # Private: retrieve the configuration being used for the current request.
-    #
-    # Retrives the default, overridden, or custom configuration for the given
-    # request.
-    def secure_headers_request_config(request)
-      request.env[SECURE_HEADERS_CONFIG]
-    end
-
     # Private: convenience method for specifying which configuration object should
     # be used for this request.
     #
@@ -225,7 +217,7 @@ module SecureHeaders
     # Checks to see if a named override is used for this request, then
     # Falls back to the global config
     def config_for(request)
-      secure_headers_request_config(request) ||
+      request.env[SECURE_HEADERS_CONFIG] ||
         Configuration.get(Configuration::DEFAULT_CONFIG)
     end
 
