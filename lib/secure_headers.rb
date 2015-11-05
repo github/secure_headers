@@ -16,9 +16,8 @@ require "useragent"
 # or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
   OPT_OUT = :opt_out_of_protection
-  SCRIPT_HASH_CONFIG_FILE = "config/script_hashes.yml".freeze
-  SECURE_HEADERS_CONFIG = "secure_headers".freeze
-  NONCE_KEY = "content_security_policy_nonce".freeze
+  SECURE_HEADERS_CONFIG = "secure_headers_request_config".freeze
+  NONCE_KEY = "secure_headers_content_security_policy_nonce".freeze
   HTTPS = "https".freeze
   CSP = ContentSecurityPolicy
 
@@ -56,6 +55,8 @@ module SecureHeaders
 
     # Public: override a given set of directives for the current request. If a
     # value already exists for a given directive, it will be overridden.
+    #
+    # If CSP was previously OPT_OUT, a new blank policy is used.
     #
     # additions - a hash containing directives. e.g.
     #    :script_src => %w(another-host.com)
