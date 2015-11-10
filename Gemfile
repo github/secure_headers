@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gemspec
 
 group :test do
+  gem "tins", "~> 1.6" # 1.7 requires ruby 2.0
   gem "pry-nav"
   gem "rack"
   gem "guard-rspec", platforms: [:ruby_19, :ruby_20, :ruby_21, :ruby_22]
