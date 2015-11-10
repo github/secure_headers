@@ -138,6 +138,12 @@ module SecureHeaders
     STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
     HTTP_SCHEME_REGEX = %r{\Ahttps?://}
 
+    WILDCARD_SOURCES = [
+      UNSAFE_EVAL,
+      UNSAFE_INLINE,
+      STAR
+    ]
+
     class << self
       # Public: generate a header name, value array that is user-agent-aware.
       #
@@ -326,8 +332,8 @@ module SecureHeaders
       source_list = @config[directive_name].compact
 
       value = if source_list.include?(STAR)
-        # Discard trailing entries since * accomplishes the same.
-        STAR
+        # Discard trailing entries (excluding unsafe-*) since * accomplishes the same.
+        source_list.select { |value| WILDCARD_SOURCES.include?(value) }
       else
         populate_nonces(directive_name, source_list)
 
