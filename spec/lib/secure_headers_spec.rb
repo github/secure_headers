@@ -8,6 +8,7 @@ describe SecureHeaders do
   let(:request) {double(:ssl? => true, :url => 'https://example.com')}
 
   before(:each) do
+    reset_config
     stub_user_agent(nil)
     allow(headers).to receive(:[])
     allow(subject).to receive(:response).and_return(response)
@@ -169,6 +170,23 @@ describe SecureHeaders do
       hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
       expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'none'; img-src data:;")
       expect_default_values(hash)
+    end
+
+    it "allows opting out" do
+      hash = SecureHeaders::header_hash(:csp => false, :hpkp => false)
+      expect(hash['Content-Security-Policy-Report-Only']).to be_nil
+      expect(hash['Content-Security-Policy']).to be_nil
+    end
+
+    it "allows opting out with config" do
+      ::SecureHeaders::Configuration.configure do |config|
+        config.hsts = false
+        config.csp = false
+      end
+
+      hash = SecureHeaders::header_hash
+      expect(hash['Content-Security-Policy-Report-Only']).to be_nil
+      expect(hash['Content-Security-Policy']).to be_nil
     end
 
     it "produces a hash with a mix of config values, override values, and default values" do
