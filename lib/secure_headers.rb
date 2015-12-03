@@ -52,21 +52,23 @@ module SecureHeaders
 
     def header_hash(options = nil)
       ALL_HEADER_CLASSES.inject({}) do |memo, klass|
-        config = if options.is_a?(Hash) && options[klass::Constants::CONFIG_KEY]
+        # must use !options[key].nil? because 'false' represents opting out, nil
+        # represents use global default.
+        config = if options.is_a?(Hash) && !options[klass::Constants::CONFIG_KEY].nil?
           options[klass::Constants::CONFIG_KEY]
         else
           ::SecureHeaders::Configuration.send(klass::Constants::CONFIG_KEY)
         end
 
         unless klass == SecureHeaders::PublicKeyPins && !config.is_a?(Hash)
-          header = get_a_header(klass::Constants::CONFIG_KEY, klass, config)
-          memo[header.name] = header.value
+          header = get_a_header(klass, config)
+          memo[header.name] = header.value if header
         end
         memo
       end
     end
 
-    def get_a_header(name, klass, options)
+    def get_a_header(klass, options)
       return if options == false
       klass.new(options)
     end
@@ -210,7 +212,7 @@ module SecureHeaders
     def set_a_header(name, klass, options=nil)
       options = secure_header_options_for(name, options)
       return if options == false
-      set_header(SecureHeaders::get_a_header(name, klass, options))
+      set_header(SecureHeaders::get_a_header(klass, options))
     end
 
     def set_header(name_or_header, value=nil)
