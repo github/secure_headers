@@ -1,325 +1,421 @@
 require 'uri'
 require 'base64'
 require 'securerandom'
-require 'user_agent_parser'
 require 'json'
 
 module SecureHeaders
-  class ContentSecurityPolicyBuildError < StandardError; end
-  class ContentSecurityPolicy < Header
-    module Constants
-      DEFAULT_CSP_HEADER = "default-src https: data: 'unsafe-inline' 'unsafe-eval'; frame-src https: about: javascript:; img-src data:"
-      HEADER_NAME = "Content-Security-Policy"
-      ENV_KEY = 'secure_headers.content_security_policy'
-      USER_AGENT_PARSER = UserAgentParser::Parser.new
+  class ContentSecurityPolicyConfigError < StandardError; end
+  class ContentSecurityPolicy
+    MODERN_BROWSERS = %w(Chrome Opera Firefox)
+    DEFAULT_VALUE = "default-src https:".freeze
+    DEFAULT_CONFIG = { default_src: %w(https:) }.freeze
+    HEADER_NAME = "Content-Security-Policy".freeze
+    REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
+    HEADER_NAMES = [HEADER_NAME, REPORT_ONLY]
+    DATA_PROTOCOL = "data:".freeze
+    SELF = "'self'".freeze
+    NONE = "'none'".freeze
+    STAR = "*".freeze
+    UNSAFE_INLINE = "'unsafe-inline'".freeze
+    UNSAFE_EVAL = "'unsafe-eval'".freeze
 
-      DIRECTIVES_1_0 = [
-        :default_src,
-        :connect_src,
-        :font_src,
-        :frame_src,
-        :img_src,
-        :media_src,
-        :object_src,
-        :sandbox,
-        :script_src,
-        :style_src,
-        :report_uri
-      ].freeze
+    # leftover deprecated values that will be in common use upon upgrading.
+    DEPRECATED_SOURCE_VALUES = [SELF, NONE, UNSAFE_EVAL, UNSAFE_INLINE, "inline", "eval"].map { |value| value.delete("'") }.freeze
 
-      DIRECTIVES_2_0 = [
-        DIRECTIVES_1_0,
-        :base_uri,
-        :child_src,
-        :form_action,
-        :frame_ancestors,
-        :plugin_types
-      ].flatten.freeze
+    DEFAULT_SRC = :default_src
+    CONNECT_SRC = :connect_src
+    FONT_SRC = :font_src
+    FRAME_SRC = :frame_src
+    IMG_SRC = :img_src
+    MEDIA_SRC = :media_src
+    OBJECT_SRC = :object_src
+    SANDBOX = :sandbox
+    SCRIPT_SRC = :script_src
+    STYLE_SRC = :style_src
+    REPORT_URI = :report_uri
 
+    DIRECTIVES_1_0 = [
+      DEFAULT_SRC,
+      CONNECT_SRC,
+      FONT_SRC,
+      FRAME_SRC,
+      IMG_SRC,
+      MEDIA_SRC,
+      OBJECT_SRC,
+      SANDBOX,
+      SCRIPT_SRC,
+      STYLE_SRC,
+      REPORT_URI
+    ].freeze
 
-      # All the directives currently under consideration for CSP level 3.
-      # https://w3c.github.io/webappsec/specs/CSP2/
-      DIRECTIVES_3_0 = [
-        DIRECTIVES_2_0,
-        :manifest_src,
-        :reflected_xss
-      ].flatten.freeze
+    BASE_URI = :base_uri
+    CHILD_SRC = :child_src
+    FORM_ACTION = :form_action
+    FRAME_ANCESTORS = :frame_ancestors
+    PLUGIN_TYPES = :plugin_types
 
-      # All the directives that are not currently in a formal spec, but have
-      # been implemented somewhere.
-      DIRECTIVES_DRAFT = [
-        :block_all_mixed_content,
-      ].freeze
+    DIRECTIVES_2_0 = [
+      DIRECTIVES_1_0,
+      BASE_URI,
+      CHILD_SRC,
+      FORM_ACTION,
+      FRAME_ANCESTORS,
+      PLUGIN_TYPES
+    ].flatten.freeze
 
-      SAFARI_DIRECTIVES = DIRECTIVES_1_0
+    # All the directives currently under consideration for CSP level 3.
+    # https://w3c.github.io/webappsec/specs/CSP2/
+    MANIFEST_SRC = :manifest_src
+    REFLECTED_XSS = :reflected_xss
+    DIRECTIVES_3_0 = [
+      DIRECTIVES_2_0,
+      MANIFEST_SRC,
+      REFLECTED_XSS
+    ].flatten.freeze
 
-      FIREFOX_UNSUPPORTED_DIRECTIVES = [
-        :block_all_mixed_content,
-        :child_src,
-        :plugin_types
-      ].freeze
+    # All the directives that are not currently in a formal spec, but have
+    # been implemented somewhere.
+    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
+    DIRECTIVES_DRAFT = [
+      BLOCK_ALL_MIXED_CONTENT
+    ].freeze
 
-      FIREFOX_DIRECTIVES = (
-        DIRECTIVES_2_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
-      ).freeze
+    SAFARI_DIRECTIVES = DIRECTIVES_1_0
 
-      CHROME_DIRECTIVES = (
-        DIRECTIVES_2_0 + DIRECTIVES_DRAFT
-      ).freeze
+    FIREFOX_UNSUPPORTED_DIRECTIVES = [
+      BLOCK_ALL_MIXED_CONTENT,
+      CHILD_SRC,
+      PLUGIN_TYPES
+    ].freeze
 
-      ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
-      CONFIG_KEY = :csp
-    end
+    FIREFOX_DIRECTIVES = (
+      DIRECTIVES_2_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
+    ).freeze
 
-    include Constants
+    CHROME_DIRECTIVES = (
+      DIRECTIVES_2_0 + DIRECTIVES_DRAFT
+    ).freeze
 
-    attr_reader :ssl_request
-    alias :ssl_request? :ssl_request
+    ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
+
+    # Think of default-src and report-uri as the beginning and end respectively,
+    # everything else is in between.
+    BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
+
+    VARIATIONS = {
+      "Chrome" => CHROME_DIRECTIVES,
+      "Opera" => CHROME_DIRECTIVES,
+      "Firefox" => FIREFOX_DIRECTIVES,
+      "Safari" => SAFARI_DIRECTIVES,
+      "Other" => CHROME_DIRECTIVES
+    }.freeze
+
+    OTHER = "Other".freeze
+
+    DIRECTIVE_VALUE_TYPES = {
+      BASE_URI                => :source_list,
+      BLOCK_ALL_MIXED_CONTENT => :boolean,
+      CHILD_SRC               => :source_list,
+      CONNECT_SRC             => :source_list,
+      DEFAULT_SRC             => :source_list,
+      FONT_SRC                => :source_list,
+      FORM_ACTION             => :source_list,
+      FRAME_ANCESTORS         => :source_list,
+      FRAME_SRC               => :source_list,
+      IMG_SRC                 => :source_list,
+      MANIFEST_SRC            => :source_list,
+      MEDIA_SRC               => :source_list,
+      OBJECT_SRC              => :source_list,
+      PLUGIN_TYPES            => :source_list,
+      REFLECTED_XSS           => :string,
+      REPORT_URI              => :source_list,
+      SANDBOX                 => :string,
+      SCRIPT_SRC              => :source_list,
+      STYLE_SRC               => :source_list
+    }.freeze
+
+    CONFIG_KEY = :csp
+    STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
+    HTTP_SCHEME_REGEX = %r{\Ahttps?://}
+
+    WILDCARD_SOURCES = [
+      UNSAFE_EVAL,
+      UNSAFE_INLINE,
+      STAR
+    ]
 
     class << self
-      def generate_nonce
-        SecureRandom.base64(32).chomp
+      # Public: generate a header name, value array that is user-agent-aware.
+      #
+      # Returns a default policy if no configuration is provided, or a
+      # header name and value based on the config.
+      def make_header(config, user_agent)
+        header = new(config, user_agent)
+        [header.name, header.value]
       end
 
-      def set_nonce(controller, nonce = generate_nonce)
-        controller.instance_variable_set(:@content_security_policy_nonce, nonce)
+      # Public: Validates that the configuration has a valid type, or that it is a valid
+      # source expression.
+      #
+      # Private: validates that a source expression:
+      # 1. has a valid name
+      # 2. is an array of strings
+      # 3. does not contain any depreated, now invalid values (inline, eval, self, none)
+      #
+      # Does not validate the invididual values of the source expression (e.g.
+      # script_src => h*t*t*p: will not raise an exception)
+      def validate_config!(config)
+        return if config.nil? || config == OPT_OUT
+        raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
+        config.each do |key, value|
+          if key == :report_only
+            raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
+          else
+            validate_directive!(key, value)
+          end
+        end
       end
 
-      def add_to_env(request, controller, config)
-        set_nonce(controller)
-        options = options_from_request(request).merge(:controller => controller)
-        request.env[Constants::ENV_KEY] = {
-          :config => config,
-          :options => options,
-        }
+      # Public: combine the values from two different configs.
+      #
+      # original - the main config
+      # additions - values to be merged in
+      #
+      # raises an error if the original config is OPT_OUT
+      #
+      # 1. for non-source-list values (report_only, block_all_mixed_content),
+      # additions will overwrite the original value.
+      # 2. if a value in additions does not exist in the original config, the
+      # default-src value is included to match original behavior.
+      # 3. if a value in additions does exist in the original config, the two
+      # values are joined.
+      def combine_policies(original, additions)
+        if original == OPT_OUT
+          raise ContentSecurityPolicyConfigError.new("Attempted to override an opt-out CSP config.")
+        end
+
+        # in case we would be appending to an empty directive, fill it with the default-src value
+        additions.keys.each do |directive|
+          unless original[directive] || !source_list?(directive)
+            original[directive] = original[:default_src]
+          end
+        end
+
+        # merge the two hashes. combine (instead of overwrite) the array values
+        # when each hash contains a value for a given key.
+        original.merge(additions) do |directive, lhs, rhs|
+          if source_list?(directive)
+            lhs | rhs
+          else
+            rhs
+          end
+        end
       end
 
-      def options_from_request(request)
-        {
-          :ssl => request.ssl?,
-          :ua => request.env['HTTP_USER_AGENT'],
-          :request_uri => request_uri_from_request(request),
-        }
+      private
+
+      def source_list?(directive)
+        DIRECTIVE_VALUE_TYPES[directive] == :source_list
       end
 
-      def request_uri_from_request(request)
-        if request.respond_to?(:original_url)
-          # rails 3.1+
-          request.original_url
+      # Private: Validates that the configuration has a valid type, or that it is a valid
+      # source expression.
+      def validate_directive!(key, value)
+        case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[key]
+        when :boolean
+          unless boolean?(value)
+            raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
+          end
+        when :string
+          unless value.is_a?(String)
+            raise ContentSecurityPolicyConfigError.new("#{key} Must be a string. Found #{config.class}: #{config} value")
+          end
         else
-          # rails 2/3.0
-          request.url
+          validate_source_expression!(key, value)
         end
       end
 
-      def symbol_to_hyphen_case sym
-        sym.to_s.gsub('_', '-')
+      # Private: validates that a source expression:
+      # 1. has a valid name
+      # 2. is an array of strings
+      # 3. does not contain any depreated, now invalid values (inline, eval, self, none)
+      #
+      # Does not validate the invididual values of the source expression (e.g.
+      # script_src => h*t*t*p: will not raise an exception)
+      def validate_source_expression!(key, value)
+        # source expressions
+        unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
+          raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
+        end
+        unless value.is_a?(Array) && value.all? { |v| v.is_a?(String) }
+          raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
+        end
+
+        value.each do |source_expression|
+          if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
+            raise ContentSecurityPolicyConfigError.new("#{key} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
+          end
+        end
+      end
+
+      def boolean?(value)
+        value.is_a?(TrueClass) || value.is_a?(FalseClass)
       end
     end
 
-    # +options+ param contains
-    # :controller used for setting instance variables for nonces/hashes
-    # :ssl_request used to determine if http_additions should be used
-    # :ua the user agent (or just use Firefox/Chrome/MSIE/etc)
-    #
-    # :report used to determine what :ssl_request, :ua, and :request_uri are set to
-    def initialize(config=nil, options={})
-      return unless config
 
-      if options[:request]
-        options = options.merge(self.class.options_from_request(options[:request]))
+    def initialize(config = nil, user_agent = OTHER)
+      config = Configuration.deep_copy(DEFAULT_CONFIG) unless config
+      @config = config
+      @parsed_ua = if user_agent.is_a?(UserAgent::Browsers::Base)
+        user_agent
+      else
+        UserAgent.parse(user_agent)
       end
-
-      @controller = options[:controller]
-      @ua = options[:ua]
-      @ssl_request = !!options.delete(:ssl)
-      @request_uri = options.delete(:request_uri)
-
-      # Config values can be string, array, or lamdba values
-      @config = config.inject({}) do |hash, (key, value)|
-        config_val = value.respond_to?(:call) ? value.call(@controller) : value
-        if ALL_DIRECTIVES.include?(key.to_sym) # directives need to be normalized to arrays of strings
-          config_val = config_val.split if config_val.is_a? String
-          if config_val.is_a?(Array)
-            config_val = config_val.map do |val|
-              translate_dir_value(val)
-            end.flatten.uniq
-          end
-        end
-
-        hash[key] = config_val
-        hash
-      end
-
-      @http_additions = @config.delete(:http_additions)
-      @disable_img_src_data_uri = !!@config.delete(:disable_img_src_data_uri)
-      @tag_report_uri = !!@config.delete(:tag_report_uri)
-      @script_hashes = @config.delete(:script_hashes) || []
-      @app_name = @config.delete(:app_name)
-      @app_name = @app_name.call(@controller) if @app_name.respond_to?(:call)
-      @enforce = @config.delete(:enforce)
-      @enforce = @enforce.call(@controller) if @enforce.respond_to?(:call)
-      @enforce = !!@enforce
-
-      # normalize and tag the report-uri
-      if @config[:report_uri]
-        @config[:report_uri] = @config[:report_uri].map do |report_uri|
-          if report_uri.start_with?('//')
-            report_uri = if @ssl_request
-                           "https:" + report_uri
-                         else
-                           "http:" + report_uri
-                         end
-          end
-
-          if @tag_report_uri
-            report_uri = "#{report_uri}?enforce=#{@enforce}"
-            report_uri += "&app_name=#{@app_name}" if @app_name
-          end
-          report_uri
-        end
-      end
-
-      add_script_hashes if @script_hashes.any?
-      strip_unsupported_directives
-    end
-
-    ##
-    # Return or initialize the nonce value used for this header.
-    # If a reference to a controller is passed in the config, this method
-    # will check if a nonce has already been set and use it.
-    def nonce
-      @nonce ||= @controller.instance_variable_get(:@content_security_policy_nonce) || self.class.generate_nonce
+      @report_only = !!@config[:report_only]
+      @script_nonce = @config[:script_nonce]
+      @style_nonce = @config[:style_nonce]
     end
 
     ##
     # Returns the name to use for the header. Either "Content-Security-Policy" or
     # "Content-Security-Policy-Report-Only"
     def name
-      base = HEADER_NAME
-      if !@enforce
-        base += "-Report-Only"
+      if @report_only
+        REPORT_ONLY
+      else
+        HEADER_NAME
       end
-      base
     end
 
     ##
     # Return the value of the CSP header
     def value
-      return @config if @config.is_a?(String)
-      if @config
+      @value ||= if @config
         build_value
       else
-        DEFAULT_CSP_HEADER
-      end
-    end
-
-    def to_json
-      build_value
-      @config.inject({}) do |hash, (key, value)|
-        if ALL_DIRECTIVES.include?(key)
-          hash[key.to_s.gsub(/(\w+)_(\w+)/, "\\1-\\2")] = value
-        end
-        hash
-      end.to_json
-    end
-
-    def self.from_json(*json_configs)
-      json_configs.inject({}) do |combined_config, one_config|
-        config = JSON.parse(one_config).inject({}) do |hash, (key, value)|
-          hash[key.gsub(/(\w+)-(\w+)/, "\\1_\\2").to_sym] = value
-          hash
-        end
-        combined_config.merge(config) do |_, lhs, rhs|
-          lhs | rhs
-        end
+        DEFAULT_VALUE
       end
     end
 
     private
 
-    def add_script_hashes
-      @config[:script_src] << @script_hashes.map {|hash| "'#{hash}'"} << ["'unsafe-inline'"]
-    end
-
+    # Private: converts the config object into a string representing a policy.
+    # Places default-src at the first directive and report-uri as the last. All
+    # others are presented in alphabetical order.
+    #
+    # Unsupported directives are filtered based on the user agent.
+    #
+    # Returns a content security policy header value.
     def build_value
-      raise "Expected to find default_src directive value" unless @config[:default_src]
-      append_http_additions unless ssl_request?
-      generic_directives
-    end
-
-    def append_http_additions
-      return unless @http_additions
-      @http_additions.each do |k, v|
-        @config[k] ||= []
-        @config[k] << v
-      end
-    end
-
-    def translate_dir_value val
-      if %w{inline eval}.include?(val)
-        warn "[DEPRECATION] using inline/eval may not be supported in the future. Instead use 'unsafe-inline'/'unsafe-eval' instead."
-        val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
-      elsif %{self none}.include?(val)
-        warn "[DEPRECATION] using self/none may not be supported in the future. Instead use 'self'/'none' instead."
-        "'#{val}'"
-      elsif val == 'nonce'
-        if supports_nonces?
-          self.class.set_nonce(@controller, nonce)
-          ["'nonce-#{nonce}'", "'unsafe-inline'"]
+      directives.map do |directive_name|
+        case DIRECTIVE_VALUE_TYPES[directive_name]
+        when :boolean
+          symbol_to_hyphen_case(directive_name)
+        when :string
+          [symbol_to_hyphen_case(directive_name), @config[directive_name]].join(" ")
         else
-          "'unsafe-inline'"
+          build_directive(directive_name)
+        end
+      end.join("; ")
+    end
+
+    # Private: builds a string that represents one directive in a minified form.
+    # If a directive contains *, all other values are omitted.
+    # If a directive contains 'none' but has other values, 'none' is ommitted.
+    # Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
+    #
+    # directive_name - a symbol representing the various ALL_DIRECTIVES
+    #
+    # Returns a string representing a directive.
+    def build_directive(directive_name)
+      source_list = @config[directive_name].compact
+
+      value = if source_list.include?(STAR)
+        # Discard trailing entries (excluding unsafe-*) since * accomplishes the same.
+        source_list.select { |value| WILDCARD_SOURCES.include?(value) }
+      else
+        populate_nonces(directive_name, source_list)
+
+        # Discard any 'none' values if more directives are supplied since none may override values.
+        source_list.reject! { |value| value == NONE } if source_list.length > 1
+
+        # remove schemes and dedup source expressions
+        source_list = strip_source_schemes(source_list) unless directive_name == REPORT_URI
+        dedup_source_list(source_list).join(" ")
+      end
+      [symbol_to_hyphen_case(directive_name), value].join(" ")
+    end
+
+    # Removes duplicates and sources that already match an existing wild card.
+    #
+    # e.g. *.github.com asdf.github.com becomes *.github.com
+    def dedup_source_list(sources)
+      sources = sources.uniq
+      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
+
+      if wild_sources.any?
+        sources.reject do |source|
+          !wild_sources.include?(source) &&
+            wild_sources.any? { |pattern| File.fnmatch(pattern, source) }
         end
       else
-        val
+        sources
       end
     end
 
-    # ensures defualt_src is first and report_uri is last
-    def generic_directives
-      header_value = build_directive(:default_src)
-      data_uri = @disable_img_src_data_uri ? [] : ["data:"]
-      if @config[:img_src]
-        @config[:img_src] = @config[:img_src] + data_uri unless @config[:img_src].include?('data:')
-      else
-        @config[:img_src] = @config[:default_src] + data_uri
+    # Private: append a nonce to the script/style directories if script_nonce
+    # or style_nonce are provided.
+    def populate_nonces(directive, source_list)
+      case directive
+      when SCRIPT_SRC
+        append_nonce(source_list, @script_nonce)
+      when STYLE_SRC
+        append_nonce(source_list, @style_nonce)
       end
+    end
 
-      (ALL_DIRECTIVES - [:default_src, :report_uri]).each do |directive_name|
-        if @config[directive_name]
-          header_value += build_directive(directive_name)
+    # Private: adds a nonce or 'unsafe-inline' depending on browser support.
+    # If a nonce is populated, inline content is assumed.
+    #
+    # While CSP is backward compatible in that a policy with a nonce will ignore
+    # unsafe-inline, this is more concise.
+    def append_nonce(source_list, nonce)
+      if nonce
+        if nonces_supported?
+          source_list << "'nonce-#{nonce}'"
+        else
+          source_list << UNSAFE_INLINE
         end
       end
-
-      header_value += build_directive(:report_uri) if @config[:report_uri]
-
-      header_value.strip
     end
 
-    def build_directive(key)
-      "#{self.class.symbol_to_hyphen_case(key)} #{@config[key].join(" ")}; "
+    # Private: return the list of directives that are supported by the user agent,
+    # starting with default-src and ending with report-uri.
+    def directives
+      [DEFAULT_SRC,
+        BODY_DIRECTIVES.select { |key| supported_directives.include?(key) },
+        REPORT_URI].flatten.select { |directive| @config.key?(directive) }
     end
 
-    def strip_unsupported_directives
-      @config.select! { |key, _| supported_directives.include?(key) }
+    # Private: Remove scheme from source expressions.
+    def strip_source_schemes(source_list)
+      source_list.map { |source_expression| source_expression.sub(HTTP_SCHEME_REGEX, "") }
     end
 
+    # Private: determine which directives are supported for the given user agent.
+    #
+    # Returns an array of symbols representing the directives.
     def supported_directives
-      @supported_directives ||= case USER_AGENT_PARSER.parse(@ua).family
-      when "Chrome"
-        CHROME_DIRECTIVES
-      when "Safari"
-        SAFARI_DIRECTIVES
-      when "Firefox"
-        FIREFOX_DIRECTIVES
-      else
-        DIRECTIVES_1_0
-      end
+      @supported_directives ||= VARIATIONS[@parsed_ua.browser] || VARIATIONS[OTHER]
     end
 
-    def supports_nonces?
-      parsed_ua = USER_AGENT_PARSER.parse(@ua)
-      ["Chrome", "Opera", "Firefox"].include?(parsed_ua.family)
+    def nonces_supported?
+      @nonces_supported ||= MODERN_BROWSERS.include?(@parsed_ua.browser)
+    end
+
+    def symbol_to_hyphen_case(sym)
+      sym.to_s.tr('_', '-')
     end
   end
 end
