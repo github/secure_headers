@@ -13,6 +13,7 @@ module SecureHeaders
     REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
     HEADER_NAMES = [HEADER_NAME, REPORT_ONLY]
     DATA_PROTOCOL = "data:".freeze
+    BLOB_PROTOCOL = "blob:".freeze
     SELF = "'self'".freeze
     NONE = "'none'".freeze
     STAR = "*".freeze
@@ -141,7 +142,9 @@ module SecureHeaders
     WILDCARD_SOURCES = [
       UNSAFE_EVAL,
       UNSAFE_INLINE,
-      STAR
+      STAR,
+      DATA_PROTOCOL,
+      BLOB_PROTOCOL
     ]
 
     class << self

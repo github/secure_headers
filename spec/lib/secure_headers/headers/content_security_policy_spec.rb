@@ -115,9 +115,9 @@ module SecureHeaders
         expect(csp.value).not_to include("'none'")
       end
 
-      it "discards source expressions besides unsafe-* expressions when * is present" do
-        csp = ContentSecurityPolicy.new(default_src: %w(* 'unsafe-inline' 'unsafe-eval' http: https: example.org))
-        expect(csp.value).to eq("default-src * 'unsafe-inline' 'unsafe-eval'")
+      it "discards source expressions (besides unsafe-* and non-host source values) when * is present" do
+        csp = ContentSecurityPolicy.new(default_src: %w(* 'unsafe-inline' 'unsafe-eval' http: https: example.org data: blob:))
+        expect(csp.value).to eq("default-src * 'unsafe-inline' 'unsafe-eval' data: blob:")
       end
 
       it "minifies source expressions based on overlapping wildcards" do
