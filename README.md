@@ -1,5 +1,7 @@
 # SecureHeaders [![Build Status](https://travis-ci.org/twitter/secureheaders.png?branch=master)](http://travis-ci.org/twitter/secureheaders) [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.png)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.png)](https://coveralls.io/r/twitter/secureheaders)
 
+**The 3.x branch was recently merged**. See the [upgrading to 3.x doc](upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
+
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
 - HTTP Strict Transport Security (HSTS) - Ensures the browser never visits the http version of a website. Protects from SSLStrip/Firesheep attacks.  [HSTS Specification](https://tools.ietf.org/html/rfc6797)
@@ -14,7 +16,7 @@ The gem will automatically apply several headers that are related to security.  
 
 ## Configuration
 
-**Place the following in an initializer** if you do not supply a `default` configuration, exceptions will be raised. If you would like to use a default configuration (which is fairly locked down), just call `SecureHeaders::Configuration.default` without any arguments or block.
+If you do not supply a `default` configuration, exceptions will be raised. If you would like to use a default configuration (which is fairly locked down), just call `SecureHeaders::Configuration.default` without any arguments or block.
 
 All `nil` values will fallback to their default value. `SecureHeaders::OPT_OUT` will disable the header entirely.
 
@@ -61,7 +63,7 @@ end
 
 ### rails 2
 
-`secure_headers` has a `railtie` that should automatically include the middleware.
+For rails 3+ applications, `secure_headers` has a `railtie` that should automatically include the middleware. For rails 2 applications, an explicit statement is required to use the middleware component.
 
 ```ruby
 use SecureHeaders::Middleware
@@ -144,7 +146,7 @@ class MyController < ApplicationController
 
     # Overrides the previously set source list, override 'none' values
     # Produces: default-src 'self'; script-src s3.amazaonaws.com; object-src 'self'
-    override_content_security_policy_directive(script_src: "s3.amazaonaws.com", object_src: %w('self'))
+    override_content_security_policy_directive(script_src: %w(s3.amazaonaws.com), object_src: %w('self'))
 
     # Global settings default to "sameorigin"
     override_x_frame_options("DENY")
