@@ -47,6 +47,12 @@ module SecureHeaders
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
+      it "allows nil values" do
+        expect do
+          CSP.validate_config!(default_src: %w('self'), script_src: ["https:", nil])
+        end.to_not raise_error
+      end
+
       it "rejects unknown directives / config" do
         expect do
           CSP.validate_config!(default_src: %w('self'), default_src_totally_mispelled: "steve")

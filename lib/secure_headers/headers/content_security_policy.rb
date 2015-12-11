@@ -243,11 +243,11 @@ module SecureHeaders
       # Does not validate the invididual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
       def validate_source_expression!(key, value)
-        # source expressions
         unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
           raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
         end
-        unless value.is_a?(Array) && value.all? { |v| v.is_a?(String) }
+
+        unless value.is_a?(Array) && value.compact.all? { |v| v.is_a?(String) }
           raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
         end
 
