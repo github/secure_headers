@@ -14,7 +14,7 @@ module SecureHeaders
 
     describe "#name" do
       context "when in report-only mode" do
-        specify { expect(ContentSecurityPolicy.new(default_opts.merge(:report_only => true)).name).to eq(ContentSecurityPolicy::HEADER_NAME + "-Report-Only") }
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(report_only: true)).name).to eq(ContentSecurityPolicy::HEADER_NAME + "-Report-Only") }
       end
 
       context "when in enforce mode" do

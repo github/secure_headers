@@ -183,7 +183,7 @@ module SecureHeaders
       it "raises errors for unknown directives" do
         expect do
           Configuration.default do |config|
-            config.csp = { :made_up_directive => '123456' }
+            config.csp = { made_up_directive: '123456' }
           end
         end.to raise_error(ContentSecurityPolicyConfigError)
       end

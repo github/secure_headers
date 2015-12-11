@@ -45,7 +45,7 @@ module SecureHeaders
     # If CSP was previously OPT_OUT, a new blank policy is used.
     #
     # additions - a hash containing directives. e.g.
-    #    :script_src => %w(another-host.com)
+    #    script_src: %w(another-host.com)
     def override_content_security_policy_directives(request, additions)
       config = config_for(request).dup
       if config.csp == OPT_OUT
@@ -60,7 +60,7 @@ module SecureHeaders
     # value. If a value exists for the given directive, the values will be combined.
     #
     # additions - a hash containing directives. e.g.
-    #    :script_src => %w(another-host.com)
+    #    script_src: %w(another-host.com)
     def append_content_security_policy_directives(request, additions)
       config = config_for(request).dup
       config.csp = CSP.combine_policies(config.csp, additions)
