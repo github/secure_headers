@@ -13,6 +13,7 @@ module SecureHeaders
     REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
     HEADER_NAMES = [HEADER_NAME, REPORT_ONLY]
     DATA_PROTOCOL = "data:".freeze
+    BLOB_PROTOCOL = "blob:".freeze
     SELF = "'self'".freeze
     NONE = "'none'".freeze
     STAR = "*".freeze
@@ -141,7 +142,9 @@ module SecureHeaders
     WILDCARD_SOURCES = [
       UNSAFE_EVAL,
       UNSAFE_INLINE,
-      STAR
+      STAR,
+      DATA_PROTOCOL,
+      BLOB_PROTOCOL
     ]
 
     class << self
@@ -243,11 +246,11 @@ module SecureHeaders
       # Does not validate the invididual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
       def validate_source_expression!(key, value)
-        # source expressions
         unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
           raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
         end
-        unless value.is_a?(Array) && value.all? { |v| v.is_a?(String) }
+
+        unless value.is_a?(Array) && value.compact.all? { |v| v.is_a?(String) }
           raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
         end
 
@@ -317,7 +320,7 @@ module SecureHeaders
         else
           build_directive(directive_name)
         end
-      end.join("; ")
+      end.compact.join("; ")
     end
 
     # Private: builds a string that represents one directive in a minified form.
@@ -330,6 +333,7 @@ module SecureHeaders
     # Returns a string representing a directive.
     def build_directive(directive_name)
       source_list = @config[directive_name].compact
+      return if source_list.empty?
 
       value = if source_list.include?(STAR)
         # Discard trailing entries (excluding unsafe-*) since * accomplishes the same.

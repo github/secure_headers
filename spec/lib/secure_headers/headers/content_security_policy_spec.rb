@@ -47,6 +47,12 @@ module SecureHeaders
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
+      it "allows nil values" do
+        expect do
+          CSP.validate_config!(default_src: %w('self'), script_src: ["https:", nil])
+        end.to_not raise_error
+      end
+
       it "rejects unknown directives / config" do
         expect do
           CSP.validate_config!(default_src: %w('self'), default_src_totally_mispelled: "steve")
@@ -109,9 +115,9 @@ module SecureHeaders
         expect(csp.value).not_to include("'none'")
       end
 
-      it "discards source expressions besides unsafe-* expressions when * is present" do
-        csp = ContentSecurityPolicy.new(default_src: %w(* 'unsafe-inline' 'unsafe-eval' http: https: example.org))
-        expect(csp.value).to eq("default-src * 'unsafe-inline' 'unsafe-eval'")
+      it "discards source expressions (besides unsafe-* and non-host source values) when * is present" do
+        csp = ContentSecurityPolicy.new(default_src: %w(* 'unsafe-inline' 'unsafe-eval' http: https: example.org data: blob:))
+        expect(csp.value).to eq("default-src * 'unsafe-inline' 'unsafe-eval' data: blob:")
       end
 
       it "minifies source expressions based on overlapping wildcards" do
@@ -134,6 +140,11 @@ module SecureHeaders
 
       it "removes nil from source lists" do
         csp = ContentSecurityPolicy.new(default_src: ["https://example.org", nil])
+        expect(csp.value).to eq("default-src example.org")
+      end
+
+      it "does not add a directive if the value is an empty array (or all nil)" do
+        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], script_src: [nil])
         expect(csp.value).to eq("default-src example.org")
       end
 
