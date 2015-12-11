@@ -43,7 +43,7 @@ SecureHeaders::Configuration.default do |config|
     :form_action => %w('self' github.com),
     :frame_ancestors => %w('none'),
     :plugin_types => %w(application/x-shockwave-flash),
-    :block_all_mixed_content => true # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
+    :block_all_mixed_content => true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
     :report_uri => %w(https://example.com/uri-directive)
   }
   config.hpkp = {
