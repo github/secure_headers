@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module SecureHeaders
   describe PublicKeyPins do
-    specify { expect(PublicKeyPins.new(max_age: 1234, :report_only => true).name).to eq("Public-Key-Pins-Report-Only") }
+    specify { expect(PublicKeyPins.new(max_age: 1234, report_only: true).name).to eq("Public-Key-Pins-Report-Only") }
     specify { expect(PublicKeyPins.new(max_age: 1234).name).to eq("Public-Key-Pins") }
 
     specify { expect(PublicKeyPins.new(max_age: 1234).value).to eq("max-age=1234") }
