@@ -7,10 +7,10 @@ require 'net/https'
 desc "Run RSpec"
 RSpec::Core::RakeTask.new do |t|
   t.verbose = false
-   t.rspec_opts = "--format progress"
+  t.rspec_opts = "--format progress"
 end
 
-task :default => :spec
+task default: :spec
 
 begin
   require 'rdoc/task'
