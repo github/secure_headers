@@ -143,6 +143,11 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org")
       end
 
+      it "does not add a directive if the value is an empty array (or all nil)" do
+        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], script_src: [nil])
+        expect(csp.value).to eq("default-src example.org")
+      end
+
       it "deduplicates any source expressions" do
         csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org))
         expect(csp.value).to eq("default-src example.org")

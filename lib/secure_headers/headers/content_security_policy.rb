@@ -317,7 +317,7 @@ module SecureHeaders
         else
           build_directive(directive_name)
         end
-      end.join("; ")
+      end.compact.join("; ")
     end
 
     # Private: builds a string that represents one directive in a minified form.
@@ -330,6 +330,7 @@ module SecureHeaders
     # Returns a string representing a directive.
     def build_directive(directive_name)
       source_list = @config[directive_name].compact
+      return if source_list.empty?
 
       value = if source_list.include?(STAR)
         # Discard trailing entries (excluding unsafe-*) since * accomplishes the same.
