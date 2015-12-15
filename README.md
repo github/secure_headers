@@ -24,7 +24,7 @@ All `nil` values will fallback to their default value. `SecureHeaders::OPT_OUT` 
 
 ```ruby
 SecureHeaders::Configuration.default do |config|
-  config.hsts = 20.years.to_i.to_s
+  config.hsts = "max-age=#{20.years.to_i}"
   config.x_frame_options = "DENY"
   config.x_content_type_options = "nosniff"
   config.x_xss_protection = "1; mode=block"
