@@ -4,7 +4,7 @@ module SecureHeaders
     # Instructs secure_headers to append a nonce to style/script-src directives.
     #
     # Returns an html-safe style tag with the nonce attribute.
-    def nonced_style_tag(content_or_options = nil, &block)
+    def nonced_style_tag(content_or_options = {}, &block)
       nonced_tag(:style, content_or_options, block)
     end
 
@@ -12,7 +12,7 @@ module SecureHeaders
     # Instructs secure_headers to append a nonce to style/script-src directives.
     #
     # Returns an html-safe script tag with the nonce attribute.
-    def nonced_javascript_tag(content_or_options = nil, &block)
+    def nonced_javascript_tag(content_or_options = {}, &block)
       nonced_tag(:script, content_or_options, block)
     end
 
@@ -34,7 +34,7 @@ module SecureHeaders
     def nonced_tag(type, content_or_options, block)
       options = {}
       content = if block
-        options = content_or_options.to_h
+        options = content_or_options
         capture(&block)
       else
         content_or_options.html_safe # :'(
