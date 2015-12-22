@@ -34,7 +34,7 @@ module SecureHeaders
     def nonced_tag(type, content_or_options, block)
       options = {}
       content = if block
-        options = content_or_options
+        options = content_or_options.to_h
         capture(&block)
       else
         content_or_options.html_safe # :'(
