@@ -148,7 +148,7 @@ class MyController < ApplicationController
 
     # Overrides the previously set source list, override 'none' values
     # Produces: default-src 'self'; script-src s3.amazaonaws.com; object-src 'self'
-    override_content_security_policy_directive(script_src: %w(s3.amazaonaws.com), object_src: %w('self'))
+    override_content_security_policy_directives(script_src: %w(s3.amazaonaws.com), object_src: %w('self'))
 
     # Global settings default to "sameorigin"
     override_x_frame_options("DENY")
@@ -157,7 +157,7 @@ class MyController < ApplicationController
 
 The following methods are available as controller instance methods. They are also available as class methods, but require you to pass in the `request` object.
 * `append_content_security_policy_directives(hash)`: appends each value to the corresponding CSP app-wide configuration.
-* `override_content_security_policy_directive(hash)`: merges the hash into the app-wide configuration, overwriting any previous config
+* `override_content_security_policy_directives(hash)`: merges the hash into the app-wide configuration, overwriting any previous config
 * `override_x_frame_options(value)`: sets the `X-Frame-Options header` to `value`
 
 ## Appending / overriding Content Security Policy
