@@ -261,10 +261,10 @@ module SecureHeaders
 
     def translate_dir_value val
       if %w{inline eval}.include?(val)
-        warn "[DEPRECATION] using inline/eval may not be supported in the future. Instead use 'unsafe-inline'/'unsafe-eval' instead."
+        warn "[DEPRECATION] using inline/eval is not suppored in secure_headers 3.x. Instead use 'unsafe-inline'/'unsafe-eval' instead."
         val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
       elsif %{self none}.include?(val)
-        warn "[DEPRECATION] using self/none may not be supported in the future. Instead use 'self'/'none' instead."
+        warn "[DEPRECATION] using self/none is not suppored in secure_headers 3.x. Instead use 'self'/'none' instead."
         "'#{val}'"
       elsif val == 'nonce'
         if supports_nonces?
