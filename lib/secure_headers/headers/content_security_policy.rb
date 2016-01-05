@@ -139,7 +139,10 @@ module SecureHeaders
       @config = config.inject({}) do |hash, (key, value)|
         config_val = value.respond_to?(:call) ? value.call(@controller) : value
         if ALL_DIRECTIVES.include?(key.to_sym) # directives need to be normalized to arrays of strings
-          config_val = config_val.split if config_val.is_a? String
+          if config_val.is_a? String
+            warn "[DEPRECATION] A String was supplied for directive #{key}. secure_headers 3.x will require all directives to be arrays of strings."
+            config_val = config_val.split
+          end
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
               translate_dir_value(val)
