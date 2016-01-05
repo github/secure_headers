@@ -20,7 +20,7 @@ describe SecureHeaders do
   end
 
   def reset_config
-    ::SecureHeaders::Configuration.configure do |config|
+    ::SecureHeaders::Configuration.default do |config|
       config.hpkp = nil
       config.hsts = nil
       config.x_frame_options = nil
@@ -139,7 +139,7 @@ describe SecureHeaders do
 
     context "when disabled by configuration settings" do
       it "does not set any headers when disabled" do
-        ::SecureHeaders::Configuration.configure do |config|
+        ::SecureHeaders::Configuration.default do |config|
           config.hsts = false
           config.hpkp = false
           config.x_frame_options = false
@@ -179,7 +179,7 @@ describe SecureHeaders do
     end
 
     it "allows opting out with config" do
-      ::SecureHeaders::Configuration.configure do |config|
+      ::SecureHeaders::Configuration.default do |config|
         config.hsts = false
         config.csp = false
       end
@@ -190,7 +190,7 @@ describe SecureHeaders do
     end
 
     it "produces a hash with a mix of config values, override values, and default values" do
-      ::SecureHeaders::Configuration.configure do |config|
+      ::SecureHeaders::Configuration.default do |config|
         config.hsts = { :max_age => '123456'}
         config.hpkp = {
           :enforce => true,
@@ -205,7 +205,7 @@ describe SecureHeaders do
       end
 
       hash = SecureHeaders::header_hash(:csp => {:default_src => "'none'", :img_src => "data:"})
-      ::SecureHeaders::Configuration.configure do |config|
+      ::SecureHeaders::Configuration.default do |config|
         config.hsts = nil
         config.hpkp = nil
       end
