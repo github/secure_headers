@@ -25,6 +25,7 @@ module SecureHeaders
       when String
         @config
       else
+        warn "[DEPRECATION] secure_headers 3.0 will only accept string values for XXssProtection config"
         value = @config[:value].to_s
         value += "; mode=#{@config[:mode]}" if @config[:mode]
         value += "; report=#{@config[:report_uri]}" if @config[:report_uri]
