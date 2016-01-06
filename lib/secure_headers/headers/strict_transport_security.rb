@@ -41,6 +41,7 @@ module SecureHeaders
 
     def validate_config
       if @config.is_a? Hash
+        warn "[DEPRECATION] secure_headers 3.0 will only accept string values for StrictTransportSecurity config"
         if !@config[:max_age]
           raise STSBuildError.new("No max-age was supplied.")
         elsif @config[:max_age].to_s !~ /\A\d+\z/

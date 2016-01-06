@@ -137,9 +137,18 @@ module SecureHeaders
 
       # Config values can be string, array, or lamdba values
       @config = config.inject({}) do |hash, (key, value)|
-        config_val = value.respond_to?(:call) ? value.call(@controller) : value
+        config_val = if value.respond_to?(:call)
+          warn "[DEPRECATION] secure_headers 3.x will not support procs as config values."
+          value.call(@controller)
+        else
+          value
+        end
+
         if ALL_DIRECTIVES.include?(key.to_sym) # directives need to be normalized to arrays of strings
-          config_val = config_val.split if config_val.is_a? String
+          if config_val.is_a? String
+            warn "[DEPRECATION] A String was supplied for directive #{key}. secure_headers 3.x will require all directives to be arrays of strings."
+            config_val = config_val.split
+          end
           if config_val.is_a?(Array)
             config_val = config_val.map do |val|
               translate_dir_value(val)
@@ -258,10 +267,10 @@ module SecureHeaders
 
     def translate_dir_value val
       if %w{inline eval}.include?(val)
-        warn "[DEPRECATION] using inline/eval may not be supported in the future. Instead use 'unsafe-inline'/'unsafe-eval' instead."
+        warn "[DEPRECATION] using inline/eval is not suppored in secure_headers 3.x. Instead use 'unsafe-inline'/'unsafe-eval' instead."
         val == 'inline' ? "'unsafe-inline'" : "'unsafe-eval'"
       elsif %{self none}.include?(val)
-        warn "[DEPRECATION] using self/none may not be supported in the future. Instead use 'self'/'none' instead."
+        warn "[DEPRECATION] using self/none is not suppored in secure_headers 3.x. Instead use 'self'/'none' instead."
         "'#{val}'"
       elsif val == 'nonce'
         if supports_nonces?

@@ -33,11 +33,17 @@ module SecureHeaders
         :x_xss_protection, :csp, :x_download_options, :script_hashes,
         :x_permitted_cross_domain_policies, :hpkp
 
-      def configure &block
+      # For preparation for the secure_headers 3.x change.
+      def default &block
         instance_eval &block
         if File.exists?(SCRIPT_HASH_CONFIG_FILE)
           ::SecureHeaders::Configuration.script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
         end
+      end
+
+      def configure &block
+        warn "[DEPRECATION] `configure` is removed in secure_headers 3.x. Instead use `default`."
+        default &block
       end
     end
   end

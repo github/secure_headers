@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 module SecureHeaders
   describe XContentTypeOptions do
     specify{ expect(XContentTypeOptions.new.name).to eq("X-Content-Type-Options") }

@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 module SecureHeaders
   describe XXssProtection do
     specify { expect(XXssProtection.new.name).to eq(X_XSS_PROTECTION_HEADER_NAME)}

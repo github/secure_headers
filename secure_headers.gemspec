@@ -20,4 +20,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.add_development_dependency "rake"
   gem.add_dependency "user_agent_parser"
+  gem.post_install_message = "[DEPRECATION] Development has stopped on the 2.x line of secure_headers. It will be maintained, but new features will be added to the 3.x branch. A lot has changed in secure_headers 3.x. A migration guide can be found in the documentation: https://github.com/twitter/secureheaders/blob/master/upgrading-to-3-0.md."
 end

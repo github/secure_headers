@@ -24,6 +24,7 @@ module SecureHeaders
       when String
         @config
       else
+        warn "[DEPRECATION] secure_headers 3.0 will only accept string values for XDownloadOptions config"
         @config[:value]
       end
     end

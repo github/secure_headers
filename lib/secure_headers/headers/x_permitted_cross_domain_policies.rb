@@ -25,6 +25,7 @@ module SecureHeaders
       when String
         @config
       else
+        warn "[DEPRECATION] secure_headers 3.0 will only accept string values for XPermittedCrossDomainPolicies config"
         @config[:value]
       end
     end
