@@ -212,7 +212,6 @@ module SecureHeaders
     # we can't use ||= because I'm overloading false => disable, nil => default
     # both of which trigger the conditional assignment
     def secure_header_options_for(type, options)
-      warn "[DEPRECATION] secure_header_options_for will not be supported in secure_headers 3.x."
       options.nil? ? ::SecureHeaders::Configuration.send(type) : options
     end
 
