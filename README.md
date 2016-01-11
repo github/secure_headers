@@ -169,7 +169,7 @@ When manipulating content security policy, there are a few things to consider. T
 The value of `default_src` is joined with the addition. Note the `https:` is carried over from the `default-src` config. If you do not want this, use `override_content_security_policy_directives` instead. To illustrate:
 
 ```ruby
-::SecureHeaders::Configuration.configure do |config|
+::SecureHeaders::Configuration.default do |config|
    config.csp = {
      default_src: %w('self')
    }
@@ -314,7 +314,7 @@ and in `config/boot.rb`:
 
 ```ruby
 def before_load
-  SecureHeaders::Configuration.configure do |config|
+  SecureHeaders::Configuration.default do |config|
     ...
   end
 end
