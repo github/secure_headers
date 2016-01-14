@@ -33,10 +33,9 @@ SecureHeaders::Configuration.default do |config|
   config.csp = {
     default_src: %w(https: 'self'),
     report_only: false,
-    frame_src: %w(*.twimg.com itunes.apple.com),
+    frame_src: %w('self' *.twimg.com itunes.apple.com),
     connect_src: %w(wws:),
     font_src: %w('self' data:),
-    frame_src: %w('self'),
     img_src: %w(mycdn.com data:),
     media_src: %w(utoob.com),
     object_src: %w('self'),
