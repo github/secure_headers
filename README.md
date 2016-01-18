@@ -328,6 +328,7 @@ end
 * ASP.NET - [NWebsec](https://github.com/NWebsec/NWebsec/wiki)
 * Python - [django-csp](https://github.com/mozilla/django-csp) + [commonware](https://github.com/jsocol/commonware/); [django-security](https://github.com/sdelements/django-security)
 * Go - [secureheader](https://github.com/kr/secureheader)
+* Elixir [secure_headers](https://github.com/anotherhale/secure_headers)
 
 ## License
 
