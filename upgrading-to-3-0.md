@@ -11,6 +11,7 @@ Changes
 | `self`/`none` source expressions     | could be `self` / `none` / `'self'` / `'none'`                   | Must be `'self'` or `'none'`                                                                                                                                                   |
 | `inline` / `eval` source expressions | could be `inline`, `eval`, `'unsafe-inline'`, or `'unsafe-eval'` | Must be `'unsafe-eval'` or `'unsafe-inline'`                                                                                                                                   |
 | Per-action configuration         | override [`def secure_header_options_for(header, options)`](https://github.com/twitter/secureheaders/commit/bb9ebc6c12a677aad29af8e0f08ffd1def56efec#diff-04c6e90faac2675aa89e2176d2eec7d8R111)  | Use [named overrides](https://github.com/twitter/secureheaders#named-overrides) or [per-action helpers](https://github.com/twitter/secureheaders#per-action-configuration) |
+| CSP/HPKP use `report_only` config that defaults to false | `enforce: false` |  `report_only: false` |
 
 Migrating to 3.x from <= 2.x
 ==
@@ -18,6 +19,7 @@ Migrating to 3.x from <= 2.x
 1. Convert all headers except for CSP/HPKP using hashes to string values. The values are validated at runtime and will provide guidance on misconfigured headers.
 1. Convert all instances of `self`/`none`/`eval`/`inline` to the corresponding values in the above table.
 1. Convert all CSP space-delimited directives to an array of strings.
+1. Convert all `enforce: true|false` to `report_only: true|false`. 
 
 Everything is terrible, why should I upgrade?
 ==
