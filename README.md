@@ -128,7 +128,7 @@ end
 
 ## Per-action configuration
 
-You can override the settings for a given action by producing a temporary override. This approach is not recommended because the header values will be computed per request.
+You can override the settings for a given action by producing a temporary override. Be aware that because of the dynamic nature of the value, the header values will be computed per request.
 
 ```ruby
 # Given a config of:
