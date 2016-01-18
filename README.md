@@ -180,11 +180,6 @@ Code  | Result
 `append_content_security_policy_directives(script_src: %w(mycdn.com))` | `default-src 'self'; script-src 'self' mycdn.com`
 `override_content_security_policy_directives(script_src: %w(mycdn.com))`  | `default-src 'self'; script-src mycdn.com`
 
-Code  | Result
-------------- | -------------
-`append_content_security_policy_directives(script_src: %w(mycdn.com))` | `default-src https:; script-src https: mycdn.com`
-`override_content_security_policy_directives(script_src: %w(mycdn.com))`  | `default-src https:; script-src mycdn.com`
-
 #### Nonce
 
 script/style-nonce can be used to whitelist inline content. To do this, call the SecureHeaders::content_security_policy_nonce then set the nonce attributes on the various tags.
