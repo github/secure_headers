@@ -47,12 +47,15 @@ module SecureHeaders
     # additions - a hash containing directives. e.g.
     #    script_src: %w(another-host.com)
     def override_content_security_policy_directives(request, additions)
-      config = config_for(request).dup
-      if config.csp == OPT_OUT
-        config.csp = {}
+      config = config_for(request)
+      unless CSP.idempotent_additions?(config.csp, additions)
+        config = config.dup
+        if config.csp == OPT_OUT
+          config.csp = {}
+        end
+        config.csp.merge!(additions)
+        override_secure_headers_request_config(request, config)
       end
-      config.csp.merge!(additions)
-      override_secure_headers_request_config(request, config)
     end
 
     # Public: appends source values to the current configuration. If no value
@@ -62,9 +65,12 @@ module SecureHeaders
     # additions - a hash containing directives. e.g.
     #    script_src: %w(another-host.com)
     def append_content_security_policy_directives(request, additions)
-      config = config_for(request).dup
-      config.csp = CSP.combine_policies(config.csp, additions)
-      override_secure_headers_request_config(request, config)
+      config = config_for(request)
+      unless CSP.idempotent_additions?(config.csp, additions)
+        config = config.dup
+        config.csp = CSP.combine_policies(config.csp, additions)
+        override_secure_headers_request_config(request, config)
+      end
     end
 
     # Public: override X-Frame-Options settings for this request.
