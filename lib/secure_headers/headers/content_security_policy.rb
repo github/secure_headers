@@ -213,11 +213,11 @@ module SecureHeaders
         # when each hash contains a value for a given key.
         original.merge(additions) do |directive, lhs, rhs|
           if source_list?(directive)
-            lhs | rhs
+            (lhs.to_a + rhs).uniq.compact
           else
             rhs
           end
-        end
+        end.reject { |_, value| value.nil? || value == [] } # this mess prevents us from adding empty directives.
       end
 
       private

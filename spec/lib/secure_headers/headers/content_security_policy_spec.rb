@@ -117,6 +117,9 @@ module SecureHeaders
 
       specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w(b.com))).to be true }
       specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w(b.com a.com))).to be true }
+      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w())).to be true }
+      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: [nil])).to be true }
+      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, style_src: [nil])).to be true }
     end
 
     describe "#value" do
