@@ -37,8 +37,8 @@ SecureHeaders::Configuration.default do |config|
   config.x_permitted_cross_domain_policies = "none"
   config.csp = {
     # "meta" values. these will shaped the header, but the values are not included in the header.
-    report_only:  true,    # default: false
-    preserve_schemes: true # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
+    report_only:  true,     # default: false
+    preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
 
     # directive values: these values will directly translate into source directives
     default_src: %w(https: 'self'),

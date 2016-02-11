@@ -23,6 +23,35 @@ module SecureHeaders
     end
 
     describe "#validate_config!" do
+      it "accepts all keys" do
+        # (pulled from README)
+        config = {
+          # "meta" values. these will shaped the header, but the values are not included in the header.
+          report_only:  true,     # default: false
+          preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
+
+          # directive values: these values will directly translate into source directives
+          default_src: %w(https: 'self'),
+          frame_src: %w('self' *.twimg.com itunes.apple.com),
+          connect_src: %w(wws:),
+          font_src: %w('self' data:),
+          img_src: %w(mycdn.com data:),
+          media_src: %w(utoob.com),
+          object_src: %w('self'),
+          script_src: %w('self'),
+          style_src: %w('unsafe-inline'),
+          base_uri: %w('self'),
+          child_src: %w('self'),
+          form_action: %w('self' github.com),
+          frame_ancestors: %w('none'),
+          plugin_types: %w(application/x-shockwave-flash),
+          block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
+          report_uri: %w(https://example.com/uri-directive)
+        }
+
+        CSP.validate_config!(config)
+      end
+
       it "requires a :default_src value" do
         expect do
           CSP.validate_config!(script_src: %('self'))
@@ -32,6 +61,12 @@ module SecureHeaders
       it "requires :report_only to be a truthy value" do
         expect do
           CSP.validate_config!(default_opts.merge(report_only: "steve"))
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "requires :preserve_schemes to be a truthy value" do
+        expect do
+          CSP.validate_config!(default_opts.merge(preserve_schemes: "steve"))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
