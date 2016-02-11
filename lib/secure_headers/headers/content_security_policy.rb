@@ -145,7 +145,12 @@ module SecureHeaders
       STAR,
       DATA_PROTOCOL,
       BLOB_PROTOCOL
-    ]
+    ].freeze
+
+    META_CONFIGS = [
+      :report_only,
+      :preserve_schemes
+    ].freeze
 
     class << self
       # Public: generate a header name, value array that is user-agent-aware.
@@ -165,7 +170,7 @@ module SecureHeaders
         return if config.nil? || config == OPT_OUT
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
         config.each do |key, value|
-          if key == :report_only
+          if META_CONFIGS.include?(key)
             raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
           else
             validate_directive!(key, value)
