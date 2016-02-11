@@ -157,13 +157,7 @@ module SecureHeaders
         [header.name, header.value]
       end
 
-      # Public: Validates that the configuration has a valid type, or that it is a valid
-      # source expression.
-      #
-      # Private: validates that a source expression:
-      # 1. has a valid name
-      # 2. is an array of strings
-      # 3. does not contain any depreated, now invalid values (inline, eval, self, none)
+      # Public: Validates each source expression.
       #
       # Does not validate the invididual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
@@ -177,6 +171,17 @@ module SecureHeaders
             validate_directive!(key, value)
           end
         end
+      end
+
+      # Public: determine if merging +additions+ will cause a change to the
+      # actual value of the config.
+      #
+      # e.g. config = { script_src: %w(example.org google.com)} and
+      # additions = { script_src: %w(google.com)} then idempotent_additions? would return
+      # because google.com is already in the config.
+      def idempotent_additions?(config, additions)
+        return false if config == OPT_OUT
+        config.to_s == combine_policies(config, additions).to_s
       end
 
       # Public: combine the values from two different configs.
@@ -208,11 +213,11 @@ module SecureHeaders
         # when each hash contains a value for a given key.
         original.merge(additions) do |directive, lhs, rhs|
           if source_list?(directive)
-            lhs | rhs
+            (lhs.to_a + rhs).uniq.compact
           else
             rhs
           end
-        end
+        end.reject { |_, value| value.nil? || value == [] } # this mess prevents us from adding empty directives.
       end
 
       private
