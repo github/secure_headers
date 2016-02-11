@@ -275,7 +275,8 @@ module SecureHeaders
       else
         UserAgent.parse(user_agent)
       end
-      @report_only = !!@config[:report_only]
+      @report_only = @config[:report_only]
+      @preserve_schemes = @config[:preserve_schemes]
       @script_nonce = @config[:script_nonce]
       @style_nonce = @config[:style_nonce]
     end
@@ -345,9 +346,12 @@ module SecureHeaders
         source_list.reject! { |value| value == NONE } if source_list.length > 1
 
         # remove schemes and dedup source expressions
-        source_list = strip_source_schemes(source_list) unless directive_name == REPORT_URI
+        unless directive_name == REPORT_URI || @preserve_schemes
+          source_list = strip_source_schemes(source_list)
+        end
         dedup_source_list(source_list).join(" ")
       end
+
       [symbol_to_hyphen_case(directive_name), value].join(" ")
     end
 
