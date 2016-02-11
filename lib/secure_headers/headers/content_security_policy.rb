@@ -181,7 +181,7 @@ module SecureHeaders
       # because google.com is already in the config.
       def idempotent_additions?(config, additions)
         return false if config == OPT_OUT
-        config == combine_policies(config, additions)
+        config.to_s == combine_policies(config, additions).to_s
       end
 
       # Public: combine the values from two different configs.
