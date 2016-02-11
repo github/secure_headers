@@ -9,9 +9,9 @@ The gem will automatically apply several headers that are related to security.  
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
 - HTTP Strict Transport Security (HSTS) - Ensures the browser never visits the http version of a website. Protects from SSLStrip/Firesheep attacks.  [HSTS Specification](https://tools.ietf.org/html/rfc6797)
 - X-Frame-Options (XFO) - Prevents your content from being framed and potentially clickjacked. [X-Frame-Options draft](https://tools.ietf.org/html/draft-ietf-websec-x-frame-options-02)
-- X-XSS-Protection - [Cross site scripting heuristic filter for IE/Chrome](http://msdn.microsoft.com/en-us/library/dd565647\(v=vs.85\).aspx)
-- X-Content-Type-Options - [Prevent content type sniffing](http://msdn.microsoft.com/en-us/library/ie/gg622941\(v=vs.85\).aspx)
-- X-Download-Options - [Prevent file downloads opening](http://msdn.microsoft.com/en-us/library/ie/jj542450(v=vs.85).aspx)
+- X-XSS-Protection - [Cross site scripting heuristic filter for IE/Chrome](https://msdn.microsoft.com/en-us/library/dd565647\(v=vs.85\).aspx)
+- X-Content-Type-Options - [Prevent content type sniffing](https://msdn.microsoft.com/library/gg622941\(v=vs.85\).aspx)
+- X-Download-Options - [Prevent file downloads opening](https://msdn.microsoft.com/library/jj542450(v=vs.85).aspx)
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
 
@@ -321,8 +321,8 @@ end
 
 ## Similar libraries
 
-* Rack [rack-secure_headers](https://github.com/harmoni/rack-secure_headers)
-* Node.js (express) [helmet](https://github.com/evilpacket/helmet) and [hood](https://github.com/seanmonstar/hood)
+* Rack [rack-secure_headers](https://github.com/frodsan/rack-secure_headers)
+* Node.js (express) [helmet](https://github.com/helmetjs/helmet) and [hood](https://github.com/seanmonstar/hood)
 * Node.js (hapi) [blankie](https://github.com/nlf/blankie)
 * J2EE Servlet >= 3.0 [headlines](https://github.com/sourceclear/headlines)
 * ASP.NET - [NWebsec](https://github.com/NWebsec/NWebsec/wiki)
