@@ -151,6 +151,11 @@ module SecureHeaders
         expect(csp.value).to eq("default-src https:; report-uri https://example.org")
       end
 
+      it "does not remove schemes when :preserve_schemes is true" do
+        csp = ContentSecurityPolicy.new(default_src: %w(https://example.org), :preserve_schemes => true)
+        expect(csp.value).to eq("default-src https://example.org")
+      end
+
       it "removes nil from source lists" do
         csp = ContentSecurityPolicy.new(default_src: ["https://example.org", nil])
         expect(csp.value).to eq("default-src example.org")

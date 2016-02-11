@@ -25,7 +25,7 @@ The gem will automatically apply several headers that are related to security.  
 
 If you do not supply a `default` configuration, exceptions will be raised. If you would like to use a default configuration (which is fairly locked down), just call `SecureHeaders::Configuration.default` without any arguments or block.
 
-All `nil` values will fallback to their default value. `SecureHeaders::OPT_OUT` will disable the header entirely.
+All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT` will disable the header entirely.
 
 ```ruby
 SecureHeaders::Configuration.default do |config|
@@ -36,8 +36,12 @@ SecureHeaders::Configuration.default do |config|
   config.x_download_options = "noopen"
   config.x_permitted_cross_domain_policies = "none"
   config.csp = {
+    # "meta" values. these will shaped the header, but the values are not included in the header.
+    report_only:  true,    # default: false
+    preserve_schemes: true # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
+
+    # directive values: these values will directly translate into source directives
     default_src: %w(https: 'self'),
-    report_only: false,
     frame_src: %w('self' *.twimg.com itunes.apple.com),
     connect_src: %w(wws:),
     font_src: %w('self' data:),
