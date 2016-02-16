@@ -218,7 +218,7 @@ module SecureHeaders
         # when each hash contains a value for a given key.
         original.merge(additions) do |directive, lhs, rhs|
           if source_list?(directive)
-            (lhs.to_a + rhs).uniq.compact
+            (lhs.to_a + rhs.to_a).compact.uniq
           else
             rhs
           end
@@ -343,6 +343,8 @@ module SecureHeaders
     #
     # Returns a string representing a directive.
     def build_directive(directive_name)
+      return if @config[directive_name].nil?
+
       source_list = @config[directive_name].compact
       return if source_list.empty?
 

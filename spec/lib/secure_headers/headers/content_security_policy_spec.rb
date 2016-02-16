@@ -155,6 +155,7 @@ module SecureHeaders
       specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w())).to be true }
       specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: [nil])).to be true }
       specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, style_src: [nil])).to be true }
+      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, style_src: nil)).to be true }
     end
 
     describe "#value" do
@@ -198,6 +199,11 @@ module SecureHeaders
 
       it "does not add a directive if the value is an empty array (or all nil)" do
         csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], script_src: [nil])
+        expect(csp.value).to eq("default-src example.org")
+      end
+
+      it "does not add a directive if the value is nil" do
+        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], script_src: nil)
         expect(csp.value).to eq("default-src example.org")
       end
 
