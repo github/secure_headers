@@ -27,6 +27,18 @@ module SecureHeaders
     SecureHeaders::XXssProtection
   ]
 
+  ALL_FILTER_METHODS = [
+    :prep_script_hash,
+    :set_hsts_header,
+    :set_hpkp_header,
+    :set_x_frame_options_header,
+    :set_csp_header,
+    :set_x_xss_protection_header,
+    :set_x_content_type_options_header,
+    :set_x_download_options_header,
+    :set_x_permitted_cross_domain_policies_header
+  ]
+
   module Configuration
     class << self
       attr_accessor :hsts, :x_frame_options, :x_content_type_options,
@@ -97,15 +109,10 @@ module SecureHeaders
         warn "[DEPRECATION] secure_headers ruby 1.8.7 support will dropped in the next release"
       end
       self.secure_headers_options = options
-      before_filter :prep_script_hash
-      before_filter :set_hsts_header
-      before_filter :set_hpkp_header
-      before_filter :set_x_frame_options_header
-      before_filter :set_csp_header
-      before_filter :set_x_xss_protection_header
-      before_filter :set_x_content_type_options_header
-      before_filter :set_x_download_options_header
-      before_filter :set_x_permitted_cross_domain_policies_header
+      hook = respond_to?(:before_action) ? :before_action : :before_filter
+      ALL_FILTER_METHODS.each do |method|
+        send(hook, method)
+      end
     end
   end
 
