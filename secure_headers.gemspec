@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 Gem::Specification.new do |gem|
   gem.name          = "secure_headers"
-  gem.version       = "3.0.0.rc1"
+  gem.version       = "3.0.0"
   gem.authors       = ["Neil Matatall"]
   gem.email         = ["neil.matatall@gmail.com"]
   gem.description   = 'Security related headers all in one gem.'
