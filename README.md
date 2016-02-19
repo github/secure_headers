@@ -130,7 +130,7 @@ By default, a noop configuration is provided. No headers will be set when this d
 ```ruby
 class MyController < ApplicationController
   def index
-    SecureHeaders::opt_out_of_all_protection(request)
+    SecureHeaders.opt_out_of_all_protection(request)
   end
 end
 ```
@@ -191,7 +191,7 @@ Code  | Result
 
 #### Nonce
 
-script/style-nonce can be used to whitelist inline content. To do this, call the SecureHeaders::content_security_policy_nonce then set the nonce attributes on the various tags.
+script/style-nonce can be used to whitelist inline content. To do this, call the `SecureHeaders.content_security_policy_nonce` then set the nonce attributes on the various tags.
 
 Setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
 
@@ -280,7 +280,7 @@ class Donkey < Sinatra::Application
   set :root, APP_ROOT
 
   get '/' do
-    SecureHeaders.override_x_frame_options(SecureHeaders::OPT_OUT)
+    SecureHeaders.override_x_frame_options(request, SecureHeaders::OPT_OUT)
     haml :index
   end
 end
