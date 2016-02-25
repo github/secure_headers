@@ -56,6 +56,7 @@ SecureHeaders::Configuration.default do |config|
     frame_ancestors: %w('none'),
     plugin_types: %w(application/x-shockwave-flash),
     block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
+    upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
     report_uri: %w(https://example.com/uri-directive)
   }
   config.hpkp = {
