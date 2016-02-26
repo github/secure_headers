@@ -77,8 +77,10 @@ module SecureHeaders
     # All the directives that are not currently in a formal spec, but have
     # been implemented somewhere.
     BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
+    UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
     DIRECTIVES_DRAFT = [
-      BLOCK_ALL_MIXED_CONTENT
+      BLOCK_ALL_MIXED_CONTENT,
+      UPGRADE_INSECURE_REQUESTS
     ].freeze
 
     SAFARI_DIRECTIVES = DIRECTIVES_1_0
@@ -90,7 +92,7 @@ module SecureHeaders
     ].freeze
 
     FIREFOX_DIRECTIVES = (
-      DIRECTIVES_2_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
+      DIRECTIVES_2_0 + DIRECTIVES_DRAFT - FIREFOX_UNSUPPORTED_DIRECTIVES
     ).freeze
 
     CHROME_DIRECTIVES = (
@@ -114,25 +116,26 @@ module SecureHeaders
     OTHER = "Other".freeze
 
     DIRECTIVE_VALUE_TYPES = {
-      BASE_URI                => :source_list,
-      BLOCK_ALL_MIXED_CONTENT => :boolean,
-      CHILD_SRC               => :source_list,
-      CONNECT_SRC             => :source_list,
-      DEFAULT_SRC             => :source_list,
-      FONT_SRC                => :source_list,
-      FORM_ACTION             => :source_list,
-      FRAME_ANCESTORS         => :source_list,
-      FRAME_SRC               => :source_list,
-      IMG_SRC                 => :source_list,
-      MANIFEST_SRC            => :source_list,
-      MEDIA_SRC               => :source_list,
-      OBJECT_SRC              => :source_list,
-      PLUGIN_TYPES            => :source_list,
-      REFLECTED_XSS           => :string,
-      REPORT_URI              => :source_list,
-      SANDBOX                 => :string,
-      SCRIPT_SRC              => :source_list,
-      STYLE_SRC               => :source_list
+      BASE_URI                  => :source_list,
+      BLOCK_ALL_MIXED_CONTENT   => :boolean,
+      CHILD_SRC                 => :source_list,
+      CONNECT_SRC               => :source_list,
+      DEFAULT_SRC               => :source_list,
+      FONT_SRC                  => :source_list,
+      FORM_ACTION               => :source_list,
+      FRAME_ANCESTORS           => :source_list,
+      FRAME_SRC                 => :source_list,
+      IMG_SRC                   => :source_list,
+      MANIFEST_SRC              => :source_list,
+      MEDIA_SRC                 => :source_list,
+      OBJECT_SRC                => :source_list,
+      PLUGIN_TYPES              => :source_list,
+      REFLECTED_XSS             => :string,
+      REPORT_URI                => :source_list,
+      SANDBOX                   => :string,
+      SCRIPT_SRC                => :source_list,
+      STYLE_SRC                 => :source_list,
+      UPGRADE_INSECURE_REQUESTS => :boolean
     }.freeze
 
     CONFIG_KEY = :csp
@@ -196,7 +199,7 @@ module SecureHeaders
       #
       # raises an error if the original config is OPT_OUT
       #
-      # 1. for non-source-list values (report_only, block_all_mixed_content),
+      # 1. for non-source-list values (report_only, block_all_mixed_content, upgrade_insecure_requests),
       # additions will overwrite the original value.
       # 2. if a value in additions does not exist in the original config, the
       # default-src value is included to match original behavior.
