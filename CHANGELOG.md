@@ -1,3 +1,7 @@
+## 3.0.1
+
+Adds `upgrade-insecure-requests` support for requests from Firefox and Chrome (and Opera). See [the spec](https://www.w3.org/TR/upgrade-insecure-requests/) for details.
+
 ## 3.0.0
 
 secure_headers 3.0.0 is a near-complete, not-entirely-backward-compatible rewrite. Please see the [upgrade guide](https://github.com/twitter/secureheaders/blob/master/upgrading-to-3-0.md) for an in-depth explanation of the changes and the suggested upgrade path.
