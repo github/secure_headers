@@ -20,6 +20,7 @@ Migrating to 3.x from <= 2.x
 1. Convert all instances of `self`/`none`/`eval`/`inline` to the corresponding values in the above table.
 1. Convert all CSP space-delimited directives to an array of strings.
 1. Convert all `enforce: true|false` to `report_only: true|false`. 
+1. Remove `ensure_security_headers` from controllers (3.x uses a middleware instead).
 
 Everything is terrible, why should I upgrade?
 ==
