@@ -1,3 +1,7 @@
+## 3.0.2
+
+Bug fix for handling CSP configs that supply a frozen hash. If a directive value is `nil`, then appending to a config with a frozen hash would cause an error since we're trying to modify a frozen hash. See https://github.com/twitter/secureheaders/pull/223.
+
 ## 3.0.1
 
 Adds `upgrade-insecure-requests` support for requests from Firefox and Chrome (and Opera). See [the spec](https://www.w3.org/TR/upgrade-insecure-requests/) for details.
