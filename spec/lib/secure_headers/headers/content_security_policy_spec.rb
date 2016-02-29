@@ -124,8 +124,29 @@ module SecureHeaders
             report_only: false
           }.freeze
         end
-        combined_config = CSP.combine_policies(Configuration.get.csp, report_uri: %w(https://report-uri.io/asdf))
-        expect(combined_config[:report_uri]).to_not be_nil
+        report_uri = "https://report-uri.io/asdf"
+        combined_config = CSP.combine_policies(Configuration.get.csp, report_uri: [report_uri])
+        csp = ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox])
+        expect(csp.value).to include("report-uri #{report_uri}")
+      end
+
+      it "does not combine the default-src value for directives that don't fall back to default sources" do
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            report_only: false
+          }.freeze
+        end
+        non_default_source_additions = CSP::NON_DEFAULT_SOURCES.each_with_object({}) do |directive, hash|
+          hash[directive] = %w("http://example.org)
+        end
+        combined_config = CSP.combine_policies(Configuration.get.csp, non_default_source_additions)
+
+        CSP::NON_DEFAULT_SOURCES.each do |directive|
+          expect(combined_config[directive]).to eq(%w("http://example.org))
+        end
+
+         ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox]).value
       end
 
       it "overrides the report_only flag" do
