@@ -1,3 +1,22 @@
+## 3.0.3
+
+Bug fix for handling policy merges where appending a non-default source value (report-uri, plugin-types, frame-ancestors, base-uri, and form-action) would be combined with the default-src value. Appending a directive that doesn't exist in the current policy combines the new value with `default-src` to mimic the actual behavior of the addition. However, this does not make sense for non-default-src values (a.k.a. "fetch directives") and can lead to unexpected behavior like a `report-uri` value of `*`. Previously, this config:
+
+```
+{
+  default_src => %w(*)
+}
+```
+
+When appending:
+
+```
+{
+  report_uri => %w(https://report-uri.io/asdf)
+}
+
+Would result in `default-src *; report-uri *` which doesn't make any sense at all.
+
 ## 3.0.2
 
 Bug fix for handling CSP configs that supply a frozen hash. If a directive value is `nil`, then appending to a config with a frozen hash would cause an error since we're trying to modify a frozen hash. See https://github.com/twitter/secureheaders/pull/223.
