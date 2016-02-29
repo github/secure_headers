@@ -117,6 +117,17 @@ module SecureHeaders
         expect(csp.value).to eq("default-src https:; script-src https: anothercdn.com")
       end
 
+      it "combines directives where the original value is nil and the hash is frozen" do
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            report_only: false
+          }.freeze
+        end
+        combined_config = CSP.combine_policies(Configuration.get.csp, report_uri: %w(https://report-uri.io/asdf))
+        expect(combined_config[:report_uri]).to_not be_nil
+      end
+
       it "overrides the report_only flag" do
         Configuration.default do |config|
           config.csp = {
