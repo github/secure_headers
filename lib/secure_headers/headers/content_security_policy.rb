@@ -210,6 +210,8 @@ module SecureHeaders
           raise ContentSecurityPolicyConfigError.new("Attempted to override an opt-out CSP config.")
         end
 
+        original = original.dup # in case the hash is frozen
+
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.keys.each do |directive|
           unless original[directive] || !source_list?(directive)
