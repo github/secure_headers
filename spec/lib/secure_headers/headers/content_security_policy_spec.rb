@@ -138,13 +138,15 @@ module SecureHeaders
           }.freeze
         end
         non_default_source_additions = CSP::NON_DEFAULT_SOURCES.each_with_object({}) do |directive, hash|
-          hash[directive] = "http://example.org"
+          hash[directive] = %w("http://example.org)
         end
         combined_config = CSP.combine_policies(Configuration.get.csp, non_default_source_additions)
 
         CSP::NON_DEFAULT_SOURCES.each do |directive|
-          expect(combined_config[directive]).to eq("http://example.org")
+          expect(combined_config[directive]).to eq(%w("http://example.org))
         end
+
+         ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox]).value
       end
 
       it "overrides the report_only flag" do
