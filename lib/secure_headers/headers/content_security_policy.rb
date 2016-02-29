@@ -55,6 +55,16 @@ module SecureHeaders
     FRAME_ANCESTORS = :frame_ancestors
     PLUGIN_TYPES = :plugin_types
 
+    # These are directives that do not inherit the default-src value. This is
+    # useful when calling #combine_policies.
+    NON_DEFAULT_SOURCES = [
+      BASE_URI,
+      FORM_ACTION,
+      FRAME_ANCESTORS,
+      PLUGIN_TYPES,
+      REPORT_URI
+    ]
+
     DIRECTIVES_2_0 = [
       DIRECTIVES_1_0,
       BASE_URI,
@@ -214,7 +224,7 @@ module SecureHeaders
 
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.keys.each do |directive|
-          unless original[directive] || !source_list?(directive)
+          unless original[directive] || !source_list?(directive) || NON_DEFAULT_SOURCES.include?(directive)
             original[directive] = original[:default_src]
           end
         end
