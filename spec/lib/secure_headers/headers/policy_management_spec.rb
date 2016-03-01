@@ -127,12 +127,12 @@ module SecureHeaders
             report_only: false
           }.freeze
         end
-        non_default_source_additions = CSP::NON_DEFAULT_SOURCES.each_with_object({}) do |directive, hash|
+        non_default_source_additions = CSP::NON_FETCH_SOURCES.each_with_object({}) do |directive, hash|
           hash[directive] = %w("http://example.org)
         end
         combined_config = CSP.combine_policies(Configuration.get.csp, non_default_source_additions)
 
-        CSP::NON_DEFAULT_SOURCES.each do |directive|
+        CSP::NON_FETCH_SOURCES.each do |directive|
           expect(combined_config[directive]).to eq(%w("http://example.org))
         end
 
