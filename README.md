@@ -287,43 +287,6 @@ class Donkey < Sinatra::Application
 end
 ```
 
-### Using with Padrino
-
-You can use SecureHeaders for Padrino applications as well:
-
-In your `Gemfile`:
-
-```ruby
-  gem "secure_headers", require: 'secure_headers'
-```
-
-then in your `app.rb` file you can:
-
-```ruby
-Padrino.use(SecureHeaders::Middleware)
-require 'secure_headers/padrino'
-
-module Web
-  class App < Padrino::Application
-    register SecureHeaders::Padrino
-
-    get '/' do
-      render 'index'
-    end
-  end
-end
-```
-
-and in `config/boot.rb`:
-
-```ruby
-def before_load
-  SecureHeaders::Configuration.default do |config|
-    ...
-  end
-end
-```
-
 ## Similar libraries
 
 * Rack [rack-secure_headers](https://github.com/frodsan/rack-secure_headers)
