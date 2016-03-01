@@ -6,17 +6,8 @@
 .yardoc
 *.log
 Gemfile.lock
-InstalledFiles
 _yardoc
 coverage
-doc/
-lib/bundler/man
 pkg
 rdoc
 spec/reports
-test/tmp
-test/version_tmp
-*tmp
-*.sqlite3
-fixtures/rails_3_2_12_no_init/log
-fixtures/rails_3_2_12/log

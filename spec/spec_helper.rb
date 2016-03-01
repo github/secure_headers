@@ -3,9 +3,12 @@ require 'rspec'
 require 'rack'
 require 'pry-nav'
 
+require 'coveralls'
+Coveralls.wear!
+
 require File.join(File.dirname(__FILE__), '..', 'lib', 'secure_headers')
 
-ENV["RAILS_ENV"] = "test"
+
 
 USER_AGENTS = {
   firefox: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:14.0) Gecko/20100101 Firefox/14.0.1',

@@ -29,7 +29,7 @@ All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT`
 
 ```ruby
 SecureHeaders::Configuration.default do |config|
-  config.hsts = "max-age=#{20.years.to_i}"
+  config.hsts = "max-age=#{20.years.to_i}; includeSubdomains; preload"
   config.x_frame_options = "DENY"
   config.x_content_type_options = "nosniff"
   config.x_xss_protection = "1; mode=block"
@@ -57,13 +57,13 @@ SecureHeaders::Configuration.default do |config|
     plugin_types: %w(application/x-shockwave-flash),
     block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
-    report_uri: %w(https://example.com/uri-directive)
+    report_uri: %w(https://report-uri.io/example-csp)
   }
   config.hpkp = {
     report_only: false,
     max_age: 60.days.to_i,
     include_subdomains: true,
-    report_uri: "https://example.com/uri-directive",
+    report_uri: "https://report-uri.io/example-hpkp",
     pins: [
       {sha256: "abc"},
       {sha256: "123"}
@@ -175,7 +175,7 @@ When manipulating content security policy, there are a few things to consider. T
 
 #### Append to the policy with a directive other than `default_src`
 
-The value of `default_src` is joined with the addition. Note the `https:` is carried over from the `default-src` config. If you do not want this, use `override_content_security_policy_directives` instead. To illustrate:
+The value of `default_src` is joined with the addition if the it is a [fetch directive](https://w3c.github.io/webappsec-csp/#directives-fetch). Note the `https:` is carried over from the `default-src` config. If you do not want this, use `override_content_security_policy_directives` instead. To illustrate:
 
 ```ruby
 ::SecureHeaders::Configuration.default do |config|
@@ -255,7 +255,7 @@ config.hpkp = {
     {sha256: '73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f'}
   ],
   report_only: true,            # defaults to false (report-only mode)
-  report_uri: '//example.com/uri-directive',
+  report_uri: 'https://report-uri.io/example-hpkp',
   app_name: 'example',
   tag_report_uri: true
 }
@@ -283,43 +283,6 @@ class Donkey < Sinatra::Application
   get '/' do
     SecureHeaders.override_x_frame_options(request, SecureHeaders::OPT_OUT)
     haml :index
-  end
-end
-```
-
-### Using with Padrino
-
-You can use SecureHeaders for Padrino applications as well:
-
-In your `Gemfile`:
-
-```ruby
-  gem "secure_headers", require: 'secure_headers'
-```
-
-then in your `app.rb` file you can:
-
-```ruby
-Padrino.use(SecureHeaders::Middleware)
-require 'secure_headers/padrino'
-
-module Web
-  class App < Padrino::Application
-    register SecureHeaders::Padrino
-
-    get '/' do
-      render 'index'
-    end
-  end
-end
-```
-
-and in `config/boot.rb`:
-
-```ruby
-def before_load
-  SecureHeaders::Configuration.default do |config|
-    ...
   end
 end
 ```
