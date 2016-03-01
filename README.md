@@ -57,13 +57,13 @@ SecureHeaders::Configuration.default do |config|
     plugin_types: %w(application/x-shockwave-flash),
     block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
-    report_uri: %w(https://example.com/uri-directive)
+    report_uri: %w(https://report-uri.io/example-csp)
   }
   config.hpkp = {
     report_only: false,
     max_age: 60.days.to_i,
     include_subdomains: true,
-    report_uri: "https://example.com/uri-directive",
+    report_uri: "https://report-uri.io/example-hpkp",
     pins: [
       {sha256: "abc"},
       {sha256: "123"}
@@ -255,7 +255,7 @@ config.hpkp = {
     {sha256: '73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f'}
   ],
   report_only: true,            # defaults to false (report-only mode)
-  report_uri: '//example.com/uri-directive',
+  report_uri: 'https://report-uri.io/example-hpkp',
   app_name: 'example',
   tag_report_uri: true
 }
