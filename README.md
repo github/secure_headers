@@ -175,7 +175,7 @@ When manipulating content security policy, there are a few things to consider. T
 
 #### Append to the policy with a directive other than `default_src`
 
-The value of `default_src` is joined with the addition. Note the `https:` is carried over from the `default-src` config. If you do not want this, use `override_content_security_policy_directives` instead. To illustrate:
+The value of `default_src` is joined with the addition if the it is a [fetch directive](https://w3c.github.io/webappsec-csp/#directives-fetch). Note the `https:` is carried over from the `default-src` config. If you do not want this, use `override_content_security_policy_directives` instead. To illustrate:
 
 ```ruby
 ::SecureHeaders::Configuration.default do |config|
