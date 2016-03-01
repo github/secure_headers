@@ -4,7 +4,7 @@ module SecureHeaders
   describe StrictTransportSecurity do
     describe "#value" do
       specify { expect(StrictTransportSecurity.make_header).to eq([StrictTransportSecurity::HEADER_NAME, StrictTransportSecurity::DEFAULT_VALUE]) }
-      specify { expect(StrictTransportSecurity.make_header("max-age=1234")).to eq([StrictTransportSecurity::HEADER_NAME, "max-age=1234"]) }
+      specify { expect(StrictTransportSecurity.make_header("max-age=1234; includeSubdomains; preload")).to eq([StrictTransportSecurity::HEADER_NAME, "max-age=1234; includeSubdomains; preload"]) }
 
       context "with an invalid configuration" do
         context "with a string argument" do
