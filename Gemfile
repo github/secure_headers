@@ -7,7 +7,7 @@ group :test do
   gem "pry-nav"
   gem "rack"
   gem "rspec"
-  gem "coveralls", platforms: [:ruby_19, :ruby_20, :ruby_21, :ruby_22]
+  gem "coveralls"
 end
 
 group :guard do
