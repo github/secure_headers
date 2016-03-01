@@ -1,4 +1,3 @@
-require 'securerandom'
 require_relative 'policy_management'
 
 module SecureHeaders
