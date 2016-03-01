@@ -219,16 +219,15 @@ module SecureHeaders
         end
 
         original = original.dup if original.frozen?
+        populate_fetch_source_with_default!(original, additions)
+        merge_policy_additions(original, additions)
+      end
 
-        # in case we would be appending to an empty directive, fill it with the default-src value
-        additions.keys.each do |directive|
-          unless original[directive] || !source_list?(directive) || NON_FETCH_SOURCES.include?(directive)
-            original[directive] = original[:default_src]
-          end
-        end
+      private
 
-        # merge the two hashes. combine (instead of overwrite) the array values
-        # when each hash contains a value for a given key.
+      # merge the two hashes. combine (instead of overwrite) the array values
+      # when each hash contains a value for a given key.
+      def merge_policy_additions(original, additions)
         original.merge(additions) do |directive, lhs, rhs|
           if source_list?(directive)
             (lhs.to_a + rhs.to_a).compact.uniq
@@ -238,7 +237,16 @@ module SecureHeaders
         end.reject { |_, value| value.nil? || value == [] } # this mess prevents us from adding empty directives.
       end
 
-      private
+      # For each directive in additions that does not exist in the original config,
+      # copy the default-src value to the original config. This modifies the original hash.
+      def populate_fetch_source_with_default!(original, additions)
+        # in case we would be appending to an empty directive, fill it with the default-src value
+        additions.keys.each do |directive|
+          unless original[directive] || !source_list?(directive) || NON_FETCH_SOURCES.include?(directive)
+            original[directive] = original[:default_src]
+          end
+        end
+      end
 
       def source_list?(directive)
         DIRECTIVE_VALUE_TYPES[directive] == :source_list
@@ -246,18 +254,18 @@ module SecureHeaders
 
       # Private: Validates that the configuration has a valid type, or that it is a valid
       # source expression.
-      def validate_directive!(key, value)
-        case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[key]
+      def validate_directive!(directive, source_expression)
+        case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[directive]
         when :boolean
-          unless boolean?(value)
-            raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value")
+          unless boolean?(source_expression)
+            raise ContentSecurityPolicyConfigError.new("#{directive} must be a boolean value")
           end
         when :string
-          unless value.is_a?(String)
-            raise ContentSecurityPolicyConfigError.new("#{key} Must be a string. Found #{config.class}: #{config} value")
+          unless source_expression.is_a?(String)
+            raise ContentSecurityPolicyConfigError.new("#{directive} Must be a string. Found #{config.class}: #{config} value")
           end
         else
-          validate_source_expression!(key, value)
+          validate_source_expression!(directive, source_expression)
         end
       end
 
@@ -268,24 +276,34 @@ module SecureHeaders
       #
       # Does not validate the invididual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
-      def validate_source_expression!(key, value)
-        unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(key)
-          raise ContentSecurityPolicyConfigError.new("Unknown directive #{key}")
-        end
+      def validate_source_expression!(directive, source_expression)
+        ensure_valid_directive!(directive)
+        ensure_array_of_strings!(directive, source_expression)
+        ensure_valid_sources!(directive, source_expression)
+      end
 
-        unless value.is_a?(Array) && value.compact.all? { |v| v.is_a?(String) }
-          raise ContentSecurityPolicyConfigError.new("#{key} must be an array of strings")
+      def ensure_valid_directive!(directive)
+        unless ContentSecurityPolicy::ALL_DIRECTIVES.include?(directive)
+          raise ContentSecurityPolicyConfigError.new("Unknown directive #{directive}")
         end
+      end
 
-        value.each do |source_expression|
+      def ensure_array_of_strings!(directive, source_expression)
+        unless source_expression.is_a?(Array) && source_expression.compact.all? { |v| v.is_a?(String) }
+          raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of strings")
+        end
+      end
+
+      def ensure_valid_sources!(directive, source_expression)
+        source_expression.each do |source_expression|
           if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
-            raise ContentSecurityPolicyConfigError.new("#{key} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
+            raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
           end
         end
       end
 
-      def boolean?(value)
-        value.is_a?(TrueClass) || value.is_a?(FalseClass)
+      def boolean?(source_expression)
+        source_expression.is_a?(TrueClass) || source_expression.is_a?(FalseClass)
       end
     end
   end
