@@ -1,11 +1,18 @@
 language: ruby
 
 rvm:
-  - "2.2"
-  - "2.1"
-  - "2.0.0"
-  - "1.9.3"
-  - "jruby-19mode"
+  - ruby-head
+  - 2.2
+  - 2.1
+  - 2.0.0
+  - 1.9.3
+  - jruby-19mode
+  - jruby-head
+
+matrix:
+  allow_failures:
+    - rvm: jruby-head
+    - rvm: ruby-head
 
 before_install: gem update bundler
 
