@@ -2,8 +2,8 @@ require "spec_helper"
 
 module SecureHeaders
   describe Middleware do
-    let(:app) { ->(env) { [200, env, "app"] } }
-    let(:cookie_app) { -> (env) { [200, env.merge("Set-Cookie" => "foo=bar"), "app"] } }
+    let(:app) { lambda { |env| [200, env, "app"] } }
+    let(:cookie_app) { lambda { |env| [200, env.merge("Set-Cookie" => "foo=bar"), "app"] } }
 
     let(:middleware) { Middleware.new(app) }
     let(:cookie_middleware) { Middleware.new(cookie_app) }
