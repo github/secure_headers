@@ -48,14 +48,13 @@ module SecureHeaders
     #    script_src: %w(another-host.com)
     def override_content_security_policy_directives(request, additions)
       config = config_for(request)
-      unless CSP.idempotent_additions?(config.csp, additions)
-        config = config.dup
-        if config.csp == OPT_OUT
-          config.csp = {}
-        end
-        config.csp.merge!(additions)
-        override_secure_headers_request_config(request, config)
+      if config.current_csp == OPT_OUT
+        config.csp = config.dynamic_csp = {}
       end
+
+      csp = Configuration.deep_copy(config.current_csp)
+      config.dynamic_csp = csp.merge!(additions)
+      override_secure_headers_request_config(request, config)
     end
 
     # Public: appends source values to the current configuration. If no value
@@ -66,11 +65,9 @@ module SecureHeaders
     #    script_src: %w(another-host.com)
     def append_content_security_policy_directives(request, additions)
       config = config_for(request)
-      unless CSP.idempotent_additions?(config.csp, additions)
-        config = config.dup
-        config.csp = CSP.combine_policies(config.csp, additions)
-        override_secure_headers_request_config(request, config)
-      end
+      csp = Configuration.deep_copy(config.current_csp)
+      config.dynamic_csp = CSP.combine_policies(csp, additions)
+      override_secure_headers_request_config(request, config)
     end
 
     # Public: override X-Frame-Options settings for this request.
@@ -79,16 +76,20 @@ module SecureHeaders
     #
     # Returns the current config
     def override_x_frame_options(request, value)
-      default_config = config_for(request).dup
-      default_config.x_frame_options = value
-      override_secure_headers_request_config(request, default_config)
+      config = config_for(request)
+      config.x_frame_options = value
+      config.cached_headers[XFrameOptions::CONFIG_KEY] = make_header(XFrameOptions, config.x_frame_options)
+      override_secure_headers_request_config(request, config)
     end
 
     # Public: opts out of setting a given header by creating a temporary config
     # and setting the given headers config to OPT_OUT.
     def opt_out_of_header(request, header_key)
-      config = config_for(request).dup
+      config = config_for(request)
       config.send("#{header_key}=", OPT_OUT)
+      if header_key == CSP::CONFIG_KEY
+        config.dynamic_csp = OPT_OUT
+      end
       override_secure_headers_request_config(request, config)
     end
 
@@ -109,6 +110,9 @@ module SecureHeaders
     # in Rack middleware.
     def header_hash_for(request)
       config = config_for(request)
+      unless ContentSecurityPolicy.idempotent_additions?(config.csp, config.current_csp)
+        config.rebuild_csp_header_cache!(request.user_agent)
+      end
 
       headers = if cached_headers = config.cached_headers
         use_cached_headers(cached_headers, request)
@@ -223,8 +227,14 @@ module SecureHeaders
     # Checks to see if a named override is used for this request, then
     # Falls back to the global config
     def config_for(request)
-      request.env[SECURE_HEADERS_CONFIG] ||
+      config = request.env[SECURE_HEADERS_CONFIG] ||
         Configuration.get(Configuration::DEFAULT_CONFIG)
+
+      if config.frozen?
+        config.dup
+      else
+        config
+      end
     end
 
     # Private: chooses the applicable CSP header for the provided user agent.
@@ -233,12 +243,7 @@ module SecureHeaders
     #
     # Returns a CSP [header, value] array
     def default_csp_header_for_ua(headers, request)
-      family = UserAgent.parse(request.user_agent).browser
-      if CSP::VARIATIONS.key?(family)
-        headers[family]
-      else
-        headers[CSP::OTHER]
-      end
+      headers[CSP.ua_to_variation(UserAgent.parse(request.user_agent))]
     end
 
     # Private: optionally build a header with a given configure

@@ -90,8 +90,7 @@ module SecureHeaders
 
     attr_accessor :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp
-    attr_reader :cached_headers
+      :hpkp, :dynamic_csp, :cached_headers
 
     def initialize(&block)
       self.hpkp = OPT_OUT
@@ -110,18 +109,21 @@ module SecureHeaders
       copy.x_xss_protection = x_xss_protection
       copy.x_download_options = x_download_options
       copy.x_permitted_cross_domain_policies = x_permitted_cross_domain_policies
-      copy.csp = if csp.is_a?(Hash)
-        self.class.deep_copy(csp)
-      else
-        csp
-      end
-
-      copy.hpkp = if hpkp.is_a?(Hash)
-        self.class.deep_copy(hpkp)
-      else
-        hpkp
-      end
+      copy.csp = deep_copy_hash(csp)
+      copy.dynamic_csp = deep_copy_hash(dynamic_csp)
+      copy.hpkp = deep_copy_hash(hpkp)
+      copy.cached_headers = deep_copy_hash(cached_headers)
       copy
+    end
+
+    # Public: generated cached headers for a specific user agent.
+    def rebuild_csp_header_cache!(user_agent)
+      self.cached_headers[CSP::CONFIG_KEY] = {}
+      unless current_csp == OPT_OUT
+        user_agent = UserAgent.parse(user_agent)
+        variation = CSP.ua_to_variation(user_agent)
+        self.cached_headers[CSP::CONFIG_KEY][variation] = CSP.make_header(current_csp, user_agent)
+      end
     end
 
     # Public: Retrieve a config based on the CONFIG_KEY for a class
@@ -131,6 +133,10 @@ module SecureHeaders
       config = send(key)
       config = self.class.deep_copy(config) if config.is_a?(Hash)
       config
+    end
+
+    def current_csp
+      self.dynamic_csp || self.csp
     end
 
     # Public: validates all configurations values.
@@ -177,12 +183,19 @@ module SecureHeaders
     def generate_csp_headers(headers)
       unless csp == OPT_OUT
         headers[CSP::CONFIG_KEY] = {}
-
+        csp_config = fetch(:current_csp)
         CSP::VARIATIONS.each do |name, _|
-          csp_config = fetch(CSP::CONFIG_KEY)
           csp = CSP.make_header(csp_config, UserAgent.parse(name))
           headers[CSP::CONFIG_KEY][name] = csp.freeze
         end
+      end
+    end
+
+    def deep_copy_hash(hash)
+      if hash.is_a?(Hash)
+        self.class.deep_copy(hash)
+      else
+        hash
       end
     end
   end

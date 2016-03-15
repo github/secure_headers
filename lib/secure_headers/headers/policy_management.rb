@@ -223,6 +223,14 @@ module SecureHeaders
         merge_policy_additions(original, additions)
       end
 
+      def ua_to_variation(user_agent)
+        if family = user_agent.browser && VARIATIONS.key?(family)
+          VARIATIONS[family]
+        else
+          OTHER
+        end
+      end
+
       private
 
       # merge the two hashes. combine (instead of overwrite) the array values
