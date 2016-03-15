@@ -53,7 +53,7 @@ module SecureHeaders
       end
 
       csp = Configuration.deep_copy(config.current_csp)
-      config.dynamic_csp = csp.merge!(additions)
+      config.dynamic_csp = csp.merge(additions)
       override_secure_headers_request_config(request, config)
     end
 
