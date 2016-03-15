@@ -3,10 +3,10 @@ require "spec_helper"
 module SecureHeaders
   describe Middleware do
     let(:app) { ->(env) { [200, env, "app"] } }
+    let(:cookie_app) { -> (env) { [200, env.merge("Set-Cookie" => "foo=bar"), "app"] } }
 
-    let :middleware do
-      Middleware.new(app)
-    end
+    let(:middleware) { Middleware.new(app) }
+    let(:cookie_middleware) { Middleware.new(cookie_app) }
 
     before(:each) do
       reset_config
@@ -35,6 +35,24 @@ module SecureHeaders
       SecureHeaders.use_secure_headers_override(request, "my_custom_config")
       _, env = middleware.call request.env
       expect(env[CSP::HEADER_NAME]).to match("example.org")
+    end
+
+    context "cookies should be flagged" do
+      it "flags cookies as secure" do
+        Configuration.default { |config| config.secure_cookies = true }
+        request = Rack::MockRequest.new(cookie_middleware)
+        response = request.get '/'
+        expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+      end
+    end
+
+    context "cookies should not be flagged" do
+      it "does not flags cookies as secure" do
+        Configuration.default { |config| config.secure_cookies = false }
+        request = Rack::MockRequest.new(cookie_middleware)
+        response = request.get '/'
+        expect(response.headers['Set-Cookie']).not_to match(Middleware::SECURE_COOKIE_REGEXP)
+      end
     end
   end
 end

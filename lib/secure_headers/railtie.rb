@@ -10,7 +10,7 @@ if defined?(Rails::Railtie)
                              'Public-Key-Pins', 'Public-Key-Pins-Report-Only']
 
       initializer "secure_headers.middleware" do
-        Rails.application.config.middleware.use SecureHeaders::Middleware
+        Rails.application.config.middleware.insert_before 0, SecureHeaders::Middleware
       end
 
       initializer "secure_headers.action_controller" do
