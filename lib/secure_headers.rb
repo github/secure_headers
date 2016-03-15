@@ -149,6 +149,16 @@ module SecureHeaders
       content_security_policy_nonce(request, CSP::STYLE_SRC)
     end
 
+    # Public: Retreives the config for a given header type:
+    #
+    # Checks to see if there is an override for this request, then
+    # Checks to see if a named override is used for this request, then
+    # Falls back to the global config
+    def config_for(request)
+      request.env[SECURE_HEADERS_CONFIG] ||
+        Configuration.get(Configuration::DEFAULT_CONFIG)
+    end
+
     private
 
     # Private: gets or creates a nonce for CSP.
@@ -215,16 +225,6 @@ module SecureHeaders
           hash[header_name] = value
         end
       end
-    end
-
-    # Private: Retreives the config for a given header type:
-    #
-    # Checks to see if there is an override for this request, then
-    # Checks to see if a named override is used for this request, then
-    # Falls back to the global config
-    def config_for(request)
-      request.env[SECURE_HEADERS_CONFIG] ||
-        Configuration.get(Configuration::DEFAULT_CONFIG)
     end
 
     # Private: chooses the applicable CSP header for the provided user agent.

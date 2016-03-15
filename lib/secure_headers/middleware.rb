@@ -11,7 +11,8 @@ module SecureHeaders
       req = Rack::Request.new(env)
       status, headers, response = @app.call(env)
 
-      flag_cookies_as_secure!(headers) if config(req).secure_cookies
+      config = SecureHeaders.config_for(req)
+      flag_cookies_as_secure!(headers) if config.secure_cookies
       headers.merge!(SecureHeaders.header_hash_for(req))
       [status, headers, response]
     end
@@ -32,10 +33,6 @@ module SecureHeaders
           end
         end.join("\n")
       end
-    end
-
-    def config(req)
-      req.env[SECURE_HEADERS_CONFIG] || Configuration.get(Configuration::DEFAULT_CONFIG)
     end
   end
 end
