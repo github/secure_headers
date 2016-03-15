@@ -114,13 +114,7 @@ module SecureHeaders
         config.rebuild_csp_header_cache!(request.user_agent)
       end
 
-      headers = if cached_headers = config.cached_headers
-        use_cached_headers(cached_headers, request)
-      else
-        build_headers(config, request)
-      end
-
-      headers
+      use_cached_headers(config.cached_headers, request)
     end
 
     # Public: specify which named override will be used for this request.
@@ -185,36 +179,17 @@ module SecureHeaders
       end
     end
 
-    # Private: do the heavy lifting of converting a configuration object
-    # to a hash of headers valid for this request.
-    #
-    # Returns a hash of header names / values.
-    def build_headers(config, request)
-      header_classes_for(request).each_with_object({}) do |klass, hash|
-        header_config = if config
-          config.fetch(klass::CONFIG_KEY)
-        end
-
-        header_name, value = if klass == CSP
-          make_header(klass, header_config, request.user_agent)
-        else
-          make_header(klass, header_config)
-        end
-        hash[header_name] = value if value
-      end
-    end
-
     # Private: takes a precomputed hash of headers and returns the Headers
     # customized for the request.
     #
     # Returns a hash of header names / values valid for a given request.
-    def use_cached_headers(default_headers, request)
+    def use_cached_headers(headers, request)
       header_classes_for(request).each_with_object({}) do |klass, hash|
-        if default_header = default_headers[klass::CONFIG_KEY]
+        if header = headers[klass::CONFIG_KEY]
           header_name, value = if klass == CSP
-            default_csp_header_for_ua(default_header, request)
+            csp_header_for_ua(header, request)
           else
-            default_header
+            header
           end
           hash[header_name] = value
         end
@@ -242,7 +217,7 @@ module SecureHeaders
     # headers - a hash of header_config_key => [header_name, header_value]
     #
     # Returns a CSP [header, value] array
-    def default_csp_header_for_ua(headers, request)
+    def csp_header_for_ua(headers, request)
       headers[CSP.ua_to_variation(UserAgent.parse(request.user_agent))]
     end
 
