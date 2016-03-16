@@ -52,8 +52,7 @@ module SecureHeaders
         config.csp = config.dynamic_csp = {}
       end
 
-      csp = Configuration.deep_copy(config.current_csp)
-      config.dynamic_csp = csp.merge(additions)
+      config.dynamic_csp = config.current_csp.merge(additions)
       override_secure_headers_request_config(request, config)
     end
 
@@ -65,8 +64,7 @@ module SecureHeaders
     #    script_src: %w(another-host.com)
     def append_content_security_policy_directives(request, additions)
       config = config_for(request)
-      csp = Configuration.deep_copy(config.current_csp)
-      config.dynamic_csp = CSP.combine_policies(csp, additions)
+      config.dynamic_csp = CSP.combine_policies(config.current_csp, additions)
       override_secure_headers_request_config(request, config)
     end
 
