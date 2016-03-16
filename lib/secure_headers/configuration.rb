@@ -43,18 +43,6 @@ module SecureHeaders
         @configurations[name]
       end
 
-      # Public: perform a basic deep dup. The shallow copy provided by dup/clone
-      # can lead to modifying parent objects.
-      def deep_copy(config)
-        config.each_with_object({}) do |(key, value), hash|
-          hash[key] = if value.is_a?(Array)
-            value.dup
-          else
-            value
-          end
-        end
-      end
-
       private
 
       # Private: add a valid configuration to the global set of named configs.
@@ -86,6 +74,28 @@ module SecureHeaders
 
         add_configuration(NOOP_CONFIGURATION, noop_config)
       end
+
+      # Public: perform a basic deep dup. The shallow copy provided by dup/clone
+      # can lead to modifying parent objects.
+      def deep_copy(config)
+        config.each_with_object({}) do |(key, value), hash|
+          hash[key] = if value.is_a?(Array)
+            value.dup
+          else
+            value
+          end
+        end
+      end
+
+      # Private: convenience method purely DRY things up. The value may not be a
+      # hash (e.g. OPT_OUT, nil)
+      def deep_copy_if_hash(value)
+        if value.is_a?(Hash)
+          deep_copy(value)
+        else
+          value
+        end
+      end
     end
 
     attr_accessor :hsts, :x_frame_options, :x_content_type_options,
@@ -96,7 +106,7 @@ module SecureHeaders
 
     def initialize(&block)
       self.hpkp = OPT_OUT
-      self.csp = self.class.deep_copy(CSP::DEFAULT_CONFIG)
+      self.csp = self.class.send(:deep_copy, CSP::DEFAULT_CONFIG)
       instance_eval &block if block_given?
     end
 
@@ -112,10 +122,10 @@ module SecureHeaders
       copy.x_xss_protection = x_xss_protection
       copy.x_download_options = x_download_options
       copy.x_permitted_cross_domain_policies = x_permitted_cross_domain_policies
-      copy.csp = deep_copy_hash(csp)
-      copy.dynamic_csp = deep_copy_hash(dynamic_csp)
-      copy.hpkp = deep_copy_hash(hpkp)
-      copy.cached_headers = deep_copy_hash(cached_headers)
+      copy.csp = self.class.send(:deep_copy_if_hash, csp)
+      copy.dynamic_csp = self.class.send(:deep_copy_if_hash, dynamic_csp)
+      copy.hpkp = self.class.send(:deep_copy_if_hash, hpkp)
+      copy.cached_headers = self.class.send(:deep_copy_if_hash, cached_headers)
       copy
     end
 
@@ -132,15 +142,6 @@ module SecureHeaders
         variation = CSP.ua_to_variation(user_agent)
         self.cached_headers[CSP::CONFIG_KEY][variation] = CSP.make_header(current_csp, user_agent)
       end
-    end
-
-    # Public: Retrieve a config based on the CONFIG_KEY for a class
-    #
-    # Returns the value if available, and returns a dup of any hash values.
-    def fetch(key)
-      config = send(key)
-      config = self.class.deep_copy(config) if config.is_a?(Hash)
-      config
     end
 
     def current_csp
@@ -178,7 +179,7 @@ module SecureHeaders
     def cache_headers!
       # generate defaults for the "easy" headers
       headers = (ALL_HEADERS_BESIDES_CSP).each_with_object({}) do |klass, hash|
-        config = fetch(klass::CONFIG_KEY)
+        config = send(klass::CONFIG_KEY)
         unless config == OPT_OUT
           hash[klass::CONFIG_KEY] = klass.make_header(config).freeze
         end
@@ -199,19 +200,11 @@ module SecureHeaders
     def generate_csp_headers(headers)
       unless csp == OPT_OUT
         headers[CSP::CONFIG_KEY] = {}
-        csp_config = fetch(:current_csp)
+        csp_config = self.current_csp
         CSP::VARIATIONS.each do |name, _|
           csp = CSP.make_header(csp_config, UserAgent.parse(name))
           headers[CSP::CONFIG_KEY][name] = csp.freeze
         end
-      end
-    end
-
-    def deep_copy_hash(hash)
-      if hash.is_a?(Hash)
-        self.class.deep_copy(hash)
-      else
-        hash
       end
     end
   end
