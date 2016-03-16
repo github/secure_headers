@@ -83,10 +83,7 @@ module SecureHeaders
     # and setting the given headers config to OPT_OUT.
     def opt_out_of_header(request, header_key)
       config = config_for(request)
-      config.send("#{header_key}=", OPT_OUT)
-      if header_key == CSP::CONFIG_KEY
-        config.dynamic_csp = OPT_OUT
-      end
+      config.opt_out(header_key)
       override_secure_headers_request_config(request, config)
     end
 

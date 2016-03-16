@@ -35,9 +35,11 @@ module SecureHeaders
       it "allows you to opt out of individual headers" do
         Configuration.default
         SecureHeaders.opt_out_of_header(@request, CSP::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(@request, XContentTypeOptions::CONFIG_KEY)
         hash = SecureHeaders.header_hash_for(@request)
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
         expect(hash['Content-Security-Policy']).to be_nil
+        expect(hash['X-Content-Type-Options']).to be_nil
       end
 
       it "allows you to opt out entirely" do

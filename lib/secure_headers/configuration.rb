@@ -129,6 +129,14 @@ module SecureHeaders
       copy
     end
 
+    def opt_out(header)
+      send("#{header}=", OPT_OUT)
+      if header == CSP::CONFIG_KEY
+        dynamic_csp = OPT_OUT
+      end
+      self.cached_headers.delete(header)
+    end
+
     def update_x_frame_options(value)
       self.x_frame_options = value
       self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(self.x_frame_options)
