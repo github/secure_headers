@@ -14,6 +14,7 @@ When appending:
 {
   report_uri => %w(https://report-uri.io/asdf)
 }
+```
 
 Would result in `default-src *; report-uri *` which doesn't make any sense at all.
 
