@@ -90,7 +90,9 @@ module SecureHeaders
 
     attr_accessor :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp, :dynamic_csp, :cached_headers, :secure_cookies
+      :hpkp, :dynamic_csp, :secure_cookies
+
+    attr_reader :cached_headers
 
     def initialize(&block)
       self.hpkp = OPT_OUT
@@ -113,8 +115,13 @@ module SecureHeaders
       copy.csp = deep_copy_hash(csp)
       copy.dynamic_csp = deep_copy_hash(dynamic_csp)
       copy.hpkp = deep_copy_hash(hpkp)
-      copy.cached_headers = deep_copy_hash(cached_headers)
+      copy.send(:cached_headers=, deep_copy_hash(cached_headers))
       copy
+    end
+
+    def update_x_frame_options(value)
+      self.x_frame_options = value
+      self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(self.x_frame_options)
     end
 
     # Public: generated cached headers for a specific user agent.
@@ -156,6 +163,12 @@ module SecureHeaders
       PublicKeyPins.validate_config!(hpkp)
     end
 
+    private
+
+    def cached_headers=(headers)
+      @cached_headers = headers
+    end
+
     # Public: Precompute the header names and values for this configuraiton.
     # Ensures that headers generated at configure time, not on demand.
     #
@@ -172,7 +185,7 @@ module SecureHeaders
       generate_csp_headers(headers)
 
       headers.freeze
-      @cached_headers = headers
+      self.cached_headers = headers
     end
 
     # Private: adds CSP headers for each variation of CSP support.

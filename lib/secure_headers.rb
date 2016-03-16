@@ -75,8 +75,7 @@ module SecureHeaders
     # Returns the current config
     def override_x_frame_options(request, value)
       config = config_for(request)
-      config.x_frame_options = value
-      config.cached_headers[XFrameOptions::CONFIG_KEY] = make_header(XFrameOptions, config.x_frame_options)
+      config.update_x_frame_options(value)
       override_secure_headers_request_config(request, config)
     end
 
