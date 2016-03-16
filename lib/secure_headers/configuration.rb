@@ -103,6 +103,7 @@ module SecureHeaders
     # Returns a deep-dup'd copy of this configuration.
     def dup
       copy = self.class.new
+      copy.secure_cookies = secure_cookies
       copy.hsts = hsts
       copy.x_frame_options = x_frame_options
       copy.x_content_type_options = x_content_type_options
