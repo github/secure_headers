@@ -90,7 +90,7 @@ module SecureHeaders
 
     attr_accessor :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp, :dynamic_csp, :cached_headers
+      :hpkp, :dynamic_csp, :cached_headers, :secure_cookies
 
     def initialize(&block)
       self.hpkp = OPT_OUT

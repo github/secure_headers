@@ -37,7 +37,7 @@ module SecureHeaders
       config = Configuration.get(:test_override)
       noop = Configuration.get(Configuration::NOOP_CONFIGURATION)
       [:hsts, :x_frame_options, :x_content_type_options, :x_xss_protection,
-        :x_download_options, :x_permitted_cross_domain_policies, :hpkp, :csp].each do |key|
+        :x_download_options, :x_permitted_cross_domain_policies, :hpkp, :csp, :secure_cookies].each do |key|
 
         expect(config.send(key)).to eq(noop.send(key)), "Value not copied: #{key}."
       end
