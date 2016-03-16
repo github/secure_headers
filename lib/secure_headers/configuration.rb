@@ -90,7 +90,7 @@ module SecureHeaders
 
     attr_accessor :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp
+      :hpkp, :secure_cookies
     attr_reader :cached_headers
 
     def initialize(&block)
