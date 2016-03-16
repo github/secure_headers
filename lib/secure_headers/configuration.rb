@@ -115,7 +115,7 @@ module SecureHeaders
       copy.csp = deep_copy_hash(csp)
       copy.dynamic_csp = deep_copy_hash(dynamic_csp)
       copy.hpkp = deep_copy_hash(hpkp)
-      copy.send(:cached_headers=, deep_copy_hash(cached_headers))
+      copy.cached_headers = deep_copy_hash(cached_headers)
       copy
     end
 
@@ -163,11 +163,13 @@ module SecureHeaders
       PublicKeyPins.validate_config!(hpkp)
     end
 
-    private
+    protected
 
     def cached_headers=(headers)
       @cached_headers = headers
     end
+
+    private
 
     # Public: Precompute the header names and values for this configuraiton.
     # Ensures that headers generated at configure time, not on demand.
