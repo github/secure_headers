@@ -29,16 +29,14 @@ module SecureHeaders
       expect_default_values(header_hash)
     end
 
-    it "copies all config values except for the cached headers when dup" do
+    it "copies config values when duping" do
       Configuration.override(:test_override, Configuration::NOOP_CONFIGURATION) do
         # do nothing, just copy it
       end
 
       config = Configuration.get(:test_override)
       noop = Configuration.get(Configuration::NOOP_CONFIGURATION)
-      [:hsts, :x_frame_options, :x_content_type_options, :x_xss_protection,
-        :x_download_options, :x_permitted_cross_domain_policies, :hpkp, :csp, :secure_cookies].each do |key|
-
+      [:csp, :dynamic_csp].each do |key|
         expect(config.send(key)).to eq(noop.send(key)), "Value not copied: #{key}."
       end
     end

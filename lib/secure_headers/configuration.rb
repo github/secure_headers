@@ -98,11 +98,11 @@ module SecureHeaders
       end
     end
 
-    attr_accessor :hsts, :x_frame_options, :x_content_type_options,
+    attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
       :hpkp, :dynamic_csp, :secure_cookies
 
-    attr_reader :cached_headers
+    attr_reader :cached_headers, :csp, :dynamic_csp, :secure_cookies
 
     def initialize(&block)
       self.hpkp = OPT_OUT
@@ -115,17 +115,10 @@ module SecureHeaders
     # Returns a deep-dup'd copy of this configuration.
     def dup
       copy = self.class.new
-      copy.secure_cookies = secure_cookies
-      copy.hsts = hsts
-      copy.x_frame_options = x_frame_options
-      copy.x_content_type_options = x_content_type_options
-      copy.x_xss_protection = x_xss_protection
-      copy.x_download_options = x_download_options
-      copy.x_permitted_cross_domain_policies = x_permitted_cross_domain_policies
-      copy.csp = self.class.send(:deep_copy_if_hash, csp)
-      copy.dynamic_csp = self.class.send(:deep_copy_if_hash, dynamic_csp)
-      copy.hpkp = self.class.send(:deep_copy_if_hash, hpkp)
-      copy.cached_headers = self.class.send(:deep_copy_if_hash, cached_headers)
+      copy.secure_cookies = @secure_cookies
+      copy.csp = self.class.send(:deep_copy_if_hash, @csp)
+      copy.dynamic_csp = self.class.send(:deep_copy_if_hash, @dynamic_csp)
+      copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
       copy
     end
 
@@ -138,8 +131,7 @@ module SecureHeaders
     end
 
     def update_x_frame_options(value)
-      self.x_frame_options = value
-      self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(self.x_frame_options)
+      self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(value)
     end
 
     # Public: generated cached headers for a specific user agent.
@@ -153,7 +145,7 @@ module SecureHeaders
     end
 
     def current_csp
-      self.dynamic_csp || self.csp
+      @dynamic_csp || @csp
     end
 
     # Public: validates all configurations values.
@@ -162,14 +154,14 @@ module SecureHeaders
     #
     # Returns nothing
     def validate_config!
-      StrictTransportSecurity.validate_config!(hsts)
-      ContentSecurityPolicy.validate_config!(csp)
-      XFrameOptions.validate_config!(x_frame_options)
-      XContentTypeOptions.validate_config!(x_content_type_options)
-      XXssProtection.validate_config!(x_xss_protection)
-      XDownloadOptions.validate_config!(x_download_options)
-      XPermittedCrossDomainPolicies.validate_config!(x_permitted_cross_domain_policies)
-      PublicKeyPins.validate_config!(hpkp)
+      StrictTransportSecurity.validate_config!(@hsts)
+      ContentSecurityPolicy.validate_config!(@csp)
+      XFrameOptions.validate_config!(@x_frame_options)
+      XContentTypeOptions.validate_config!(@x_content_type_options)
+      XXssProtection.validate_config!(@x_xss_protection)
+      XDownloadOptions.validate_config!(@x_download_options)
+      XPermittedCrossDomainPolicies.validate_config!(@x_permitted_cross_domain_policies)
+      PublicKeyPins.validate_config!(@hpkp)
     end
 
     protected
@@ -187,7 +179,7 @@ module SecureHeaders
     def cache_headers!
       # generate defaults for the "easy" headers
       headers = (ALL_HEADERS_BESIDES_CSP).each_with_object({}) do |klass, hash|
-        config = send(klass::CONFIG_KEY)
+        config = instance_variable_get("@#{klass::CONFIG_KEY}")
         unless config == OPT_OUT
           hash[klass::CONFIG_KEY] = klass.make_header(config).freeze
         end
@@ -206,7 +198,7 @@ module SecureHeaders
     #
     # Returns nothing
     def generate_csp_headers(headers)
-      unless csp == OPT_OUT
+      unless @csp == OPT_OUT
         headers[CSP::CONFIG_KEY] = {}
         csp_config = self.current_csp
         CSP::VARIATIONS.each do |name, _|
