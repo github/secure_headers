@@ -218,7 +218,7 @@ module SecureHeaders
           raise ContentSecurityPolicyConfigError.new("Attempted to override an opt-out CSP config.")
         end
 
-        original = original.dup
+        original = Configuration.send(:deep_copy, original)
         populate_fetch_source_with_default!(original, additions)
         merge_policy_additions(original, additions)
       end
