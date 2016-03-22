@@ -2,18 +2,6 @@ require 'spec_helper'
 
 module SecureHeaders
   describe SecureHeaders do
-    example_hpkp_config = {
-      max_age: 1_000_000,
-      include_subdomains: true,
-      report_uri: '//example.com/uri-directive',
-      pins: [
-        { sha256: 'abc' },
-        { sha256: '123' }
-      ]
-    }
-
-    example_hpkp_config_value = %(max-age=1000000; pin-sha256="abc"; pin-sha256="123"; report-uri="//example.com/uri-directive"; includeSubDomains)
-
     before(:each) do
       reset_config
     end
@@ -90,7 +78,15 @@ module SecureHeaders
       it "does not set the HPKP header if request is over HTTP" do
         plaintext_request = Rack::Request.new({})
         Configuration.default do |config|
-          config.hpkp = example_hpkp_config
+          config.hpkp = {
+            max_age: 1_000_000,
+            include_subdomains: true,
+            report_uri: '//example.com/uri-directive',
+            pins: [
+              { sha256: 'abc' },
+              { sha256: '123' }
+            ]
+          }
         end
 
         expect(SecureHeaders.header_hash_for(plaintext_request)[PublicKeyPins::HEADER_NAME]).to be_nil
