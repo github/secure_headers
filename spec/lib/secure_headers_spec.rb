@@ -16,7 +16,6 @@ module SecureHeaders
 
     before(:each) do
       reset_config
-
     end
 
     let(:request) { Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on") }
