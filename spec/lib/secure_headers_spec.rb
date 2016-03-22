@@ -113,6 +113,9 @@ module SecureHeaders
             }
           end
 
+          # before an override occurs, the env is empty
+          expect(request.env[SECURE_HEADERS_CONFIG]).to be_nil
+
           SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
           new_config = SecureHeaders.config_for(request)
           expect(new_config).to_not be(Configuration.get)
