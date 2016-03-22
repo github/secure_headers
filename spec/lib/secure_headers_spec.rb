@@ -16,27 +16,29 @@ module SecureHeaders
 
     before(:each) do
       reset_config
-      @request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
+
     end
+
+    let(:request) { Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on") }
 
     it "raises a NotYetConfiguredError if default has not been set" do
       expect do
-        SecureHeaders.header_hash_for(@request)
+        SecureHeaders.header_hash_for(request)
       end.to raise_error(Configuration::NotYetConfiguredError)
     end
 
     it "raises a NotYetConfiguredError if trying to opt-out of unconfigured headers" do
       expect do
-        SecureHeaders.opt_out_of_header(@request, CSP::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, CSP::CONFIG_KEY)
       end.to raise_error(Configuration::NotYetConfiguredError)
     end
 
     describe "#header_hash_for" do
       it "allows you to opt out of individual headers" do
         Configuration.default
-        SecureHeaders.opt_out_of_header(@request, CSP::CONFIG_KEY)
-        SecureHeaders.opt_out_of_header(@request, XContentTypeOptions::CONFIG_KEY)
-        hash = SecureHeaders.header_hash_for(@request)
+        SecureHeaders.opt_out_of_header(request, CSP::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
+        hash = SecureHeaders.header_hash_for(request)
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
         expect(hash['Content-Security-Policy']).to be_nil
         expect(hash['X-Content-Type-Options']).to be_nil
@@ -44,8 +46,8 @@ module SecureHeaders
 
       it "allows you to opt out entirely" do
         Configuration.default
-        SecureHeaders.opt_out_of_all_protection(@request)
-        hash = SecureHeaders.header_hash_for(@request)
+        SecureHeaders.opt_out_of_all_protection(request)
+        hash = SecureHeaders.header_hash_for(request)
         ALL_HEADER_CLASSES.each do |klass|
           expect(hash[klass::CONFIG_KEY]).to be_nil
         end
@@ -53,8 +55,8 @@ module SecureHeaders
 
       it "allows you to override X-Frame-Options settings" do
         Configuration.default
-        SecureHeaders.override_x_frame_options(@request, XFrameOptions::DENY)
-        hash = SecureHeaders.header_hash_for(@request)
+        SecureHeaders.override_x_frame_options(request, XFrameOptions::DENY)
+        hash = SecureHeaders.header_hash_for(request)
         expect(hash[XFrameOptions::HEADER_NAME]).to eq(XFrameOptions::DENY)
       end
 
@@ -64,17 +66,17 @@ module SecureHeaders
           config.csp = OPT_OUT
         end
 
-        SecureHeaders.override_x_frame_options(@request, XFrameOptions::SAMEORIGIN)
-        SecureHeaders.override_content_security_policy_directives(@request, default_src: %w(https:), script_src: %w('self'))
+        SecureHeaders.override_x_frame_options(request, XFrameOptions::SAMEORIGIN)
+        SecureHeaders.override_content_security_policy_directives(request, default_src: %w(https:), script_src: %w('self'))
 
-        hash = SecureHeaders.header_hash_for(@request)
+        hash = SecureHeaders.header_hash_for(request)
         expect(hash[CSP::HEADER_NAME]).to eq("default-src https:; script-src 'self'")
         expect(hash[XFrameOptions::HEADER_NAME]).to eq(XFrameOptions::SAMEORIGIN)
       end
 
       it "produces a hash of headers with default config" do
         Configuration.default
-        hash = SecureHeaders.header_hash_for(@request)
+        hash = SecureHeaders.header_hash_for(request)
         expect_default_values(hash)
       end
 
@@ -104,8 +106,8 @@ module SecureHeaders
             }
           end
 
-          SecureHeaders.append_content_security_policy_directives(@request, script_src: %w(anothercdn.com))
-          hash = SecureHeaders.header_hash_for(@request)
+          SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
+          hash = SecureHeaders.header_hash_for(request)
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
@@ -116,12 +118,12 @@ module SecureHeaders
             }
           end
 
-          SecureHeaders.append_content_security_policy_directives(@request, script_src: %w(anothercdn.com))
-          new_config = SecureHeaders.config_for(@request)
+          SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
+          new_config = SecureHeaders.config_for(request)
           expect(new_config).to_not be(SecureHeaders::Configuration.get)
 
-          SecureHeaders.override_content_security_policy_directives(@request, script_src: %w(yet.anothercdn.com))
-          current_config = SecureHeaders.config_for(@request)
+          SecureHeaders.override_content_security_policy_directives(request, script_src: %w(yet.anothercdn.com))
+          current_config = SecureHeaders.config_for(request)
           expect(current_config).to be(new_config)
         end
 
@@ -131,15 +133,15 @@ module SecureHeaders
               default_src: %w('self')
             }
           end
-          SecureHeaders.override_content_security_policy_directives(@request, default_src: %w('none'))
-          hash = SecureHeaders.header_hash_for(@request)
+          SecureHeaders.override_content_security_policy_directives(request, default_src: %w('none'))
+          hash = SecureHeaders.header_hash_for(request)
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'none'")
         end
 
         it "overrides non-existant directives" do
           Configuration.default
-          SecureHeaders.override_content_security_policy_directives(@request, img_src: [ContentSecurityPolicy::DATA_PROTOCOL])
-          hash = SecureHeaders.header_hash_for(@request)
+          SecureHeaders.override_content_security_policy_directives(request, img_src: [ContentSecurityPolicy::DATA_PROTOCOL])
+          hash = SecureHeaders.header_hash_for(request)
           expect(hash[CSP::HEADER_NAME]).to eq("default-src https:; img-src data:")
         end
 
@@ -152,9 +154,9 @@ module SecureHeaders
             }
           end
 
-          request = Rack::Request.new(@request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari5]))
-          nonce = SecureHeaders.content_security_policy_script_nonce(request)
-          hash = SecureHeaders.header_hash_for(request)
+          safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari5]))
+          nonce = SecureHeaders.content_security_policy_script_nonce(safari_request)
+          hash = SecureHeaders.header_hash_for(safari_request)
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'; style-src 'self'")
         end
 
@@ -167,15 +169,15 @@ module SecureHeaders
             }
           end
 
-          request = Rack::Request.new(@request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:chrome]))
-          nonce = SecureHeaders.content_security_policy_script_nonce(request)
+          chrome_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:chrome]))
+          nonce = SecureHeaders.content_security_policy_script_nonce(chrome_request)
 
           # simulate the nonce being used multiple times in a request:
-          SecureHeaders.content_security_policy_script_nonce(request)
-          SecureHeaders.content_security_policy_script_nonce(request)
-          SecureHeaders.content_security_policy_script_nonce(request)
+          SecureHeaders.content_security_policy_script_nonce(chrome_request)
+          SecureHeaders.content_security_policy_script_nonce(chrome_request)
+          SecureHeaders.content_security_policy_script_nonce(chrome_request)
 
-          hash = SecureHeaders.header_hash_for(request)
+          hash = SecureHeaders.header_hash_for(chrome_request)
           expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'; style-src 'self'")
         end
       end
