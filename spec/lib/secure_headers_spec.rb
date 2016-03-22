@@ -109,6 +109,22 @@ module SecureHeaders
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
+        it "dups global configuration just once when overriding n times" do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self')
+            }
+          end
+
+          SecureHeaders.append_content_security_policy_directives(@request, script_src: %w(anothercdn.com))
+          new_config = SecureHeaders.config_for(@request)
+          expect(new_config).to_not be(SecureHeaders::Configuration.get)
+
+          SecureHeaders.override_content_security_policy_directives(@request, script_src: %w(yet.anothercdn.com))
+          current_config = SecureHeaders.config_for(@request)
+          expect(current_config).to be(new_config)
+        end
+
         it "overrides individual directives" do
           Configuration.default do |config|
             config.csp = {
