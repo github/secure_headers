@@ -115,7 +115,7 @@ module SecureHeaders
 
           SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
           new_config = SecureHeaders.config_for(request)
-          expect(new_config).to_not be(SecureHeaders::Configuration.get)
+          expect(new_config).to_not be(Configuration.get)
 
           SecureHeaders.override_content_security_policy_directives(request, script_src: %w(yet.anothercdn.com))
           current_config = SecureHeaders.config_for(request)
