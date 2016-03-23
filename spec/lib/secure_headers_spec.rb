@@ -129,6 +129,24 @@ module SecureHeaders
           SecureHeaders.header_hash_for(request)
         end
 
+        it "doesn't allow you to muck with csp configs when a dynamic policy is in use" do
+          default_config = Configuration.default
+          expect { default_config.csp = {} }.to raise_error(NoMethodError)
+
+          # config is frozen
+          expect { default_config.send(:csp=, {}) }.to raise_error(RuntimeError)
+
+          SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
+          new_config = SecureHeaders.config_for(request)
+          expect { new_config.send(:csp=, {}) }.to raise_error(Configuration::IllegalPolicyModificationError)
+
+          expect do
+            new_config.instance_eval do
+              new_config.csp = {}
+            end
+          end.to raise_error(Configuration::IllegalPolicyModificationError)
+        end
+
         it "overrides individual directives" do
           Configuration.default do |config|
             config.csp = {

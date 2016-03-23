@@ -49,7 +49,7 @@ module SecureHeaders
     def override_content_security_policy_directives(request, additions)
       config = config_for(request)
       if config.current_csp == OPT_OUT
-        config.csp = config.dynamic_csp = {}
+        config.dynamic_csp = {}
       end
 
       config.dynamic_csp = config.current_csp.merge(additions)

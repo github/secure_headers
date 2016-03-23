@@ -3,6 +3,7 @@ module SecureHeaders
     DEFAULT_CONFIG = :default
     NOOP_CONFIGURATION = "secure_headers_noop_config"
     class NotYetConfiguredError < StandardError; end
+    class IllegalPolicyModificationError < StandardError; end
     class << self
       # Public: Set the global default configuration.
       #
@@ -23,12 +24,12 @@ module SecureHeaders
       # if no value is supplied.
       #
       # Returns: the newly created config
-      def override(name, base = DEFAULT_CONFIG)
+      def override(name, base = DEFAULT_CONFIG, &block)
         unless get(base)
           raise NotYetConfiguredError, "#{base} policy not yet supplied"
         end
         override = @configurations[base].dup
-        yield(override)
+        override.instance_eval &block if block_given?
         add_configuration(name, override)
       end
 
@@ -99,7 +100,7 @@ module SecureHeaders
     end
 
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
-      :x_xss_protection, :csp, :x_download_options, :x_permitted_cross_domain_policies,
+      :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
       :hpkp, :dynamic_csp, :secure_cookies
 
     attr_reader :cached_headers, :csp, :dynamic_csp, :secure_cookies
@@ -165,6 +166,14 @@ module SecureHeaders
     end
 
     protected
+
+    def csp=(new_csp)
+      if self.dynamic_csp
+        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= isntead."
+      end
+
+      @csp = new_csp
+    end
 
     def cached_headers=(headers)
       @cached_headers = headers
