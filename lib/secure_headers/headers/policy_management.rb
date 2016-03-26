@@ -197,7 +197,7 @@ module SecureHeaders
       # because google.com is already in the config.
       def idempotent_additions?(config, additions)
         return false if config == OPT_OUT
-        config.to_s == combine_policies(config, additions).to_s
+        config == combine_policies(config, additions)
       end
 
       # Public: combine the values from two different configs.
@@ -218,9 +218,17 @@ module SecureHeaders
           raise ContentSecurityPolicyConfigError.new("Attempted to override an opt-out CSP config.")
         end
 
-        original = original.dup if original.frozen?
+        original = Configuration.send(:deep_copy, original)
         populate_fetch_source_with_default!(original, additions)
         merge_policy_additions(original, additions)
+      end
+
+      def ua_to_variation(user_agent)
+        if family = user_agent.browser && VARIATIONS.key?(family)
+          VARIATIONS[family]
+        else
+          OTHER
+        end
       end
 
       private
