@@ -38,6 +38,7 @@ module SecureHeaders
         ALL_HEADER_CLASSES.each do |klass|
           expect(hash[klass::CONFIG_KEY]).to be_nil
         end
+        expect(hash.count).to eq(0)
       end
 
       it "allows you to override X-Frame-Options settings" do

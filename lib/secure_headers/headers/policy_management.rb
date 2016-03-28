@@ -196,6 +196,7 @@ module SecureHeaders
       # additions = { script_src: %w(google.com)} then idempotent_additions? would return
       # because google.com is already in the config.
       def idempotent_additions?(config, additions)
+        return true if config == OPT_OUT && additions == OPT_OUT
         return false if config == OPT_OUT
         config == combine_policies(config, additions)
       end
