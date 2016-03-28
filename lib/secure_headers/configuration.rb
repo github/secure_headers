@@ -71,6 +71,7 @@ module SecureHeaders
           ALL_HEADER_CLASSES.each do |klass|
             config.send("#{klass::CONFIG_KEY}=", OPT_OUT)
           end
+          config.dynamic_csp = OPT_OUT
         end
 
         add_configuration(NOOP_CONFIGURATION, noop_config)
