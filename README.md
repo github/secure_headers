@@ -15,6 +15,8 @@ The gem will automatically apply several headers that are related to security.  
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
 
+It can also mark all http cookies with the secure attribute (when configured to do so).
+
 `secure_headers` is a library with a global config, per request overrides, and rack middleware that enables you customize your application settings.
 
 ## Use
@@ -29,6 +31,7 @@ All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT`
 
 ```ruby
 SecureHeaders::Configuration.default do |config|
+  config.secure_cookies = true # mark all cookies as "secure"
   config.hsts = "max-age=#{20.years.to_i}; includeSubdomains; preload"
   config.x_frame_options = "DENY"
   config.x_content_type_options = "nosniff"
