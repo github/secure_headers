@@ -224,8 +224,9 @@ module SecureHeaders
       end
 
       def ua_to_variation(user_agent)
-        if family = user_agent.browser && VARIATIONS.key?(family)
-          VARIATIONS[family]
+        family = user_agent.browser
+        if family && VARIATIONS.key?(family)
+          family
         else
           OTHER
         end

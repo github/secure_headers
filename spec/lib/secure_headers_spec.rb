@@ -61,6 +61,25 @@ module SecureHeaders
         expect(hash[XFrameOptions::HEADER_NAME]).to eq(XFrameOptions::SAMEORIGIN)
       end
 
+      it "produces a UA-specific CSP when overriding (and busting the cache)" do
+        config = Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            child_src: %w('self'), #unsupported by firefox
+            frame_src: %w('self')
+          }
+        end
+        firefox_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:firefox]))
+
+        # append an unsupported directive
+        SecureHeaders.override_content_security_policy_directives(firefox_request, plugin_types: %w(flash))
+        # append a supported directive
+        SecureHeaders.override_content_security_policy_directives(firefox_request, script_src: %w('self'))
+
+        hash = SecureHeaders.header_hash_for(firefox_request)
+        expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; frame-src 'self'; script-src 'self'")
+      end
+
       it "produces a hash of headers with default config" do
         Configuration.default
         hash = SecureHeaders.header_hash_for(request)
