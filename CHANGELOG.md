@@ -1,3 +1,13 @@
+## 3.1.1 Bug fix for regression
+
+See https://github.com/twitter/secureheaders/pull/235
+
+`idempotent_additions?` would return false when comparing `OPT_OUT` with `OPT_OUT`, causing `header_hash_for` to return a header cache with `{ nil => nil }` which cause the middleware to blow up when `{ nil => nil }` was merged into the rack header hash.
+
+This is a regression in 3.1.0 only.
+
+Now it returns true. I've added a test case to ensure that `header_hash_for` will never return such an element.
+
 ## 3.1.0 Adding secure cookie support
 
 New feature: marking all cookies as secure. Added by @jmera in https://github.com/twitter/secureheaders/pull/231. In the future, we'll probably add the ability to whitelist individual cookies that should not be marked secure. PRs welcome.
