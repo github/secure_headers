@@ -1,3 +1,13 @@
+## 3.1.0 Adding secure cookie support
+
+New feature: marking all cookies as secure. Added by @jmera in https://github.com/twitter/secureheaders/pull/231. In the future, we'll probably add the ability to whitelist individual cookies that should not be marked secure. PRs welcome.
+
+Internal refactoring: In https://github.com/twitter/secureheaders/pull/232, we changed the way dynamic CSP is handled internally. The biggest benefit is that highly dynamic policies (which can happen with multiple `append/override` calls per request) are handled better:
+
+1. Only the CSP header cache is busted when using a dynamic policy. All other headers are preserved and don't need to be generated. Dynamic X-Frame-Options changes modify the cache directly.
+1. Idempotency checks for policy modifications are deferred until the end of the request lifecycle and only happen once, instead of per `append/override` call. The idempotency check itself is fairly expensive itself.
+1. CSP header string is produced at most once per request.
+
 ## 3.0.3
 
 Bug fix for handling policy merges where appending a non-default source value (report-uri, plugin-types, frame-ancestors, base-uri, and form-action) would be combined with the default-src value. Appending a directive that doesn't exist in the current policy combines the new value with `default-src` to mimic the actual behavior of the addition. However, this does not make sense for non-default-src values (a.k.a. "fetch directives") and can lead to unexpected behavior like a `report-uri` value of `*`. Previously, this config:
