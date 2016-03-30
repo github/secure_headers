@@ -41,6 +41,14 @@ module SecureHeaders
       end
     end
 
+    it "regenerates cached headers when building an override" do
+      Configuration.override(:test_override) do |config|
+        config.x_content_type_options = OPT_OUT
+      end
+
+      expect(Configuration.get.cached_headers).to_not eq(Configuration.get(:test_override).cached_headers)
+    end
+
     it "stores an override of the global config" do
       Configuration.override(:test_override) do |config|
         config.x_frame_options = "DENY"

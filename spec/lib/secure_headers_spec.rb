@@ -21,7 +21,7 @@ module SecureHeaders
     end
 
     describe "#header_hash_for" do
-      it "allows you to opt out of individual headers" do
+      it "allows you to opt out of individual headers via API" do
         Configuration.default
         SecureHeaders.opt_out_of_header(request, CSP::CONFIG_KEY)
         SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
@@ -29,6 +29,23 @@ module SecureHeaders
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
         expect(hash['Content-Security-Policy']).to be_nil
         expect(hash['X-Content-Type-Options']).to be_nil
+      end
+
+      it "Carries options over when using overrides" do
+        Configuration.default do |config|
+          config.x_download_options = OPT_OUT
+          config.x_permitted_cross_domain_policies = OPT_OUT
+        end
+
+        Configuration.override(:api) do |config|
+          config.x_frame_options = OPT_OUT
+        end
+
+        SecureHeaders.use_secure_headers_override(request, :api)
+        hash = SecureHeaders.header_hash_for(request)
+        expect(hash['X-Download-Options']).to be_nil
+        expect(hash['X-Permitted-Cross-Domain-Policies']).to be_nil
+        expect(hash['X-Frame-Options']).to be_nil
       end
 
       it "allows you to opt out entirely" do
