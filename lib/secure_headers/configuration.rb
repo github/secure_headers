@@ -102,9 +102,9 @@ module SecureHeaders
 
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp, :dynamic_csp, :secure_cookies
+      :hpkp, :dynamic_csp, :secure_cookies, :cookies
 
-    attr_reader :cached_headers, :csp, :dynamic_csp, :secure_cookies
+    attr_reader :cached_headers, :csp, :dynamic_csp, :secure_cookies, :cookies
 
     def initialize(&block)
       self.hpkp = OPT_OUT
@@ -118,6 +118,7 @@ module SecureHeaders
     def dup
       copy = self.class.new
       copy.secure_cookies = @secure_cookies
+      copy.cookies = @cookies
       copy.csp = self.class.send(:deep_copy_if_hash, @csp)
       copy.dynamic_csp = self.class.send(:deep_copy_if_hash, @dynamic_csp)
       copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
