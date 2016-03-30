@@ -121,6 +121,13 @@ module SecureHeaders
       copy.csp = self.class.send(:deep_copy_if_hash, @csp)
       copy.dynamic_csp = self.class.send(:deep_copy_if_hash, @dynamic_csp)
       copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
+      copy.x_content_type_options = @x_content_type_options
+      copy.hsts = @hsts
+      copy.x_frame_options = @x_frame_options
+      copy.x_xss_protection = @x_xss_protection
+      copy.x_download_options = @x_download_options
+      copy.x_permitted_cross_domain_policies = @x_permitted_cross_domain_policies
+      copy.hpkp = @hpkp
       copy
     end
 
@@ -133,6 +140,7 @@ module SecureHeaders
     end
 
     def update_x_frame_options(value)
+      @x_frame_options = value
       self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(value)
     end
 
