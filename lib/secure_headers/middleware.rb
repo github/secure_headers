@@ -1,6 +1,14 @@
+require 'cgi'
+
 module SecureHeaders
   class Middleware
     SECURE_COOKIE_REGEXP = /;\s*secure\s*(;|$)/i.freeze
+    HTTPONLY_COOKIE_REGEXP =/;\s*HttpOnly\s*(;|$)/i.freeze
+
+    ATTRIBUTES = {
+      secure: "secure",
+      httponly: "HttpOnly",
+    }
 
     def initialize(app)
       @app = app
@@ -12,7 +20,8 @@ module SecureHeaders
       status, headers, response = @app.call(env)
 
       config = SecureHeaders.config_for(req)
-      flag_cookies_as_secure!(headers) if config.secure_cookies
+      flag_cookies!(headers, config.cookies) if config.cookies
+      flag_cookies!(headers, secure: true) if config.secure_cookies
       headers.merge!(SecureHeaders.header_hash_for(req))
       [status, headers, response]
     end
@@ -20,18 +29,42 @@ module SecureHeaders
     private
 
     # inspired by https://github.com/tobmatth/rack-ssl-enforcer/blob/6c014/lib/rack/ssl-enforcer.rb#L183-L194
-    def flag_cookies_as_secure!(headers)
+    def flag_cookies!(headers, config)
       if cookies = headers['Set-Cookie']
         # Support Rails 2.3 / Rack 1.1 arrays as headers
         cookies = cookies.split("\n") unless cookies.is_a?(Array)
 
         headers['Set-Cookie'] = cookies.map do |cookie|
-          if cookie !~ SECURE_COOKIE_REGEXP
-            "#{cookie}; secure"
-          else
-            cookie
-          end
+          cookie = flag_cookie!(:secure, cookie, config, SECURE_COOKIE_REGEXP)
+          cookie = flag_cookie!(:httponly, cookie, config, HTTPONLY_COOKIE_REGEXP)
         end.join("\n")
+      end
+    end
+
+    def flag_cookie!(attribute, cookie, config = false, regexp)
+      case config[attribute]
+      when NilClass, FalseClass
+        cookie
+      when TrueClass
+        flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
+      when Hash
+        parsed_cookie = CGI::Cookie.parse(cookie)
+
+        if((Array(config[attribute][:only]) & parsed_cookie.keys).any?)
+          flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
+        elsif((Array(config[attribute][:except]) & parsed_cookie.keys).none?)
+          flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
+        else
+          cookie
+        end
+      end
+    end
+
+    def flag_unless_matches(cookie, attribute, regexp)
+      if cookie =~ regexp
+        cookie
+      else
+        "#{cookie}; #{attribute}"
       end
     end
   end

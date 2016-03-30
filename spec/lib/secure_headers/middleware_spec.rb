@@ -38,21 +38,79 @@ module SecureHeaders
       expect(env[CSP::HEADER_NAME]).to match("example.org")
     end
 
-    context "cookies should be flagged" do
-      it "flags cookies as secure" do
-        Configuration.default { |config| config.secure_cookies = true }
-        request = Rack::MockRequest.new(cookie_middleware)
-        response = request.get '/'
-        expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+    context "secure_cookies" do
+      context "cookies should be flagged" do
+        it "flags cookies as secure" do
+          Configuration.default { |config| config.secure_cookies = true }
+          request = Rack::MockRequest.new(cookie_middleware)
+          response = request.get '/'
+          expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+        end
+      end
+
+      context "cookies should not be flagged" do
+        it "does not flags cookies as secure" do
+          Configuration.default { |config| config.secure_cookies = false }
+          request = Rack::MockRequest.new(cookie_middleware)
+          response = request.get '/'
+          expect(response.headers['Set-Cookie']).not_to match(Middleware::SECURE_COOKIE_REGEXP)
+        end
       end
     end
 
-    context "cookies should not be flagged" do
-      it "does not flags cookies as secure" do
-        Configuration.default { |config| config.secure_cookies = false }
-        request = Rack::MockRequest.new(cookie_middleware)
-        response = request.get '/'
-        expect(response.headers['Set-Cookie']).not_to match(Middleware::SECURE_COOKIE_REGEXP)
+    context "cookies" do
+      context "secure cookies" do
+        context "when secure is a boolean" do
+          it "flags cookies as secure" do
+            Configuration.default { |config| config.cookies = { secure: true } }
+            request = Rack::MockRequest.new(cookie_middleware)
+            response = request.get '/'
+            expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+          end
+        end
+
+        context "when secure is a Hash" do
+          it "flags cookies as secure when whitelisted" do
+            Configuration.default { |config| config.cookies = { secure: { only: ['foo']} } }
+            request = Rack::MockRequest.new(cookie_middleware)
+            response = request.get '/'
+            expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+          end
+
+          it "does not flag cookies as secure when excluded" do
+            Configuration.default { |config| config.cookies = { secure: { except: ['foo']} } }
+            request = Rack::MockRequest.new(cookie_middleware)
+            response = request.get '/'
+            expect(response.headers['Set-Cookie']).not_to match(Middleware::SECURE_COOKIE_REGEXP)
+          end
+        end
+      end
+
+      context "HttpOnly cookies" do
+        context "when httponly is a boolean" do
+          it "flags cookies as HttpOnly" do
+            Configuration.default { |config| config.cookies = { httponly: true } }
+            request = Rack::MockRequest.new(cookie_middleware)
+            response = request.get '/'
+            expect(response.headers['Set-Cookie']).to match(Middleware::HTTPONLY_COOKIE_REGEXP)
+          end
+        end
+
+        context "when secure is a Hash" do
+          it "flags cookies as secure when whitelisted" do
+            Configuration.default { |config| config.cookies = { httponly: { only: ['foo']} } }
+            request = Rack::MockRequest.new(cookie_middleware)
+            response = request.get '/'
+            expect(response.headers['Set-Cookie']).to match(Middleware::HTTPONLY_COOKIE_REGEXP)
+          end
+
+          it "does not flag cookies as secure when excluded" do
+            Configuration.default { |config| config.cookies = { httponly: { except: ['foo']} } }
+            request = Rack::MockRequest.new(cookie_middleware)
+            response = request.get '/'
+            expect(response.headers['Set-Cookie']).not_to match(Middleware::HTTPONLY_COOKIE_REGEXP)
+          end
+        end
       end
     end
   end
