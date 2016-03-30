@@ -1,3 +1,9 @@
+## 3.1.2 Bug fix for regression
+
+See https://github.com/twitter/secureheaders/pull/239
+
+This meant that when header caches were regenerated upon calling `SecureHeaders.override(:name)` and using it with `use_secure_headers_override` would result in default values for anything other than CSP/HPKP.
+
 ## 3.1.1 Bug fix for regression
 
 See https://github.com/twitter/secureheaders/pull/235
