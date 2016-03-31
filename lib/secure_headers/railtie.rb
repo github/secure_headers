@@ -13,6 +13,10 @@ if defined?(Rails::Railtie)
         Rails.application.config.middleware.insert_before 0, SecureHeaders::Middleware
       end
 
+      rake_tasks do
+        load File.expand_path(File.join('..', '..', 'lib', 'tasks', 'tasks.rake'), File.dirname(__FILE__))
+      end
+
       initializer "secure_headers.action_controller" do
         ActiveSupport.on_load(:action_controller) do
           include SecureHeaders
