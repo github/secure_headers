@@ -112,6 +112,17 @@ module SecureHeaders
           end
         end
       end
+
+      context "SameSite cookies" do
+        context "when samesite is a boolean" do
+          it "flags cookies as Samesite" do
+            Configuration.default { |config| config.cookies = { samesite: true } }
+            request = Rack::MockRequest.new(cookie_middleware)
+            response = request.get '/'
+            expect(response.headers['Set-Cookie']).to match(Middleware::SAMESITE_COOKIE_REGEXP)
+          end
+        end
+      end
     end
   end
 end
