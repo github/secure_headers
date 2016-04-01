@@ -108,10 +108,11 @@ module SecureHeaders
 
     attr_reader :cached_headers, :csp, :dynamic_csp, :secure_cookies
 
-
-    SCRIPT_HASH_CONFIG_FILE = 'config/script_hashes.yml'
-    if File.exists?(SCRIPT_HASH_CONFIG_FILE)
-      @script_hashes = YAML.load(File.open(SCRIPT_HASH_CONFIG_FILE))
+    HASH_CONFIG_FILE = 'config/secure_headers_generated_hashes.yml'
+    if File.exists?(HASH_CONFIG_FILE)
+      config = YAML.safe_load(File.open(HASH_CONFIG_FILE))
+      @script_hashes = config["scripts"]
+      @style_hashes = config["styles"]
     end
 
     def initialize(&block)

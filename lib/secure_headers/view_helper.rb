@@ -34,17 +34,48 @@ module SecureHeaders
       end
     end
 
+    ##
+    # Checks to see if the hashed code is expected and adds the hash source
+    # value to the current CSP.
+    #
+    # In development/test/etc. an exception will be raised. In production,
+    # it will dynamically compute the value so things don't break.
     def hashed_javascript_tag(raise_error_on_unrecognized_hash = nil, &block)
-      if raise_error_on_unrecognized_hash.nil?
-        raise_error_on_unrecognized_hash = !['development', 'test'].include?(ENV["RAILS_ENV"])
-      end
-      content = capture(&block)
+      hashed_tag(
+        :script,
+        :script_src,
+        Configuration.instance_variable_get(:@script_hashes),
+        raise_error_on_unrecognized_hash,
+        block
+      )
+    end
 
-      hash_value = hash_source(content)
+    def hashed_style_tag(raise_error_on_unrecognized_hash = nil, &block)
+      hashed_tag(
+        :style,
+        :style_src,
+        Configuration.instance_variable_get(:@style_hashes),
+        raise_error_on_unrecognized_hash,
+        block
+      )
+    end
+
+    private
+
+    def hashed_tag(type, directive, hashes, raise_error_on_unrecognized_hash, block)
+      if raise_error_on_unrecognized_hash.nil?
+        raise_error_on_unrecognized_hash = ENV["RAILS_ENV"] != "production"
+      end
+
+      content = capture(&block)
       file_path = File.join('app', 'views', self.instance_variable_get(:@virtual_path) + '.html.erb')
-      script_hashes = Configuration.instance_variable_get(:@script_hashes)[file_path]
-      unless script_hashes && script_hashes.include?(hash_value)
-        message = unexpected_hash_error_message(file_path, hash_value, content)
+
+      if hashes.nil?
+        raise UnexpectedHashedScriptException.new(unexpected_hash_error_message(file_path, content))
+      end
+
+      if hashes[file_path].nil?
+        message = unexpected_hash_error_message(file_path, content)
         if raise_error_on_unrecognized_hash
           raise UnexpectedHashedScriptException.new(message)
         else
@@ -52,20 +83,21 @@ module SecureHeaders
         end
       end
 
-      SecureHeaders.append_content_security_policy_directives(request, script_src: [hash_value])
+      SecureHeaders.append_content_security_policy_directives(request, directive => [hashes[file_path]])
 
-      content_tag :script, content
+      content_tag type, content
     end
 
-    private
-
-    def unexpected_hash_error_message(file_path, hash_value, content)
+    def unexpected_hash_error_message(file_path, content)
+      hash_value = hash_source(content)
       <<-EOF
 \n\n*** WARNING: Unrecognized hash in #{file_path}!!! Value: #{hash_value} ***
-<script>#{content}</script>
+#{content}
 *** Run #{SECURE_HEADERS_RAKE_TASK} or add the following to config/script_hashes.yml:***
 #{file_path}:
 - #{hash_value}\n\n
+      NOTE: dynamic javascript is not supported using script hash integration
+      on purpose. It defeats the point of using it in the first place.
       EOF
     end
 
