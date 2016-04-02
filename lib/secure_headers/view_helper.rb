@@ -83,7 +83,7 @@ module SecureHeaders
         end
       end
 
-      SecureHeaders.append_content_security_policy_directives(request, directive => [hashes[file_path]])
+      SecureHeaders.append_content_security_policy_directives(request, directive => hashes[file_path])
 
       content_tag type, content
     end
