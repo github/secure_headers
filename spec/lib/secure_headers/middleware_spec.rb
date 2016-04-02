@@ -10,9 +10,7 @@ module SecureHeaders
 
     before(:each) do
       reset_config
-      Configuration.default do |config|
-        # use all default provided by the library
-      end
+      Configuration.default
     end
 
     it "sets the headers" do
