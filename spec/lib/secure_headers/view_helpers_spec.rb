@@ -72,7 +72,7 @@ module SecureHeaders
       begin
         allow(SecureRandom).to receive(:base64).and_return("abc123")
 
-        Configuration.override("my_custom_config") do |config|
+        Configuration.default("my_custom_config") do |config|
           config.csp[:script_src] = %w('self')
           config.csp[:style_src] = %w('self')
         end
