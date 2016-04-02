@@ -72,12 +72,11 @@ module SecureHeaders
       begin
         allow(SecureRandom).to receive(:base64).and_return("abc123")
 
-        Configuration.default("my_custom_config") do |config|
+        Configuration.default do |config|
           config.csp[:script_src] = %w('self')
           config.csp[:style_src] = %w('self')
         end
         request = Rack::Request.new("HTTP_USER_AGENT" => USER_AGENTS[:chrome])
-        SecureHeaders.use_secure_headers_override(request, "my_custom_config")
 
         expected_hash = "sha256-3/URElR9+3lvLIouavYD/vhoICSNKilh15CzI/nKqg8="
         Configuration.instance_variable_set(:@script_hashes, "app/views/asdfs/index.html.erb" => ["'#{expected_hash}'"])
