@@ -195,24 +195,6 @@ Code  | Result
 
 #### Nonce
 
-script/style-nonce can be used to whitelist inline content. To do this, call the `SecureHeaders.content_security_policy_nonce` then set the nonce attributes on the various tags.
-
-Setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
-
-```erb
-<script nonce="<%= content_security_policy_nonce %>">
-  console.log("whitelisted, will execute")
-</script>
-
-<script nonce="lol">
-  console.log("won't execute, not whitelisted")
-</script>
-
-<script>
-  console.log("won't execute, not whitelisted")
-</script>
-```
-
 You can use a view helper to automatically add nonces to script tags:
 
 ```erb
@@ -238,6 +220,24 @@ body {
   background-color: black;
 }
 </style>
+```
+
+script/style-nonce can be used to whitelist inline content. To do this, call the `content_security_policy_script_nonce` or `content_security_policy_style_nonce` then set the nonce attributes on the various tags.
+
+Setting a nonce will also set 'unsafe-inline' for browsers that don't support nonces for backwards compatibility. 'unsafe-inline' is ignored if a nonce is present in a directive in compliant browsers.
+
+```erb
+<script nonce="<%= content_security_policy_script_nonce %>">
+  console.log("whitelisted, will execute")
+</script>
+
+<script nonce="lol">
+  console.log("won't execute, not whitelisted")
+</script>
+
+<script>
+  console.log("won't execute, not whitelisted")
+</script>
 ```
 
 #### Hash
