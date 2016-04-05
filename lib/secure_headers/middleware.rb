@@ -1,17 +1,5 @@
-require 'cgi'
-
 module SecureHeaders
   class Middleware
-    SECURE_COOKIE_REGEXP = /;\s*secure\s*(;|$)/i.freeze
-    HTTPONLY_COOKIE_REGEXP =/;\s*HttpOnly\s*(;|$)/i.freeze
-    SAMESITE_COOKIE_REGEXP =/;\s*SameSite\s*(;|$)/i.freeze
-
-    ATTRIBUTES = {
-      secure: "secure",
-      httponly: "HttpOnly",
-      samesite: "SameSite"
-    }
-
     def initialize(app)
       @app = app
     end
@@ -37,56 +25,8 @@ module SecureHeaders
         cookies = cookies.split("\n") unless cookies.is_a?(Array)
 
         headers['Set-Cookie'] = cookies.map do |cookie|
-          cookie = flag_cookie!(:secure, cookie, config, SECURE_COOKIE_REGEXP)
-          cookie = flag_cookie!(:httponly, cookie, config, HTTPONLY_COOKIE_REGEXP)
-          cookie = flag_samesite_cookie!(:samesite, cookie, config)
+          SecureHeaders::Cookie.new(cookie, config).to_s
         end.join("\n")
-      end
-    end
-
-    def flag_cookie!(attribute, cookie, config = false, regexp)
-      case config[attribute]
-      when NilClass, FalseClass
-        cookie
-      when TrueClass
-        flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
-      when Hash
-        parsed_cookie = CGI::Cookie.parse(cookie)
-
-        if((Array(config[attribute][:only]) & parsed_cookie.keys).any?)
-          flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
-        elsif((Array(config[attribute][:except]) & parsed_cookie.keys).none?)
-          flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
-        else
-          cookie
-        end
-      end
-    end
-
-    def flag_samesite_cookie!(attribute, cookie, config = false)
-      case config[attribute]
-      when NilClass, FalseClass
-        cookie
-      when TrueClass
-        flag_unless_matches(cookie, ATTRIBUTES[attribute], SAMESITE_COOKIE_REGEXP)
-      when Hash
-        parsed_cookie = CGI::Cookie.parse(cookie)
-
-        if((Array(config[attribute][:only]) & parsed_cookie.keys).any?)
-          flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
-        elsif((Array(config[attribute][:except]) & parsed_cookie.keys).none?)
-          flag_unless_matches(cookie, ATTRIBUTES[attribute], regexp)
-        else
-          cookie
-        end
-      end
-    end
-
-    def flag_unless_matches(cookie, attribute, regexp)
-      if cookie =~ regexp
-        cookie
-      else
-        "#{cookie}; #{attribute}"
       end
     end
   end

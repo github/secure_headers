@@ -44,7 +44,7 @@ module SecureHeaders
           Configuration.default { |config| config.secure_cookies = true }
           request = Rack::MockRequest.new(cookie_middleware)
           response = request.get '/'
-          expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+          expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
         end
       end
 
@@ -53,7 +53,7 @@ module SecureHeaders
           Configuration.default { |config| config.secure_cookies = false }
           request = Rack::MockRequest.new(cookie_middleware)
           response = request.get '/'
-          expect(response.headers['Set-Cookie']).not_to match(Middleware::SECURE_COOKIE_REGEXP)
+          expect(response.headers['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
         end
       end
     end
@@ -65,7 +65,7 @@ module SecureHeaders
             Configuration.default { |config| config.cookies = { secure: true } }
             request = Rack::MockRequest.new(cookie_middleware)
             response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
           end
         end
 
@@ -74,14 +74,14 @@ module SecureHeaders
             Configuration.default { |config| config.cookies = { secure: { only: ['foo']} } }
             request = Rack::MockRequest.new(cookie_middleware)
             response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
           end
 
           it "does not flag cookies as secure when excluded" do
             Configuration.default { |config| config.cookies = { secure: { except: ['foo']} } }
             request = Rack::MockRequest.new(cookie_middleware)
             response = request.get '/'
-            expect(response.headers['Set-Cookie']).not_to match(Middleware::SECURE_COOKIE_REGEXP)
+            expect(response.headers['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
           end
         end
       end
@@ -92,7 +92,7 @@ module SecureHeaders
             Configuration.default { |config| config.cookies = { httponly: true } }
             request = Rack::MockRequest.new(cookie_middleware)
             response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(Middleware::HTTPONLY_COOKIE_REGEXP)
+            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
           end
         end
 
@@ -101,14 +101,14 @@ module SecureHeaders
             Configuration.default { |config| config.cookies = { httponly: { only: ['foo']} } }
             request = Rack::MockRequest.new(cookie_middleware)
             response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(Middleware::HTTPONLY_COOKIE_REGEXP)
+            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
           end
 
           it "does not flag cookies as secure when excluded" do
             Configuration.default { |config| config.cookies = { httponly: { except: ['foo']} } }
             request = Rack::MockRequest.new(cookie_middleware)
             response = request.get '/'
-            expect(response.headers['Set-Cookie']).not_to match(Middleware::HTTPONLY_COOKIE_REGEXP)
+            expect(response.headers['Set-Cookie']).not_to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
           end
         end
       end
@@ -119,8 +119,12 @@ module SecureHeaders
             Configuration.default { |config| config.cookies = { samesite: true } }
             request = Rack::MockRequest.new(cookie_middleware)
             response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(Middleware::SAMESITE_COOKIE_REGEXP)
+            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SAMESITE_REGEXP)
           end
+        end
+
+        context "when samesite is a Hash" do
+          skip
         end
       end
     end
