@@ -11,7 +11,6 @@ module SecureHeaders
 
       config = SecureHeaders.config_for(req)
       flag_cookies!(headers, config.cookies) if config.cookies
-      flag_cookies!(headers, secure: true) if config.secure_cookies
       headers.merge!(SecureHeaders.header_hash_for(req))
       [status, headers, response]
     end

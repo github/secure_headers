@@ -41,7 +41,9 @@ module SecureHeaders
     context "secure_cookies" do
       context "cookies should be flagged" do
         it "flags cookies as secure" do
-          Configuration.default { |config| config.secure_cookies = true }
+          capture_warning do
+            Configuration.default { |config| config.secure_cookies = true }
+          end
           request = Rack::MockRequest.new(cookie_middleware)
           response = request.get '/'
           expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
@@ -50,7 +52,9 @@ module SecureHeaders
 
       context "cookies should not be flagged" do
         it "does not flags cookies as secure" do
-          Configuration.default { |config| config.secure_cookies = false }
+          capture_warning do
+            Configuration.default { |config| config.secure_cookies = false }
+          end
           request = Rack::MockRequest.new(cookie_middleware)
           response = request.get '/'
           expect(response.headers['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
