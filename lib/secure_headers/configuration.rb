@@ -175,7 +175,7 @@ module SecureHeaders
 
     def csp=(new_csp)
       if self.dynamic_csp
-        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= isntead."
+        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= instead."
       end
 
       @csp = new_csp
