@@ -44,9 +44,9 @@ module SecureHeaders
           capture_warning do
             Configuration.default { |config| config.secure_cookies = true }
           end
-          request = Rack::MockRequest.new(cookie_middleware)
-          response = request.get '/'
-          expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
+          request = Rack::Request.new("HTTPS" => "on")
+          _, env = cookie_middleware.call request.env
+          expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
         end
       end
 
@@ -55,9 +55,9 @@ module SecureHeaders
           capture_warning do
             Configuration.default { |config| config.secure_cookies = false }
           end
-          request = Rack::MockRequest.new(cookie_middleware)
-          response = request.get '/'
-          expect(response.headers['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
+          request = Rack::Request.new("HTTPS" => "on")
+          _, env = cookie_middleware.call request.env
+          expect(env['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
         end
       end
     end
@@ -65,11 +65,20 @@ module SecureHeaders
     context "cookies" do
       it "flags cookies from configuration" do
         Configuration.default { |config| config.cookies = { secure: true, httponly: true, samesite: true } }
-        request = Rack::MockRequest.new(cookie_middleware)
-        response = request.get '/'
-        expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
-        expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
-        expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SAMESITE_REGEXP)
+        request = Rack::Request.new("HTTPS" => "on")
+        _, env = cookie_middleware.call request.env
+
+        expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
+        expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
+        expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SAMESITE_REGEXP)
+      end
+
+      it "disables secure cookies for non-https requests" do
+        Configuration.default { |config| config.cookies = { secure: true } }
+
+        request = Rack::Request.new("HTTPS" => "off")
+        _, env = cookie_middleware.call request.env
+        expect(env['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
       end
     end
   end

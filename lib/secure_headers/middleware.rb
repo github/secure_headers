@@ -10,7 +10,7 @@ module SecureHeaders
       status, headers, response = @app.call(env)
 
       config = SecureHeaders.config_for(req)
-      flag_cookies!(headers, config.cookies) if config.cookies
+      flag_cookies!(headers, override_secure(env, config.cookies)) if config.cookies
       headers.merge!(SecureHeaders.header_hash_for(req))
       [status, headers, response]
     end
@@ -26,6 +26,26 @@ module SecureHeaders
         headers['Set-Cookie'] = cookies.map do |cookie|
           SecureHeaders::Cookie.new(cookie, config).to_s
         end.join("\n")
+      end
+    end
+
+    # disable Secure cookies for non-https requests
+    def override_secure(env, config = {})
+      if scheme(env) != 'https'
+        config.merge!(secure: false)
+      end
+
+      config
+    end
+
+    # derived from https://github.com/tobmatth/rack-ssl-enforcer/blob/6c014/lib/rack/ssl-enforcer.rb#L119
+    def scheme(env)
+      if env['HTTPS'] == 'on' || env['HTTP_X_SSL_REQUEST'] == 'on'
+        'https'
+      elsif env['HTTP_X_FORWARDED_PROTO']
+        env['HTTP_X_FORWARDED_PROTO'].split(',')[0]
+      else
+        env['rack.url_scheme']
       end
     end
   end
