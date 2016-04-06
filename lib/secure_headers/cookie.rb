@@ -5,6 +5,8 @@ module SecureHeaders
     SECURE_REGEXP = /;\s*secure\s*(;|$)/i.freeze
     HTTPONLY_REGEXP =/;\s*HttpOnly\s*(;|$)/i.freeze
     SAMESITE_REGEXP =/;\s*SameSite\s*(;|$)/i.freeze
+    SAMESITE_LAX_REGEXP =/;\s*SameSite=Lax\s*(;|$)/i.freeze
+    SAMESITE_STRICT_REGEXP =/;\s*SameSite=Strict\s*(;|$)/i.freeze
 
     REGEXES = {
       secure: SECURE_REGEXP,
@@ -23,20 +25,20 @@ module SecureHeaders
       @raw_cookie.dup.tap do |c|
         c << "; secure" if secure?
         c << "; HttpOnly" if httponly?
-        c << "; SameSite" if samesite?
+        c << "; #{samesite_cookie}" if samesite?
       end
     end
 
     def secure?
-      already_flagged?(:secure) || flag_cookie?(:secure)
+      flag_cookie?(:secure) && !already_flagged?(:secure)
     end
 
     def httponly?
-      already_flagged?(:httponly) || flag_cookie?(:httponly)
+      flag_cookie?(:httponly) && !already_flagged?(:httponly)
     end
 
     def samesite?
-      already_flagged?(:samesite) || flag_samesite?
+      flag_samesite? && !already_flagged?(:samesite)
     end
 
     private
@@ -54,12 +56,31 @@ module SecureHeaders
       when TrueClass
         true
       when Hash
-        if((Array(config[attribute][:only]) & parsed_cookie.keys).any?)
-          true
-        elsif((Array(config[attribute][:except]) & parsed_cookie.keys).none?)
-          true
-        else
-          false
+        conditionally_flag?(config[attribute])
+      else
+        false
+      end
+    end
+
+    def conditionally_flag?(configuration)
+      if((Array(configuration[:only]) & parsed_cookie.keys).any?)
+        true
+      elsif((Array(configuration[:except]) & parsed_cookie.keys).none?)
+        true
+      else
+        false
+      end
+    end
+
+    def samesite_cookie
+      case config[:samesite]
+      when TrueClass
+        "SameSite"
+      when Hash
+        if config[:samesite].key?(:lax)
+          "SameSite=Lax"
+        elsif config[:samesite].key?(:strict)
+          "SameSite=Strict"
         end
       else
         false
@@ -70,6 +91,14 @@ module SecureHeaders
       case config[:samesite]
       when TrueClass
         true
+      when Hash
+        if config[:samesite].key?(:lax)
+          conditionally_flag?(config[:samesite][:lax])
+        elsif config[:samesite].key?(:strict)
+          conditionally_flag?(config[:samesite][:strict])
+        else
+          false
+        end
       else
         false
       end
