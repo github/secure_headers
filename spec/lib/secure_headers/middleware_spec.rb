@@ -63,73 +63,13 @@ module SecureHeaders
     end
 
     context "cookies" do
-      context "secure cookies" do
-        context "when secure is a boolean" do
-          it "flags cookies as secure" do
-            Configuration.default { |config| config.cookies = { secure: true } }
-            request = Rack::MockRequest.new(cookie_middleware)
-            response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
-          end
-        end
-
-        context "when secure is a Hash" do
-          it "flags cookies as secure when whitelisted" do
-            Configuration.default { |config| config.cookies = { secure: { only: ['foo']} } }
-            request = Rack::MockRequest.new(cookie_middleware)
-            response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
-          end
-
-          it "does not flag cookies as secure when excluded" do
-            Configuration.default { |config| config.cookies = { secure: { except: ['foo']} } }
-            request = Rack::MockRequest.new(cookie_middleware)
-            response = request.get '/'
-            expect(response.headers['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
-          end
-        end
-      end
-
-      context "HttpOnly cookies" do
-        context "when httponly is a boolean" do
-          it "flags cookies as HttpOnly" do
-            Configuration.default { |config| config.cookies = { httponly: true } }
-            request = Rack::MockRequest.new(cookie_middleware)
-            response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
-          end
-        end
-
-        context "when secure is a Hash" do
-          it "flags cookies as secure when whitelisted" do
-            Configuration.default { |config| config.cookies = { httponly: { only: ['foo']} } }
-            request = Rack::MockRequest.new(cookie_middleware)
-            response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
-          end
-
-          it "does not flag cookies as secure when excluded" do
-            Configuration.default { |config| config.cookies = { httponly: { except: ['foo']} } }
-            request = Rack::MockRequest.new(cookie_middleware)
-            response = request.get '/'
-            expect(response.headers['Set-Cookie']).not_to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
-          end
-        end
-      end
-
-      context "SameSite cookies" do
-        context "when samesite is a boolean" do
-          it "flags cookies as Samesite" do
-            Configuration.default { |config| config.cookies = { samesite: true } }
-            request = Rack::MockRequest.new(cookie_middleware)
-            response = request.get '/'
-            expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SAMESITE_REGEXP)
-          end
-        end
-
-        context "when samesite is a Hash" do
-          skip
-        end
+      it "flags cookies from configuration" do
+        Configuration.default { |config| config.cookies = { secure: true, httponly: true, samesite: true } }
+        request = Rack::MockRequest.new(cookie_middleware)
+        response = request.get '/'
+        expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
+        expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
+        expect(response.headers['Set-Cookie']).to match(SecureHeaders::Cookie::SAMESITE_REGEXP)
       end
     end
   end
