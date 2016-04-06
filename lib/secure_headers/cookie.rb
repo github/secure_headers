@@ -1,6 +1,7 @@
 require 'cgi'
 
 module SecureHeaders
+  class CookiesConfigError < StandardError; end
   class Cookie
     SECURE_REGEXP = /;\s*secure\s*(;|$)/i.freeze
     HTTPONLY_REGEXP =/;\s*HttpOnly\s*(;|$)/i.freeze
@@ -13,6 +14,34 @@ module SecureHeaders
       httponly: HTTPONLY_REGEXP,
       samesite: SAMESITE_REGEXP,
     }
+
+    class << self
+      def validate_config!(config)
+        return if config.nil? || config == OPT_OUT
+        raise CookiesConfigError.new("config must be a hash.") unless config.is_a? Hash
+
+        # validate only boolean or Hash configuration
+        [:secure, :httponly, :samesite].each do |attribute|
+          if config[attribute] && !(config[attribute].is_a?(Hash) || config[attribute].is_a?(TrueClass) || config[attribute].is_a?(FalseClass))
+            raise CookiesConfigError.new("#{attribute} cookie config must be a hash or boolean")
+          end
+        end
+
+        [:secure, :httponly].each do |attribute|
+          if config[attribute].is_a?(Hash) && config[attribute].key?(:only) && config[attribute].key?(:except)
+            raise CookiesConfigError.new("#{attribute} cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
+          end
+        end
+
+        if config[:samesite] && config[:samesite].is_a?(Hash)
+          [:lax, :strict].each do |samesite_attribute|
+            if config[:samesite][samesite_attribute].is_a?(Hash) && config[:samesite][samesite_attribute].key?(:only) && config[:samesite][samesite_attribute].key?(:except)
+              raise CookiesConfigError.new("samesite #{samesite_attribute} cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
+            end
+          end
+        end
+      end
+    end
 
     attr_reader :raw_cookie, :config
 

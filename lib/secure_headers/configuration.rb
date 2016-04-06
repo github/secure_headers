@@ -164,6 +164,7 @@ module SecureHeaders
       XDownloadOptions.validate_config!(@x_download_options)
       XPermittedCrossDomainPolicies.validate_config!(@x_permitted_cross_domain_policies)
       PublicKeyPins.validate_config!(@hpkp)
+      Cookie.validate_config!(@cookies)
     end
 
     def secure_cookies=(secure_cookies)

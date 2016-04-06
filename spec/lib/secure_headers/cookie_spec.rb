@@ -92,4 +92,30 @@ module SecureHeaders
       end
     end
   end
+
+  context "with an invalid configuration" do
+    it "raises an exception when not configured with a Hash" do
+      expect do
+        Cookie.validate_config!("configuration")
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when configured without a boolean/Hash" do
+      expect do
+        Cookie.validate_config!(secure: "true")
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when both only and except filters are provided" do
+      expect do
+        Cookie.validate_config!(secure: { only: [], except: [] })
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when both only and except filters are provided to SameSite configurations" do
+      expect do
+        Cookie.validate_config!(samesite: { lax: { only: [], except: [] } })
+      end.to raise_error(CookiesConfigError)
+    end
+  end
 end
