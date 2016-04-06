@@ -31,7 +31,11 @@ All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT`
 
 ```ruby
 SecureHeaders::Configuration.default do |config|
-  config.secure_cookies = true # mark all cookies as "secure"
+  config.cookies = {
+    secure: true, # mark all cookies as "secure"
+    httponly: true, # mark all cookies as "httponly"
+    samesite: true
+  }
   config.hsts = "max-age=#{20.years.to_i}; includeSubdomains; preload"
   config.x_frame_options = "DENY"
   config.x_content_type_options = "nosniff"
@@ -261,6 +265,55 @@ config.hpkp = {
   report_uri: 'https://report-uri.io/example-hpkp',
   app_name: 'example',
   tag_report_uri: true
+}
+```
+
+### Cookies
+
+SecureHeaders supports `Secure`, `HttpOnly` and [`SameSite`](https://tools.ietf.org/html/draft-west-first-party-cookies-06) cookies. These can be defined in the form of a boolean, or as a Hash for more refined configuration.
+
+__Note__: Regardless of the configuration specified, Secure cookies are only enabled for HTTPS requests.
+
+#### Boolean-based configuration
+
+Boolean-based configuration is intended to globally enable or disable a specific cookie attribute.
+
+```ruby
+config.cookies = {
+  secure: true, # mark all cookies as Secure
+  httponly: false, # do not mark any cookies as HttpOnly
+}
+```
+
+#### Hash-based configuration
+
+Hash-based configuration allows for fine-grained control.
+
+```ruby
+config.cookies = {
+  secure: { except: ['_guest'], # mark all but the `_guest` cookie as Secure
+  httponly: { only: ['_rails_session'] }, # only mark the `_rails_session` cookie as HttpOnly
+}
+```
+
+#### SameSite
+
+SameSite cookies permit either `Strict` or `Lax` enforcement mode options.
+
+```ruby
+config.cookies = {
+  samesite: true # mark all cookies as SameSite (user agents default this to `Strict` enforcement mode)
+}
+```
+
+`Strict` and `Lax` enforcement can also be specified using a Hash.
+
+```ruby
+config.cookies = {
+  samesite: {
+    strict: { only: [`_rails_session`] },
+    lax: { only: [`_guest`] }
+  }
 }
 ```
 
