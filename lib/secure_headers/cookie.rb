@@ -92,9 +92,9 @@ module SecureHeaders
     end
 
     def conditionally_flag?(configuration)
-      if((Array(configuration[:only]) & parsed_cookie.keys).any?)
+      if(Array(configuration[:only]).any? && (Array(configuration[:only]) & parsed_cookie.keys).any?)
         true
-      elsif((Array(configuration[:except]) & parsed_cookie.keys).none?)
+      elsif(Array(configuration[:except]).any? && (Array(configuration[:except]) & parsed_cookie.keys).none?)
         true
       else
         false
@@ -106,13 +106,11 @@ module SecureHeaders
       when TrueClass
         "SameSite"
       when Hash
-        if config[:samesite].key?(:lax)
+        if flag_samesite_lax?
           "SameSite=Lax"
-        elsif config[:samesite].key?(:strict)
+        elsif flag_samesite_strict?
           "SameSite=Strict"
         end
-      else
-        false
       end
     end
 
@@ -121,16 +119,18 @@ module SecureHeaders
       when TrueClass
         true
       when Hash
-        if config[:samesite].key?(:lax)
-          conditionally_flag?(config[:samesite][:lax])
-        elsif config[:samesite].key?(:strict)
-          conditionally_flag?(config[:samesite][:strict])
-        else
-          false
-        end
+        flag_samesite_lax? || flag_samesite_strict?
       else
         false
       end
+    end
+
+    def flag_samesite_lax?
+      config[:samesite].key?(:lax) && conditionally_flag?(config[:samesite][:lax])
+    end
+
+    def flag_samesite_strict?
+      config[:samesite].key?(:strict) && conditionally_flag?(config[:samesite][:strict])
     end
   end
 end

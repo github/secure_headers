@@ -89,6 +89,11 @@ module SecureHeaders
           cookie = Cookie.new(raw_cookie, samesite: { strict: { except: ["_session"] } })
           expect(cookie.to_s).not_to match(Cookie::SAMESITE_STRICT_REGEXP)
         end
+
+        it "flags properly when both lax and strict are configured" do
+          cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] }, lax: { only: ["_additional_session"] } })
+          expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
+        end
       end
     end
   end
