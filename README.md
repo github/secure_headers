@@ -296,7 +296,7 @@ config.cookies = {
 }
 ```
 
-#### SameSite
+#### SameSite cookies
 
 SameSite cookies permit either `Strict` or `Lax` enforcement mode options.
 
