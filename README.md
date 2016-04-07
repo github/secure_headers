@@ -270,7 +270,7 @@ config.hpkp = {
 
 ### Cookies
 
-SecureHeaders supports `Secure`, `HttpOnly` and [`SameSite`](https://tools.ietf.org/html/draft-west-first-party-cookies-06) cookies. These can be defined in the form of a boolean, or as a Hash for more refined configuration.
+SecureHeaders supports `Secure`, `HttpOnly` and [`SameSite`](https://tools.ietf.org/html/draft-west-first-party-cookies-07) cookies. These can be defined in the form of a boolean, or as a Hash for more refined configuration.
 
 __Note__: Regardless of the configuration specified, Secure cookies are only enabled for HTTPS requests.
 
