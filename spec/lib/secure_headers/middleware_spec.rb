@@ -73,6 +73,17 @@ module SecureHeaders
         expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SAMESITE_REGEXP)
       end
 
+      it "flags cookies with a combination of SameSite configurations" do
+        cookie_middleware = Middleware.new(lambda { |env| [200, env.merge("Set-Cookie" => ["_session=foobar", "_guest=true"]), "app"] })
+
+        Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } } } }
+        request = Rack::Request.new("HTTPS" => "on")
+        _, env = cookie_middleware.call request.env
+
+        expect(env['Set-Cookie']).to match("_session=foobar; SameSite=Strict")
+        expect(env['Set-Cookie']).to match("_guest=true; SameSite=Lax")
+      end
+
       it "disables secure cookies for non-https requests" do
         Configuration.default { |config| config.cookies = { secure: true } }
 
