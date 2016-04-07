@@ -291,7 +291,7 @@ Hash-based configuration allows for fine-grained control.
 
 ```ruby
 config.cookies = {
-  secure: { except: ['_guest'], # mark all but the `_guest` cookie as Secure
+  secure: { except: ['_guest'] }, # mark all but the `_guest` cookie as Secure
   httponly: { only: ['_rails_session'] }, # only mark the `_rails_session` cookie as HttpOnly
 }
 ```
