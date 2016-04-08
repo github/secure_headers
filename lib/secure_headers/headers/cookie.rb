@@ -9,12 +9,6 @@ module SecureHeaders
     SAMESITE_LAX_REGEXP =/;\s*SameSite=Lax\s*(;|$)/i.freeze
     SAMESITE_STRICT_REGEXP =/;\s*SameSite=Strict\s*(;|$)/i.freeze
 
-    REGEXES = {
-      secure: SECURE_REGEXP,
-      httponly: HTTPONLY_REGEXP,
-      samesite: SAMESITE_REGEXP,
-    }
-
     class << self
       def validate_config!(config)
         return if config.nil? || config == OPT_OUT
@@ -84,6 +78,13 @@ module SecureHeaders
     def initialize(cookie, config)
       @raw_cookie = cookie
       @config = config
+      @attributes = {
+        "secure" => nil,
+        "httponly" => nil,
+        "samesite" => nil,
+      }
+
+      parse(cookie)
     end
 
     def to_s
@@ -113,7 +114,7 @@ module SecureHeaders
     end
 
     def already_flagged?(attribute)
-      raw_cookie =~ REGEXES[attribute]
+      @attributes[attribute.to_s]
     end
 
     def flag_cookie?(attribute)
@@ -167,6 +168,19 @@ module SecureHeaders
         true
       else
         false
+      end
+    end
+
+    def parse(cookie)
+      return unless cookie
+
+      cookie.split(/[;,]\s?/).each do |pairs|
+        name, values = pairs.split('=',2)
+        name = CGI.unescape(name)
+
+        if @attributes.has_key?(name.downcase)
+          @attributes[name.downcase] = values || true
+        end
       end
     end
   end

@@ -97,6 +97,12 @@ module SecureHeaders
         cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] }, lax: { only: ["_additional_session"] } })
         expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
       end
+
+      it "ignores configuration if the cookie is already flagged" do
+        raw_cookie = "_session=thisisatest; SameSite=Strict"
+        cookie = Cookie.new(raw_cookie, samesite: { lax: true })
+        expect(cookie.to_s).to eq(raw_cookie)
+      end
     end
   end
 
