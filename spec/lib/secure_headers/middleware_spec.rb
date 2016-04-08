@@ -64,13 +64,12 @@ module SecureHeaders
 
     context "cookies" do
       it "flags cookies from configuration" do
-        Configuration.default { |config| config.cookies = { secure: true, httponly: true, samesite: true } }
+        Configuration.default { |config| config.cookies = { secure: true, httponly: true } }
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
 
         expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
         expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
-        expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SAMESITE_REGEXP)
       end
 
       it "flags cookies with a combination of SameSite configurations" do

@@ -62,38 +62,40 @@ module SecureHeaders
     end
 
     context "SameSite cookies" do
-      context "when configured with a boolean" do
-        it "flags cookies as SameSite" do
-          cookie = Cookie.new(raw_cookie, samesite: true)
-          expect(cookie.to_s).to match(Cookie::SAMESITE_REGEXP)
-        end
+      it "flags SameSite=Lax" do
+        cookie = Cookie.new(raw_cookie, samesite: { lax: { only: ["_session"] } })
+        expect(cookie.to_s).to match(Cookie::SAMESITE_LAX_REGEXP)
       end
 
-      context "when configured with a Hash" do
-        it "flags SameSite=Lax" do
-          cookie = Cookie.new(raw_cookie, samesite: { lax: { only: ["_session"] } })
-          expect(cookie.to_s).to match(Cookie::SAMESITE_LAX_REGEXP)
-        end
+      it "flags SameSite=Lax when configured with a boolean" do
+        cookie = Cookie.new(raw_cookie, samesite: { lax: true})
+        expect(cookie.to_s).to match(Cookie::SAMESITE_LAX_REGEXP)
+      end
 
-        it "does not flag cookies as SameSite=Lax when excluded" do
-          cookie = Cookie.new(raw_cookie, samesite: { lax: { except: ["_session"] } })
-          expect(cookie.to_s).not_to match(Cookie::SAMESITE_LAX_REGEXP)
-        end
+      it "does not flag cookies as SameSite=Lax when excluded" do
+        cookie = Cookie.new(raw_cookie, samesite: { lax: { except: ["_session"] } })
+        expect(cookie.to_s).not_to match(Cookie::SAMESITE_LAX_REGEXP)
+      end
 
-        it "flags SameSite=Strict" do
-          cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] } })
-          expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
-        end
+      it "flags SameSite=Strict" do
+        cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] } })
+        expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
+      end
 
-        it "does not flag cookies as SameSite=Strict when excluded" do
-          cookie = Cookie.new(raw_cookie, samesite: { strict: { except: ["_session"] } })
-          expect(cookie.to_s).not_to match(Cookie::SAMESITE_STRICT_REGEXP)
-        end
+      it "does not flag cookies as SameSite=Strict when excluded" do
+        cookie = Cookie.new(raw_cookie, samesite: { strict: { except: ["_session"] } })
+        expect(cookie.to_s).not_to match(Cookie::SAMESITE_STRICT_REGEXP)
+      end
 
-        it "flags properly when both lax and strict are configured" do
-          cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] }, lax: { only: ["_additional_session"] } })
-          expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
-        end
+      it "flags SameSite=Strict when configured with a boolean" do
+        cookie = Cookie.new(raw_cookie, samesite: { strict: true})
+        expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
+      end
+
+      it "flags properly when both lax and strict are configured" do
+        raw_cookie = "_session=thisisatest"
+        cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] }, lax: { only: ["_additional_session"] } })
+        expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
       end
     end
   end
@@ -117,9 +119,39 @@ module SecureHeaders
       end.to raise_error(CookiesConfigError)
     end
 
+    it "raises an exception when SameSite is not configured with a Hash" do
+      expect do
+        Cookie.validate_config!(samesite: true)
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when SameSite lax and strict enforcement modes are configured with booleans" do
+      expect do
+        Cookie.validate_config!(samesite: { lax: true, strict: true})
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when SameSite lax and strict enforcement modes are configured with booleans" do
+      expect do
+        Cookie.validate_config!(samesite: { lax: true, strict: { only: ["_anything"] } })
+      end.to raise_error(CookiesConfigError)
+    end
+
     it "raises an exception when both only and except filters are provided to SameSite configurations" do
       expect do
-        Cookie.validate_config!(samesite: { lax: { only: [], except: [] } })
+        Cookie.validate_config!(samesite: { lax: { only: ["_anything"], except: ["_anythingelse"] } })
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when both lax and strict only filters are provided to SameSite configurations" do
+      expect do
+        Cookie.validate_config!(samesite: { lax: { only: ["_anything"] }, strict: { only: ["_anything"] } })
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when both lax and strict only filters are provided to SameSite configurations" do
+      expect do
+        Cookie.validate_config!(samesite: { lax: { except: ["_anything"] }, strict: { except: ["_anything"] } })
       end.to raise_error(CookiesConfigError)
     end
   end
