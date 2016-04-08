@@ -15,7 +15,7 @@ The gem will automatically apply several headers that are related to security.  
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
 
-It can also mark all http cookies with the secure attribute (when configured to do so).
+It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes (when configured to do so).
 
 `secure_headers` is a library with a global config, per request overrides, and rack middleware that enables you customize your application settings.
 
@@ -296,17 +296,19 @@ config.cookies = {
 }
 ```
 
-#### SameSite cookies
+#### SameSite cookie configuration
 
 SameSite cookies permit either `Strict` or `Lax` enforcement mode options.
 
 ```ruby
 config.cookies = {
-  samesite: true # mark all cookies as SameSite (user agents default this to `Strict` enforcement mode)
+  samesite: {
+    strict: true # mark all cookies as SameSite=Strict
+  }
 }
 ```
 
-`Strict` and `Lax` enforcement can also be specified using a Hash.
+`Strict` and `Lax` enforcement modes can also be specified using a Hash.
 
 ```ruby
 config.cookies = {
