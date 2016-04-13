@@ -46,7 +46,7 @@ module SecureHeaders
           end
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
-          expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
+          expect(env['Set-Cookie']).to eq("foo=bar; secure")
         end
       end
 
@@ -57,7 +57,7 @@ module SecureHeaders
           end
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
-          expect(env['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
+          expect(env['Set-Cookie']).to eq("foo=bar")
         end
       end
     end
@@ -68,8 +68,7 @@ module SecureHeaders
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
 
-        expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::SECURE_REGEXP)
-        expect(env['Set-Cookie']).to match(SecureHeaders::Cookie::HTTPONLY_REGEXP)
+        expect(env['Set-Cookie']).to eq("foo=bar; secure; HttpOnly")
       end
 
       it "flags cookies with a combination of SameSite configurations" do
@@ -88,7 +87,7 @@ module SecureHeaders
 
         request = Rack::Request.new("HTTPS" => "off")
         _, env = cookie_middleware.call request.env
-        expect(env['Set-Cookie']).not_to match(SecureHeaders::Cookie::SECURE_REGEXP)
+        expect(env['Set-Cookie']).to eq("foo=bar")
       end
     end
   end

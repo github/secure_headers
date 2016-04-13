@@ -11,7 +11,7 @@ module SecureHeaders
 
     it "preserves existing attributes" do
       cookie = Cookie.new("_session=thisisatest; secure", secure: true)
-      expect(cookie.to_s).to match(Cookie::SECURE_REGEXP)
+      expect(cookie.to_s).to eq("_session=thisisatest; secure")
     end
 
     it "prevents duplicate flagging of attributes" do
@@ -23,19 +23,19 @@ module SecureHeaders
       context "when configured with a boolean" do
         it "flags cookies as Secure" do
           cookie = Cookie.new(raw_cookie, secure: true)
-          expect(cookie.to_s).to match(Cookie::SECURE_REGEXP)
+          expect(cookie.to_s).to eq("_session=thisisatest; secure")
         end
       end
 
       context "when configured with a Hash" do
         it "flags cookies as Secure when whitelisted" do
           cookie = Cookie.new(raw_cookie, secure: { only: ["_session"]})
-          expect(cookie.to_s).to match(Cookie::SECURE_REGEXP)
+          expect(cookie.to_s).to eq("_session=thisisatest; secure")
         end
 
         it "does not flag cookies as Secure when excluded" do
           cookie = Cookie.new(raw_cookie, secure: { except: ["_session"] })
-          expect(cookie.to_s).not_to match(Cookie::SECURE_REGEXP)
+          expect(cookie.to_s).to eq("_session=thisisatest")
         end
       end
     end
@@ -44,19 +44,19 @@ module SecureHeaders
       context "when configured with a boolean" do
         it "flags cookies as HttpOnly" do
           cookie = Cookie.new(raw_cookie, httponly: true)
-          expect(cookie.to_s).to match(Cookie::HTTPONLY_REGEXP)
+          expect(cookie.to_s).to eq("_session=thisisatest; HttpOnly")
         end
       end
 
       context "when configured with a Hash" do
         it "flags cookies as HttpOnly when whitelisted" do
           cookie = Cookie.new(raw_cookie, httponly: { only: ["_session"]})
-          expect(cookie.to_s).to match(Cookie::HTTPONLY_REGEXP)
+          expect(cookie.to_s).to eq("_session=thisisatest; HttpOnly")
         end
 
         it "does not flag cookies as HttpOnly when excluded" do
           cookie = Cookie.new(raw_cookie, httponly: { except: ["_session"] })
-          expect(cookie.to_s).not_to match(Cookie::HTTPONLY_REGEXP)
+          expect(cookie.to_s).to eq("_session=thisisatest")
         end
       end
     end
@@ -64,38 +64,38 @@ module SecureHeaders
     context "SameSite cookies" do
       it "flags SameSite=Lax" do
         cookie = Cookie.new(raw_cookie, samesite: { lax: { only: ["_session"] } })
-        expect(cookie.to_s).to match(Cookie::SAMESITE_LAX_REGEXP)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Lax")
       end
 
       it "flags SameSite=Lax when configured with a boolean" do
         cookie = Cookie.new(raw_cookie, samesite: { lax: true})
-        expect(cookie.to_s).to match(Cookie::SAMESITE_LAX_REGEXP)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Lax")
       end
 
       it "does not flag cookies as SameSite=Lax when excluded" do
         cookie = Cookie.new(raw_cookie, samesite: { lax: { except: ["_session"] } })
-        expect(cookie.to_s).not_to match(Cookie::SAMESITE_LAX_REGEXP)
+        expect(cookie.to_s).to eq("_session=thisisatest")
       end
 
       it "flags SameSite=Strict" do
         cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] } })
-        expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Strict")
       end
 
       it "does not flag cookies as SameSite=Strict when excluded" do
         cookie = Cookie.new(raw_cookie, samesite: { strict: { except: ["_session"] } })
-        expect(cookie.to_s).not_to match(Cookie::SAMESITE_STRICT_REGEXP)
+        expect(cookie.to_s).to eq("_session=thisisatest")
       end
 
       it "flags SameSite=Strict when configured with a boolean" do
         cookie = Cookie.new(raw_cookie, samesite: { strict: true})
-        expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Strict")
       end
 
       it "flags properly when both lax and strict are configured" do
         raw_cookie = "_session=thisisatest"
         cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] }, lax: { only: ["_additional_session"] } })
-        expect(cookie.to_s).to match(Cookie::SAMESITE_STRICT_REGEXP)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Strict")
       end
 
       it "ignores configuration if the cookie is already flagged" do

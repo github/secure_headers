@@ -3,11 +3,6 @@ require 'cgi'
 module SecureHeaders
   class CookiesConfigError < StandardError; end
   class Cookie
-    SECURE_REGEXP = /;\s*secure\s*(;|$)/i.freeze
-    HTTPONLY_REGEXP =/;\s*HttpOnly\s*(;|$)/i.freeze
-    SAMESITE_REGEXP =/;\s*SameSite\s*(;|$)/i.freeze
-    SAMESITE_LAX_REGEXP =/;\s*SameSite=Lax\s*(;|$)/i.freeze
-    SAMESITE_STRICT_REGEXP =/;\s*SameSite=Strict\s*(;|$)/i.freeze
 
     class << self
       def validate_config!(config)
