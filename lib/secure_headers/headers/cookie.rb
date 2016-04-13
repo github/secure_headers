@@ -79,9 +79,9 @@ module SecureHeaders
       @raw_cookie = cookie
       @config = config
       @attributes = {
-        "secure" => nil,
-        "httponly" => nil,
-        "samesite" => nil,
+        httponly: nil,
+        samesite: nil,
+        secure: nil,
       }
 
       parse(cookie)
@@ -114,7 +114,7 @@ module SecureHeaders
     end
 
     def already_flagged?(attribute)
-      @attributes[attribute.to_s]
+      @attributes[attribute]
     end
 
     def flag_cookie?(attribute)
@@ -178,8 +178,9 @@ module SecureHeaders
         name, values = pairs.split('=',2)
         name = CGI.unescape(name)
 
-        if @attributes.has_key?(name.downcase)
-          @attributes[name.downcase] = values || true
+        attribute = name.downcase.to_sym
+        if @attributes.has_key?(attribute)
+          @attributes[attribute] = values || true
         end
       end
     end
