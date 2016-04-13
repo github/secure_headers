@@ -315,8 +315,8 @@ config.cookies = {
 ```ruby
 config.cookies = {
   samesite: {
-    strict: { only: [`_rails_session`] },
-    lax: { only: [`_guest`] }
+    strict: { only: ['_rails_session'] },
+    lax: { only: ['_guest'] }
   }
 }
 ```
