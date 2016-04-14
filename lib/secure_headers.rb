@@ -1,5 +1,6 @@
 require "secure_headers/configuration"
 require "secure_headers/hash_helper"
+require "secure_headers/headers/cookie"
 require "secure_headers/headers/public_key_pins"
 require "secure_headers/headers/content_security_policy"
 require "secure_headers/headers/x_frame_options"

@@ -104,9 +104,9 @@ module SecureHeaders
 
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp, :dynamic_csp, :secure_cookies
+      :hpkp, :dynamic_csp, :cookies
 
-    attr_reader :cached_headers, :csp, :dynamic_csp, :secure_cookies
+    attr_reader :cached_headers, :csp, :dynamic_csp, :cookies
 
     HASH_CONFIG_FILE = ENV["secure_headers_generated_hashes_file"] || "config/secure_headers_generated_hashes.yml"
     if File.exists?(HASH_CONFIG_FILE)
@@ -126,7 +126,7 @@ module SecureHeaders
     # Returns a deep-dup'd copy of this configuration.
     def dup
       copy = self.class.new
-      copy.secure_cookies = @secure_cookies
+      copy.cookies = @cookies
       copy.csp = self.class.send(:deep_copy_if_hash, @csp)
       copy.dynamic_csp = self.class.send(:deep_copy_if_hash, @dynamic_csp)
       copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
@@ -181,13 +181,19 @@ module SecureHeaders
       XDownloadOptions.validate_config!(@x_download_options)
       XPermittedCrossDomainPolicies.validate_config!(@x_permitted_cross_domain_policies)
       PublicKeyPins.validate_config!(@hpkp)
+      Cookie.validate_config!(@cookies)
+    end
+
+    def secure_cookies=(secure_cookies)
+      Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#secure_cookies=` is deprecated. Please use `#cookies=` to configure secure cookies instead."
+      @cookies = (@cookies || {}).merge(secure: secure_cookies)
     end
 
     protected
 
     def csp=(new_csp)
       if self.dynamic_csp
-        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= isntead."
+        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= instead."
       end
 
       @csp = new_csp
