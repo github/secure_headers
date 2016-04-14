@@ -7,66 +7,88 @@ module SecureHeaders
       @config = config
     end
 
-    def valid?
-      return if config.nil? || config == OPT_OUT
-      raise CookiesConfigError.new("config must be a hash.") unless config.is_a? Hash
+    def validate!
+      return if config.nil? || config == SecureHeaders::OPT_OUT
 
-      # secure and httponly - validate only boolean or Hash configuration
-      [:secure, :httponly].each do |attribute|
-        if config[attribute] && !(config[attribute].is_a?(Hash) || config[attribute].is_a?(TrueClass) || config[attribute].is_a?(FalseClass))
-          raise CookiesConfigError.new("#{attribute} cookie config must be a hash or boolean")
+      validate_config!
+      validate_secure_config! if config[:secure]
+      validate_httponly_config! if config[:httponly]
+      validate_samesite_config! if config[:samesite]
+    end
+
+    private
+
+    def validate_config!
+      raise CookiesConfigError.new("config must be a hash.") unless is_hash?(config)
+    end
+
+    def validate_secure_config!
+      validate_hash_or_boolean!(:secure)
+      validate_exclusive_use_of_hash_constraints!(config[:secure], :secure)
+    end
+
+    def validate_httponly_config!
+      validate_hash_or_boolean!(:httponly)
+      validate_exclusive_use_of_hash_constraints!(config[:httponly], :httponly)
+    end
+
+    def validate_samesite_config!
+      raise CookiesConfigError.new("samesite cookie config must be a hash") unless is_hash?(config[:samesite])
+
+      validate_samesite_boolean_config!
+      validate_samesite_hash_config!
+    end
+
+    # when configuring with booleans, only one enforcement is permitted
+    def validate_samesite_boolean_config!
+      if config[:samesite].key?(:lax) && config[:samesite][:lax].is_a?(TrueClass) && config[:samesite].key?(:strict)
+        raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure lax and strict enforcement is not permitted.")
+      elsif config[:samesite].key?(:strict) && config[:samesite][:strict].is_a?(TrueClass) && config[:samesite].key?(:lax)
+        raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure lax and strict enforcement is not permitted.")
+      end
+    end
+
+    def validate_samesite_hash_config!
+      # validate Hash-based samesite configuration
+      if is_hash?(config[:samesite][:lax])
+        validate_exclusive_use_of_hash_constraints!(config[:samesite][:lax], 'samesite lax')
+
+        if is_hash?(config[:samesite][:strict])
+          validate_exclusive_use_of_hash_constraints!(config[:samesite][:strict], 'samesite strict')
+          
+          # validate exclusivity of only and except members within strict and lax
+          if (intersection = (config[:samesite][:lax].fetch(:only, []) & config[:samesite][:strict].fetch(:only, []))).any?
+            raise CookiesConfigError.new("samesite cookie config is invalid, cookie(s) #{intersection.join(', ')} cannot be enforced as lax and strict")
+          end
+
+          if (intersection = (config[:samesite][:lax].fetch(:except, []) & config[:samesite][:strict].fetch(:except, []))).any?
+            raise CookiesConfigError.new("samesite cookie config is invalid, cookie(s) #{intersection.join(', ')} cannot be enforced as lax and strict")
+          end
         end
       end
+    end
 
-      # secure and httponly - validate exclusive use of only or except but not both at the same time
-      [:secure, :httponly].each do |attribute|
-        if config[attribute].is_a?(Hash)
-          if config[attribute].key?(:only) && config[attribute].key?(:except)
-            raise CookiesConfigError.new("#{attribute} cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
-          end
-
-          if (intersection = (config[attribute].fetch(:only, []) & config[attribute].fetch(:only, []))).any?
-            raise CookiesConfigError.new("#{attribute} cookie config is invalid, cookies #{intersection.join(', ')} cannot be enforced as lax and strict")
-          end
-        end
+    def validate_hash_or_boolean!(attribute)
+      if !(is_hash?(config[attribute]) || is_boolean?(config[attribute]))
+        raise CookiesConfigError.new("#{attribute} cookie config must be a hash or boolean")
       end
+    end
 
-      if config[:samesite]
-        raise CookiesConfigError.new("samesite cookie config must be a hash") unless config[:samesite].is_a?(Hash)
+    # validate exclusive use of only or except but not both at the same time
+    def validate_exclusive_use_of_hash_constraints!(conf, attribute)
+      return unless is_hash?(conf)
 
-        # when configuring with booleans, only one enforcement is permitted
-        if config[:samesite].key?(:lax) && config[:samesite][:lax].is_a?(TrueClass) && config[:samesite].key?(:strict)
-          raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure lax and strict enforcement is not permitted.")
-        elsif config[:samesite].key?(:strict) && config[:samesite][:strict].is_a?(TrueClass) && config[:samesite].key?(:lax)
-          raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure lax and strict enforcement is not permitted.")
-        end
-
-        # validate Hash-based samesite configuration
-        if config[:samesite].key?(:lax) && config[:samesite][:lax].is_a?(Hash)
-          # validate exclusive use of only or except but not both at the same time
-          if config[:samesite][:lax].key?(:only) && config[:samesite][:lax].key?(:except)
-            raise CookiesConfigError.new("samesite lax cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
-          end
-
-          if config[:samesite].key?(:strict)
-            # validate exclusivity of only and except members
-            if (intersection = (config[:samesite][:lax].fetch(:only, []) & config[:samesite][:strict].fetch(:only, []))).any?
-              raise CookiesConfigError.new("samesite cookie config is invalid, cookie(s) #{intersection.join(', ')} cannot be enforced as lax and strict")
-            end
-
-            if (intersection = (config[:samesite][:lax].fetch(:except, []) & config[:samesite][:strict].fetch(:except, []))).any?
-              raise CookiesConfigError.new("samesite cookie config is invalid, cookie(s) #{intersection.join(', ')} cannot be enforced as lax and strict")
-            end
-          end
-        end
-
-        if config[:samesite].key?(:strict) && config[:samesite][:strict].is_a?(Hash)
-          # validate exclusive use of only or except but not both at the same time
-          if config[:samesite][:strict].key?(:only) && config[:samesite][:strict].key?(:except)
-            raise CookiesConfigError.new("samesite strict cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
-          end
-        end
+      if conf.key?(:only) && conf.key?(:except)
+        raise CookiesConfigError.new("#{attribute} cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
       end
+    end
+
+    def is_hash?(obj)
+      obj && obj.is_a?(Hash)
+    end
+
+    def is_boolean?(obj)
+      obj && (obj.is_a?(TrueClass) || obj.is_a?(FalseClass))
     end
   end
 end

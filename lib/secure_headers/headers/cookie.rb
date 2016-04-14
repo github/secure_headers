@@ -7,7 +7,7 @@ module SecureHeaders
 
     class << self
       def validate_config!(config)
-        CookiesConfig.new(config).valid?
+        CookiesConfig.new(config).validate!
       end
     end
 
