@@ -55,15 +55,8 @@ module SecureHeaders
 
         if is_hash?(config[:samesite][:strict])
           validate_exclusive_use_of_hash_constraints!(config[:samesite][:strict], 'samesite strict')
-          
-          # validate exclusivity of only and except members within strict and lax
-          if (intersection = (config[:samesite][:lax].fetch(:only, []) & config[:samesite][:strict].fetch(:only, []))).any?
-            raise CookiesConfigError.new("samesite cookie config is invalid, cookie(s) #{intersection.join(', ')} cannot be enforced as lax and strict")
-          end
-
-          if (intersection = (config[:samesite][:lax].fetch(:except, []) & config[:samesite][:strict].fetch(:except, []))).any?
-            raise CookiesConfigError.new("samesite cookie config is invalid, cookie(s) #{intersection.join(', ')} cannot be enforced as lax and strict")
-          end
+          validate_exclusive_use_of_samesite_enforcement!(:only)
+          validate_exclusive_use_of_samesite_enforcement!(:except)
         end
       end
     end
@@ -80,6 +73,13 @@ module SecureHeaders
 
       if conf.key?(:only) && conf.key?(:except)
         raise CookiesConfigError.new("#{attribute} cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
+      end
+    end
+
+    # validate exclusivity of only and except members within strict and lax
+    def validate_exclusive_use_of_samesite_enforcement!(attribute)
+      if (intersection = (config[:samesite][:lax].fetch(attribute, []) & config[:samesite][:strict].fetch(attribute, []))).any?
+        raise CookiesConfigError.new("samesite cookie config is invalid, cookie(s) #{intersection.join(', ')} cannot be enforced as lax and strict")
       end
     end
 
