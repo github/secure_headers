@@ -68,15 +68,35 @@ module SecureHeaders
     let(:app) { lambda { |env| [200, env, "app"] } }
     let(:middleware) { Middleware.new(app) }
     let(:request) { Rack::Request.new("HTTP_USER_AGENT" => USER_AGENTS[:chrome]) }
+    let(:filename) { "app/views/asdfs/index.html.erb" }
 
-    before(:each) do
+    before(:all) do
       Configuration.default do |config|
         config.csp[:script_src] = %w('self')
         config.csp[:style_src] = %w('self')
       end
     end
 
-    it "raises an error when attempting to hash unknown content" do
+    after(:each) do
+      Configuration.instance_variable_set(:@script_hashes, nil)
+      Configuration.instance_variable_set(:@style_hashes, nil)
+    end
+
+    it "raises an error when using hashed content without precomputed hashes" do
+      expect {
+        Message.new(request).result
+      }.to raise_error(ViewHelpers::UnexpectedHashedScriptException)
+    end
+
+    it "raises an error when using hashed content with precomputed hashes, but none for the given file" do
+      Configuration.instance_variable_set(:@script_hashes, filename.reverse => ["'sha256-123'"])
+      expect {
+        Message.new(request).result
+      }.to raise_error(ViewHelpers::UnexpectedHashedScriptException)
+    end
+
+    it "raises an error when using previously unknown hashed content with precomputed hashes for a given file" do
+      Configuration.instance_variable_set(:@script_hashes, filename => ["'sha256-123'"])
       expect {
         Message.new(request).result
       }.to raise_error(ViewHelpers::UnexpectedHashedScriptException)
@@ -87,9 +107,9 @@ module SecureHeaders
         allow(SecureRandom).to receive(:base64).and_return("abc123")
 
         expected_hash = "sha256-3/URElR9+3lvLIouavYD/vhoICSNKilh15CzI/nKqg8="
-        Configuration.instance_variable_set(:@script_hashes, "app/views/asdfs/index.html.erb" => ["'#{expected_hash}'"])
+        Configuration.instance_variable_set(:@script_hashes, filename => ["'#{expected_hash}'"])
         expected_style_hash = "sha256-7oYK96jHg36D6BM042er4OfBnyUDTG3pH1L8Zso3aGc="
-        Configuration.instance_variable_set(:@style_hashes, "app/views/asdfs/index.html.erb" => ["'#{expected_style_hash}'"])
+        Configuration.instance_variable_set(:@style_hashes, filename => ["'#{expected_style_hash}'"])
 
         # render erb that calls out to helpers.
         Message.new(request).result
@@ -99,9 +119,6 @@ module SecureHeaders
         expect(env[CSP::HEADER_NAME]).to match(/script-src[^;]*'nonce-abc123'/)
         expect(env[CSP::HEADER_NAME]).to match(/style-src[^;]*'nonce-abc123'/)
         expect(env[CSP::HEADER_NAME]).to match(/style-src[^;]*'#{Regexp.escape(expected_style_hash)}'/)
-      ensure
-        Configuration.instance_variable_set(:@script_hashes, nil)
-        Configuration.instance_variable_set(:@style_hashes, nil)
       end
     end
   end
