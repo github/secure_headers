@@ -38,8 +38,7 @@ module SecureHeaders
     # Checks to see if the hashed code is expected and adds the hash source
     # value to the current CSP.
     #
-    # In development/test/etc. an exception will be raised. In production,
-    # it will dynamically compute the value so things don't break.
+    # By default, in development/test/etc. an exception will be raised.
     def hashed_javascript_tag(raise_error_on_unrecognized_hash = nil, &block)
       hashed_tag(
         :script,
@@ -70,16 +69,12 @@ module SecureHeaders
       content = capture(&block)
       file_path = File.join('app', 'views', self.instance_variable_get(:@virtual_path) + '.html.erb')
 
-      if hashes.nil?
-        raise UnexpectedHashedScriptException.new(unexpected_hash_error_message(file_path, content))
-      end
+      if raise_error_on_unrecognized_hash
+        hash_value = hash_source(content)
+        message = unexpected_hash_error_message(file_path, content, hash_value)
 
-      if hashes[file_path].nil?
-        message = unexpected_hash_error_message(file_path, content)
-        if raise_error_on_unrecognized_hash
+        if hashes.nil? || hashes[file_path].nil? || !hashes[file_path].include?(hash_value)
           raise UnexpectedHashedScriptException.new(message)
-        else
-          warn message
         end
       end
 
@@ -88,8 +83,7 @@ module SecureHeaders
       content_tag type, content
     end
 
-    def unexpected_hash_error_message(file_path, content)
-      hash_value = hash_source(content)
+    def unexpected_hash_error_message(file_path, content, hash_value)
       <<-EOF
 \n\n*** WARNING: Unrecognized hash in #{file_path}!!! Value: #{hash_value} ***
 #{content}

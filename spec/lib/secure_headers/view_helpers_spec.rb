@@ -6,7 +6,7 @@ class Message < ERB
 
   def self.template
 <<-TEMPLATE
-<% hashed_javascript_tag do %>
+<% hashed_javascript_tag(raise_error_on_unrecognized_hash = true) do %>
   console.log(1)
 <% end %>
 
@@ -67,16 +67,24 @@ module SecureHeaders
   describe ViewHelpers do
     let(:app) { lambda { |env| [200, env, "app"] } }
     let(:middleware) { Middleware.new(app) }
+    let(:request) { Rack::Request.new("HTTP_USER_AGENT" => USER_AGENTS[:chrome]) }
 
-    it "uses view helpers" do
+    before(:each) do
+      Configuration.default do |config|
+        config.csp[:script_src] = %w('self')
+        config.csp[:style_src] = %w('self')
+      end
+    end
+
+    it "raises an error when attempting to hash unknown content" do
+      expect {
+        Message.new(request).result
+      }.to raise_error(ViewHelpers::UnexpectedHashedScriptException)
+    end
+
+    it "adds known hash values to the corresponding headers when the helper is used" do
       begin
         allow(SecureRandom).to receive(:base64).and_return("abc123")
-
-        Configuration.default do |config|
-          config.csp[:script_src] = %w('self')
-          config.csp[:style_src] = %w('self')
-        end
-        request = Rack::Request.new("HTTP_USER_AGENT" => USER_AGENTS[:chrome])
 
         expected_hash = "sha256-3/URElR9+3lvLIouavYD/vhoICSNKilh15CzI/nKqg8="
         Configuration.instance_variable_set(:@script_hashes, "app/views/asdfs/index.html.erb" => ["'#{expected_hash}'"])
