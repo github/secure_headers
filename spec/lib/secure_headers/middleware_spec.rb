@@ -38,21 +38,56 @@ module SecureHeaders
       expect(env[CSP::HEADER_NAME]).to match("example.org")
     end
 
-    context "cookies should be flagged" do
-      it "flags cookies as secure" do
-        Configuration.default { |config| config.secure_cookies = true }
-        request = Rack::MockRequest.new(cookie_middleware)
-        response = request.get '/'
-        expect(response.headers['Set-Cookie']).to match(Middleware::SECURE_COOKIE_REGEXP)
+    context "secure_cookies" do
+      context "cookies should be flagged" do
+        it "flags cookies as secure" do
+          capture_warning do
+            Configuration.default { |config| config.secure_cookies = true }
+          end
+          request = Rack::Request.new("HTTPS" => "on")
+          _, env = cookie_middleware.call request.env
+          expect(env['Set-Cookie']).to eq("foo=bar; secure")
+        end
+      end
+
+      context "cookies should not be flagged" do
+        it "does not flags cookies as secure" do
+          capture_warning do
+            Configuration.default { |config| config.secure_cookies = false }
+          end
+          request = Rack::Request.new("HTTPS" => "on")
+          _, env = cookie_middleware.call request.env
+          expect(env['Set-Cookie']).to eq("foo=bar")
+        end
       end
     end
 
-    context "cookies should not be flagged" do
-      it "does not flags cookies as secure" do
-        Configuration.default { |config| config.secure_cookies = false }
-        request = Rack::MockRequest.new(cookie_middleware)
-        response = request.get '/'
-        expect(response.headers['Set-Cookie']).not_to match(Middleware::SECURE_COOKIE_REGEXP)
+    context "cookies" do
+      it "flags cookies from configuration" do
+        Configuration.default { |config| config.cookies = { secure: true, httponly: true } }
+        request = Rack::Request.new("HTTPS" => "on")
+        _, env = cookie_middleware.call request.env
+
+        expect(env['Set-Cookie']).to eq("foo=bar; secure; HttpOnly")
+      end
+
+      it "flags cookies with a combination of SameSite configurations" do
+        cookie_middleware = Middleware.new(lambda { |env| [200, env.merge("Set-Cookie" => ["_session=foobar", "_guest=true"]), "app"] })
+
+        Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } } } }
+        request = Rack::Request.new("HTTPS" => "on")
+        _, env = cookie_middleware.call request.env
+
+        expect(env['Set-Cookie']).to match("_session=foobar; SameSite=Strict")
+        expect(env['Set-Cookie']).to match("_guest=true; SameSite=Lax")
+      end
+
+      it "disables secure cookies for non-https requests" do
+        Configuration.default { |config| config.cookies = { secure: true } }
+
+        request = Rack::Request.new("HTTPS" => "off")
+        _, env = cookie_middleware.call request.env
+        expect(env['Set-Cookie']).to eq("foo=bar")
       end
     end
   end

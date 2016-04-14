@@ -15,7 +15,7 @@ The gem will automatically apply several headers that are related to security.  
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
 
-It can also mark all http cookies with the secure attribute (when configured to do so).
+It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes (when configured to do so).
 
 `secure_headers` is a library with a global config, per request overrides, and rack middleware that enables you customize your application settings.
 
@@ -31,7 +31,13 @@ All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT`
 
 ```ruby
 SecureHeaders::Configuration.default do |config|
-  config.secure_cookies = true # mark all cookies as "secure"
+  config.cookies = {
+    secure: true, # mark all cookies as "Secure"
+    httponly: true, # mark all cookies as "HttpOnly"
+    samesite: {
+      strict: true # mark all cookies as SameSite=Strict
+    }
+  }
   config.hsts = "max-age=#{20.years.to_i}; includeSubdomains; preload"
   config.x_frame_options = "DENY"
   config.x_content_type_options = "nosniff"
@@ -261,6 +267,57 @@ config.hpkp = {
   report_uri: 'https://report-uri.io/example-hpkp',
   app_name: 'example',
   tag_report_uri: true
+}
+```
+
+### Cookies
+
+SecureHeaders supports `Secure`, `HttpOnly` and [`SameSite`](https://tools.ietf.org/html/draft-west-first-party-cookies-07) cookies. These can be defined in the form of a boolean, or as a Hash for more refined configuration.
+
+__Note__: Regardless of the configuration specified, Secure cookies are only enabled for HTTPS requests.
+
+#### Boolean-based configuration
+
+Boolean-based configuration is intended to globally enable or disable a specific cookie attribute.
+
+```ruby
+config.cookies = {
+  secure: true, # mark all cookies as Secure
+  httponly: false, # do not mark any cookies as HttpOnly
+}
+```
+
+#### Hash-based configuration
+
+Hash-based configuration allows for fine-grained control.
+
+```ruby
+config.cookies = {
+  secure: { except: ['_guest'] }, # mark all but the `_guest` cookie as Secure
+  httponly: { only: ['_rails_session'] }, # only mark the `_rails_session` cookie as HttpOnly
+}
+```
+
+#### SameSite cookie configuration
+
+SameSite cookies permit either `Strict` or `Lax` enforcement mode options.
+
+```ruby
+config.cookies = {
+  samesite: {
+    strict: true # mark all cookies as SameSite=Strict
+  }
+}
+```
+
+`Strict` and `Lax` enforcement modes can also be specified using a Hash.
+
+```ruby
+config.cookies = {
+  samesite: {
+    strict: { only: ['_rails_session'] },
+    lax: { only: ['_guest'] }
+  }
 }
 ```
 
