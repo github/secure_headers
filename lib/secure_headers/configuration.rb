@@ -1,3 +1,5 @@
+require 'yaml'
+
 module SecureHeaders
   class Configuration
     DEFAULT_CONFIG = :default
@@ -105,6 +107,13 @@ module SecureHeaders
       :hpkp, :dynamic_csp, :cookies
 
     attr_reader :cached_headers, :csp, :dynamic_csp, :cookies
+
+    HASH_CONFIG_FILE = ENV["secure_headers_generated_hashes_file"] || "config/secure_headers_generated_hashes.yml"
+    if File.exists?(HASH_CONFIG_FILE)
+      config = YAML.safe_load(File.open(HASH_CONFIG_FILE))
+      @script_hashes = config["scripts"]
+      @style_hashes = config["styles"]
+    end
 
     def initialize(&block)
       self.hpkp = OPT_OUT
