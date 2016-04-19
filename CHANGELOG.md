@@ -114,6 +114,7 @@ console.log(1)
 Content-Security-Policy: ...
  script-src 'sha256-yktKiAsZWmc8WpOyhnmhQoDf9G2dAZvuBBC+V0LGQhg=' ... ;
  style-src 'sha256-SLp6LO3rrKDJwsG9uJUxZapb4Wp2Zhj6Bu3l+d9rnAY=' 'sha256-HSGHqlRoKmHAGTAJ2Rq0piXX4CnEbOl1ArNd6ejp2TE=' ...;
+```
 
 ## 3.1.2 Bug fix for regression
 
