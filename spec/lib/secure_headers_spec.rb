@@ -312,6 +312,14 @@ module SecureHeaders
           end
         end.to raise_error(PublicKeyPinsConfigError)
       end
+
+      it "validates your cookies config upon configuration" do
+        expect do
+          Configuration.default do |config|
+            config.cookies = { secure: "lol" }
+          end
+        end.to raise_error(CookiesConfigError)
+      end
     end
   end
 end
