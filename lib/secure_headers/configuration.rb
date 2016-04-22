@@ -61,6 +61,7 @@ module SecureHeaders
         config.validate_config!
         @configurations ||= {}
         config.send(:cache_headers!)
+        config.send(:cache_hpkp_report_host)
         config.freeze
         @configurations[name] = config
       end
@@ -102,11 +103,12 @@ module SecureHeaders
       end
     end
 
-    attr_writer :hsts, :x_frame_options, :x_content_type_options,
-      :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp, :dynamic_csp, :cookies
+    attr_accessor :dynamic_csp
 
-    attr_reader :cached_headers, :csp, :dynamic_csp, :cookies
+    attr_writer :hsts, :x_frame_options, :x_content_type_options,
+      :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies
+
+    attr_reader :cached_headers, :csp, :cookies, :hpkp, :hpkp_report_host
 
     HASH_CONFIG_FILE = ENV["secure_headers_generated_hashes_file"] || "config/secure_headers_generated_hashes.yml"
     if File.exists?(HASH_CONFIG_FILE)
@@ -137,6 +139,7 @@ module SecureHeaders
       copy.x_download_options = @x_download_options
       copy.x_permitted_cross_domain_policies = @x_permitted_cross_domain_policies
       copy.hpkp = @hpkp
+      copy.hpkp_report_host = @hpkp_report_host
       copy
     end
 
@@ -199,11 +202,31 @@ module SecureHeaders
       @csp = new_csp
     end
 
+    def cookies=(cookies)
+      @cookies = cookies
+    end
+
     def cached_headers=(headers)
       @cached_headers = headers
     end
 
+    def hpkp=(hpkp)
+      @hpkp = hpkp
+    end
+
+    def hpkp_report_host=(hpkp_report_host)
+      @hpkp_report_host = hpkp_report_host
+    end
+
     private
+
+    def cache_hpkp_report_host
+      has_report_uri = @hpkp && @hpkp != OPT_OUT && @hpkp[:report_uri]
+      self.hpkp_report_host = if has_report_uri
+        parsed_report_uri = URI.parse(@hpkp[:report_uri])
+        parsed_report_uri.host
+      end
+    end
 
     # Public: Precompute the header names and values for this configuraiton.
     # Ensures that headers generated at configure time, not on demand.
