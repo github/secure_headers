@@ -20,6 +20,13 @@ module SecureHeaders
       end.to raise_error(Configuration::NotYetConfiguredError)
     end
 
+    it "raises and ArgumentError when referencing an override that has not been set" do
+      expect do
+        Configuration.default
+        SecureHeaders.use_secure_headers_override(request, :missing)
+      end.to raise_error(ArgumentError)
+    end
+
     describe "#header_hash_for" do
       it "allows you to opt out of individual headers via API" do
         Configuration.default
@@ -311,6 +318,14 @@ module SecureHeaders
             config.hpkp = "lol"
           end
         end.to raise_error(PublicKeyPinsConfigError)
+      end
+
+      it "validates your cookies config upon configuration" do
+        expect do
+          Configuration.default do |config|
+            config.cookies = { secure: "lol" }
+          end
+        end.to raise_error(CookiesConfigError)
       end
     end
   end
