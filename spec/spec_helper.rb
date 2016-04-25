@@ -30,7 +30,7 @@ def expect_default_values(hash)
   expect(hash[SecureHeaders::XXssProtection::HEADER_NAME]).to eq(SecureHeaders::XXssProtection::DEFAULT_VALUE)
   expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::DEFAULT_VALUE)
   expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
-  expect(hash[SecureHeaders::ReferrerPolicy::HEADER_NAME]).to eq(SecureHeaders::ReferrerPolicy::DEFAULT_VALUE)
+  expect(hash[SecureHeaders::ReferrerPolicy::HEADER_NAME]).to be_nil
 end
 
 module SecureHeaders
