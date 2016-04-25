@@ -7,7 +7,7 @@ if defined?(Rails::Railtie)
                              'X-Permitted-Cross-Domain-Policies', 'X-Download-Options',
                              'X-Content-Type-Options', 'Strict-Transport-Security',
                              'Content-Security-Policy', 'Content-Security-Policy-Report-Only',
-                             'Public-Key-Pins', 'Public-Key-Pins-Report-Only']
+                             'Public-Key-Pins', 'Public-Key-Pins-Report-Only, Referrer-Policy']
 
       initializer "secure_headers.middleware" do
         Rails.application.config.middleware.insert_before 0, SecureHeaders::Middleware
