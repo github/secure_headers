@@ -104,7 +104,7 @@ module SecureHeaders
 
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
-      :hpkp, :dynamic_csp, :cookies
+      :hpkp, :dynamic_csp, :cookies, :referrer_policy
 
     attr_reader :cached_headers, :csp, :dynamic_csp, :cookies
 
@@ -117,6 +117,7 @@ module SecureHeaders
 
     def initialize(&block)
       self.hpkp = OPT_OUT
+      self.referrer_policy = OPT_OUT
       self.csp = self.class.send(:deep_copy, CSP::DEFAULT_CONFIG)
       instance_eval &block if block_given?
     end
@@ -136,6 +137,7 @@ module SecureHeaders
       copy.x_xss_protection = @x_xss_protection
       copy.x_download_options = @x_download_options
       copy.x_permitted_cross_domain_policies = @x_permitted_cross_domain_policies
+      copy.referrer_policy = @referrer_policy
       copy.hpkp = @hpkp
       copy
     end
@@ -175,6 +177,7 @@ module SecureHeaders
     def validate_config!
       StrictTransportSecurity.validate_config!(@hsts)
       ContentSecurityPolicy.validate_config!(@csp)
+      ReferrerPolicy.validate_config!(@referrer_policy)
       XFrameOptions.validate_config!(@x_frame_options)
       XContentTypeOptions.validate_config!(@x_content_type_options)
       XXssProtection.validate_config!(@x_xss_protection)

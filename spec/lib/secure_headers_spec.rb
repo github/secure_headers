@@ -312,6 +312,14 @@ module SecureHeaders
         end.to raise_error(XPCDPConfigError)
       end
 
+      it "validates your referrer_policy config upon configuration" do
+        expect do
+          Configuration.default do |config|
+            config.referrer_policy = "lol"
+          end
+        end.to raise_error(ReferrerPolicyConfigError)
+      end
+
       it "validates your hpkp config upon configuration" do
         expect do
           Configuration.default do |config|
