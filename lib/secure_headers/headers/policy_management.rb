@@ -91,6 +91,7 @@ module SecureHeaders
       UPGRADE_INSECURE_REQUESTS
     ].freeze
 
+    EDGE_DIRECTIVES = DIRECTIVES_1_0
     SAFARI_DIRECTIVES = DIRECTIVES_1_0
 
     FIREFOX_UNSUPPORTED_DIRECTIVES = [
@@ -118,6 +119,7 @@ module SecureHeaders
       "Opera" => CHROME_DIRECTIVES,
       "Firefox" => FIREFOX_DIRECTIVES,
       "Safari" => SAFARI_DIRECTIVES,
+      "Edge" => EDGE_DIRECTIVES,
       "Other" => CHROME_DIRECTIVES
     }.freeze
 

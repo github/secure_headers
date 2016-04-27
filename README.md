@@ -13,6 +13,7 @@ The gem will automatically apply several headers that are related to security.  
 - X-Content-Type-Options - [Prevent content type sniffing](https://msdn.microsoft.com/library/gg622941\(v=vs.85\).aspx)
 - X-Download-Options - [Prevent file downloads opening](https://msdn.microsoft.com/library/jj542450(v=vs.85).aspx)
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
+- Referrer-Policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
 
 It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes (when configured to do so).
@@ -44,6 +45,7 @@ SecureHeaders::Configuration.default do |config|
   config.x_xss_protection = "1; mode=block"
   config.x_download_options = "noopen"
   config.x_permitted_cross_domain_policies = "none"
+  config.referrer_policy = "origin-when-cross-origin"
   config.csp = {
     # "meta" values. these will shaped the header, but the values are not included in the header.
     report_only:  true,     # default: false
