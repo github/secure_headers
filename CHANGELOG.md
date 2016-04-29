@@ -1,3 +1,11 @@
+## 3.3.0 referrer-policy support
+
+While not officially part of the spec and not implemented anywhere, support for the experimental [`referrer-policy` header](https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-header) was [preemptively added](https://github.com/twitter/secureheaders/pull/249).
+
+Additionally, two minor enhancements were added this version:
+1. [Warn when the HPKP report host is the same as the current host](https://github.com/twitter/secureheaders/pull/246). By definition any generated reports would be reporting to a known compromised connection.
+1. [Filter unsupported CSP directives when using Edge](https://github.com/twitter/secureheaders/pull/247). Previously, this was causing many warnings in the developer console.
+
 ## 3.2.0 Cookie settings and CSP hash sources
 
 ### Cookies
