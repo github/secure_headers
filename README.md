@@ -332,9 +332,7 @@ config.hpkp = {
     {sha256: '73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f'}
   ],
   report_only: true,            # defaults to false (report-only mode)
-  report_uri: 'https://report-uri.io/example-hpkp',
-  app_name: 'example',
-  tag_report_uri: true
+  report_uri: 'https://report-uri.io/example-hpkp'
 }
 ```
 
