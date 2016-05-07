@@ -13,6 +13,7 @@ Changes
 | `inline` / `eval` source expressions | could be `inline`, `eval`, `'unsafe-inline'`, or `'unsafe-eval'` | Must be `'unsafe-eval'` or `'unsafe-inline'`                                                                                                                                   |
 | Per-action configuration         | override [`def secure_header_options_for(header, options)`](https://github.com/twitter/secureheaders/commit/bb9ebc6c12a677aad29af8e0f08ffd1def56efec#diff-04c6e90faac2675aa89e2176d2eec7d8R111)  | Use [named overrides](https://github.com/twitter/secureheaders#named-overrides) or [per-action helpers](https://github.com/twitter/secureheaders#per-action-configuration) |
 | CSP/HPKP use `report_only` config that defaults to false | `enforce: false` |  `report_only: false` |
+| schemes in source expressions | Schemes were not stripped | Schemes are stripped by default to discourage mixed content. Setting `preserve_schemes: true` will revert to previous behavior |
 
 Migrating to 3.x from <= 2.x
 ==
