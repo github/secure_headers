@@ -53,7 +53,7 @@ module SecureHeaders
       directives.map do |directive_name|
         case DIRECTIVE_VALUE_TYPES[directive_name]
         when :boolean
-          symbol_to_hyphen_case(directive_name)
+          symbol_to_hyphen_case(directive_name) if @config[directive_name]
         when :string
           [symbol_to_hyphen_case(directive_name), @config[directive_name]].join(" ")
         else
