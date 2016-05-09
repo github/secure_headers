@@ -48,7 +48,7 @@ SecureHeaders::Configuration.default do |config|
   config.referrer_policy = "origin-when-cross-origin"
   config.csp = {
     # "meta" values. these will shaped the header, but the values are not included in the header.
-    report_only:  true,     # default: false
+    report_only: true,      # default: false
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
 
     # directive values: these values will directly translate into source directives
@@ -66,7 +66,7 @@ SecureHeaders::Configuration.default do |config|
     form_action: %w('self' github.com),
     frame_ancestors: %w('none'),
     plugin_types: %w(application/x-shockwave-flash),
-    block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
+    block_all_mixed_content: true, # see http://www.w3.org/TR/mixed-content/
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
     report_uri: %w(https://report-uri.io/example-csp)
   }
@@ -85,7 +85,7 @@ end
 
 ### rails 2
 
-For rails 3+ applications, `secure_headers` has a `railtie` that should automatically include the middleware. For rails 2 applications, an explicit statement is required to use the middleware component.
+For rails 3+ applications, `secure_headers` has a `railtie` that should automatically include the middleware. For rails 2 or non-rails applications, an explicit statement is required to use the middleware component.
 
 ```ruby
 use SecureHeaders::Middleware
@@ -137,7 +137,7 @@ class MyController < ApplicationController
 end
 ```
 
-By default, a noop configuration is provided. No headers will be set when this default override is used.
+By default, a no-op configuration is provided. No headers will be set when this default override is used.
 
 ```ruby
 class MyController < ApplicationController
@@ -163,12 +163,12 @@ You can override the settings for a given action by producing a temporary overri
 class MyController < ApplicationController
   def index
     # Append value to the source list, override 'none' values
-    # Produces: default-src 'self'; script-src 'self' s3.amazaonaws.com; object-src 'self' youtube.com
-    append_content_security_policy_directives(script_src: %w(s3.amazaonaws.com), object_src: %w('self' youtube.com))
+    # Produces: default-src 'self'; script-src 'self' s3.amazonaws.com; object-src 'self' www.youtube.com
+    append_content_security_policy_directives(script_src: %w(s3.amazonaws.com), object_src: %w('self' www.youtube.com))
 
     # Overrides the previously set source list, override 'none' values
-    # Produces: default-src 'self'; script-src s3.amazaonaws.com; object-src 'self'
-    override_content_security_policy_directives(script_src: %w(s3.amazaonaws.com), object_src: %w('self'))
+    # Produces: default-src 'self'; script-src s3.amazonaws.com; object-src 'self'
+    override_content_security_policy_directives(script_src: %w(s3.amazonaws.com), object_src: %w('self'))
 
     # Global settings default to "sameorigin"
     override_x_frame_options("DENY")
@@ -207,7 +207,7 @@ You can use a view helper to automatically add nonces to script tags:
 
 ```erb
 <%= nonced_javascript_tag do %>
-console.log("hai");
+console.log("nonced!");
 <% end %>
 
 <%= nonced_style_tag do %>
@@ -324,14 +324,14 @@ Be aware that pinning error reporting is governed by the same rules as everythin
 
 ```ruby
 config.hpkp = {
-  max_age: 60.days.to_i,   # max_age is a required parameter
+  max_age: 60.days.to_i,    # max_age is a required parameter
   include_subdomains: true, # whether or not to apply pins to subdomains
   # Per the spec, SHA256 hashes are the only currently supported format.
   pins: [
     {sha256: 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c'},
     {sha256: '73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f'}
   ],
-  report_only: true,            # defaults to false (report-only mode)
+  report_only: true,        # defaults to false (report-only mode)
   report_uri: 'https://report-uri.io/example-hpkp'
 }
 ```

@@ -54,6 +54,7 @@ namespace :secure_headers do
     hashes
   end
 
+  desc "Generate #{SecureHeaders::Configuration::HASH_CONFIG_FILE}"
   task :generate_hashes do |t, args|
     script_hashes = {
       "scripts" => {},
