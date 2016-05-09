@@ -1,3 +1,7 @@
+## 3.3.1 bugfix for boolean CSP directives
+
+[@stefansundin](https://github.com/twitter/secureheaders/pull/253) noticed that supplying `false` to "boolean" CSP directives (e.g. `upgrade-insecure-requests` and `block-all-mixed-content`) would still include the value.
+
 ## 3.3.0 referrer-policy support
 
 While not officially part of the spec and not implemented anywhere, support for the experimental [`referrer-policy` header](https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-header) was [preemptively added](https://github.com/twitter/secureheaders/pull/249).
