@@ -1,7 +1,7 @@
-INLINE_SCRIPT_REGEX = /(<script(\s*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*\s*>)(.*?)<\/script>/mx
-INLINE_STYLE_REGEX = /(<style[^>]*>)(.*?)<\/style>/mx
-INLINE_HASH_SCRIPT_HELPER_REGEX = /<%=\s?hashed_javascript_tag(.*?)\s+do\s?%>(.*?)<%\s*end\s*%>/mx
-INLINE_HASH_STYLE_HELPER_REGEX = /<%=\s?hashed_style_tag(.*?)\s+do\s?%>(.*?)<%\s*end\s*%>/mx
+INLINE_SCRIPT_REGEX ||= /(<script(\s*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*\s*>)(.*?)<\/script>/mx
+INLINE_STYLE_REGEX ||= /(<style[^>]*>)(.*?)<\/style>/mx
+INLINE_HASH_SCRIPT_HELPER_REGEX ||= /<%=\s?hashed_javascript_tag(.*?)\s+do\s?%>(.*?)<%\s*end\s*%>/mx
+INLINE_HASH_STYLE_HELPER_REGEX ||= /<%=\s?hashed_style_tag(.*?)\s+do\s?%>(.*?)<%\s*end\s*%>/mx
 
 namespace :secure_headers do
   include SecureHeaders::HashHelper
