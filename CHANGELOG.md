@@ -1,3 +1,7 @@
+## 3.3.2 minor fix to silence warnings when using rake
+
+[@dankohn](https://github.com/twitter/secureheaders/issues/257) was seeing "already initialized" errors in his output. This change conditionally defines the constants.
+
 ## 3.3.1 bugfix for boolean CSP directives
 
 [@stefansundin](https://github.com/twitter/secureheaders/pull/253) noticed that supplying `false` to "boolean" CSP directives (e.g. `upgrade-insecure-requests` and `block-all-mixed-content`) would still include the value.
