@@ -96,7 +96,6 @@ module SecureHeaders
 
     FIREFOX_UNSUPPORTED_DIRECTIVES = [
       BLOCK_ALL_MIXED_CONTENT,
-      CHILD_SRC,
       PLUGIN_TYPES
     ].freeze
 
