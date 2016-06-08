@@ -24,7 +24,7 @@ module SecureHeaders
 
     describe "#value" do
       it "discards 'none' values if any other source expressions are present" do
-        csp = ContentSecurityPolicy.new(default_opts.merge(frame_src: %w('self' 'none')))
+        csp = ContentSecurityPolicy.new(default_opts.merge(child_src: %w('self' 'none')))
         expect(csp.value).not_to include("'none'")
       end
 
@@ -88,7 +88,7 @@ module SecureHeaders
 
       context "browser sniffing" do
         let (:complex_opts) do
-          ContentSecurityPolicy::ALL_DIRECTIVES.each_with_object({}) do |directive, hash|
+          (ContentSecurityPolicy::ALL_DIRECTIVES - [:frame_src]).each_with_object({}) do |directive, hash|
             hash[directive] = %w('self')
           end.merge({
             block_all_mixed_content: true,
@@ -101,12 +101,12 @@ module SecureHeaders
 
         it "does not filter any directives for Chrome" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:chrome])
-          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
+          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
         end
 
         it "does not filter any directives for Opera" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:opera])
-          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
+          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
         end
 
         it "filters blocked-all-mixed-content, child-src, and plugin-types for firefox" do

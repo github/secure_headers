@@ -1,9 +1,13 @@
 require_relative 'policy_management'
+require 'useragent'
 
 module SecureHeaders
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy
     include PolicyManagement
+
+    # constants to be used for version-specific UA sniffing
+    VERSION_46 = ::UserAgent::Version.new("46")
 
     def initialize(config = nil, user_agent = OTHER)
       config = Configuration.deep_copy(DEFAULT_CONFIG) unless config
@@ -13,6 +17,7 @@ module SecureHeaders
       else
         UserAgent.parse(user_agent)
       end
+      normalize_child_frame_src
       @report_only = @config[:report_only]
       @preserve_schemes = @config[:preserve_schemes]
       @script_nonce = @config[:script_nonce]
@@ -41,6 +46,21 @@ module SecureHeaders
     end
 
     private
+
+    # frame-src is deprecated, child-src is being implemented. They are
+    # very similar and in most cases, the same value can be used for both.
+    def normalize_child_frame_src
+      Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{}") if @config[:frame_src]
+
+      child_src = @config[:child_src] || @config[:frame_src]
+      if child_src
+        if supported_directives.include?(:child_src)
+          @config[:child_src] = child_src
+        else
+          @config[:frame_src] = child_src
+        end
+      end
+    end
 
     # Private: converts the config object into a string representing a policy.
     # Places default-src at the first directive and report-uri as the last. All
@@ -162,9 +182,19 @@ module SecureHeaders
 
     # Private: determine which directives are supported for the given user agent.
     #
+    # Add UA-sniffing special casing here.
+    #
     # Returns an array of symbols representing the directives.
     def supported_directives
-      @supported_directives ||= VARIATIONS[@parsed_ua.browser] || VARIATIONS[OTHER]
+      @supported_directives ||= if VARIATIONS[@parsed_ua.browser]
+        if @parsed_ua.browser == "Firefox" && @parsed_ua.version >= VERSION_46
+          FIREFOX_46_DIRECTIVES
+        else
+          VARIATIONS[@parsed_ua.browser]
+        end
+      else
+        VARIATIONS[OTHER]
+      end
     end
 
     def nonces_supported?
