@@ -54,7 +54,7 @@ SecureHeaders::Configuration.default do |config|
     # directive values: these values will directly translate into source directives
     default_src: %w(https: 'self'),
     frame_src: %w('self' *.twimg.com itunes.apple.com),
-    connect_src: %w(wws:),
+    connect_src: %w(wss:),
     font_src: %w('self' data:),
     img_src: %w(mycdn.com data:),
     media_src: %w(utoob.com),
