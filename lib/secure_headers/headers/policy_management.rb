@@ -131,6 +131,7 @@ module SecureHeaders
       "Chrome" => CHROME_DIRECTIVES,
       "Opera" => CHROME_DIRECTIVES,
       "Firefox" => FIREFOX_DIRECTIVES,
+      "FirefoxTransitional" => FIREFOX_46_DIRECTIVES,
       "Safari" => SAFARI_DIRECTIVES,
       "Edge" => EDGE_DIRECTIVES,
       "Other" => CHROME_DIRECTIVES

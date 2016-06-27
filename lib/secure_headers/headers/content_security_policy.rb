@@ -10,8 +10,7 @@ module SecureHeaders
     VERSION_46 = ::UserAgent::Version.new("46")
 
     def initialize(config = nil, user_agent = OTHER)
-      config = Configuration.deep_copy(DEFAULT_CONFIG) unless config
-      @config = config
+      @config = Configuration.send(:deep_copy, config || DEFAULT_CONFIG)
       @parsed_ua = if user_agent.is_a?(UserAgent::Browsers::Base)
         user_agent
       else
@@ -50,7 +49,7 @@ module SecureHeaders
     # frame-src is deprecated, child-src is being implemented. They are
     # very similar and in most cases, the same value can be used for both.
     def normalize_child_frame_src
-      Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{}") if @config[:frame_src]
+      Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{@config[:frame_src]}") if @config[:frame_src]
 
       child_src = @config[:child_src] || @config[:frame_src]
       if child_src
@@ -188,7 +187,7 @@ module SecureHeaders
     def supported_directives
       @supported_directives ||= if VARIATIONS[@parsed_ua.browser]
         if @parsed_ua.browser == "Firefox" && @parsed_ua.version >= VERSION_46
-          FIREFOX_46_DIRECTIVES
+          VARIATIONS["FirefoxTransitional"]
         else
           VARIATIONS[@parsed_ua.browser]
         end

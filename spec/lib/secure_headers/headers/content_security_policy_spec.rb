@@ -114,6 +114,11 @@ module SecureHeaders
           expect(policy.value).to eq("default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
         end
 
+        it "filters blocked-all-mixed-content, frame-src, and plugin-types for firefox 46 and higher" do
+          policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:firefox46])
+          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
+        end
+
         it "adds 'unsafe-inline', filters base-uri, blocked-all-mixed-content, upgrade-insecure-requests, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for Edge" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:edge])
           expect(policy.value).to eq("default-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; report-uri 'self'")

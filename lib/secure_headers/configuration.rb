@@ -203,7 +203,7 @@ module SecureHeaders
         raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= instead."
       end
 
-      @csp = new_csp
+      @csp = self.class.send(:deep_copy_if_hash, new_csp)
     end
 
     def cookies=(cookies)
@@ -215,7 +215,7 @@ module SecureHeaders
     end
 
     def hpkp=(hpkp)
-      @hpkp = hpkp
+      @hpkp = self.class.send(:deep_copy_if_hash, hpkp)
     end
 
     def hpkp_report_host=(hpkp_report_host)
