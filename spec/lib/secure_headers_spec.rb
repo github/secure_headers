@@ -29,8 +29,11 @@ module SecureHeaders
 
     describe "#header_hash_for" do
       it "allows you to opt out of individual headers via API" do
-        Configuration.default
+        Configuration.default do |config|
+          config.csp_report_only = { default_src: %w('self')} # no default value
+        end
         SecureHeaders.opt_out_of_header(request, CSP::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, CSP::REPORT_ONLY_CONFIG_KEY)
         SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
         hash = SecureHeaders.header_hash_for(request)
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
@@ -151,14 +154,14 @@ module SecureHeaders
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
-        it "dups global configuration just once when overriding n times and only calls idempotent_additions? once" do
+        it "dups global configuration just once when overriding n times and only calls idempotent_additions? once per header" do
           Configuration.default do |config|
             config.csp = {
               default_src: %w('self')
             }
           end
 
-          expect(CSP).to receive(:idempotent_additions?).once
+          expect(CSP).to receive(:idempotent_additions?).twice
 
           # before an override occurs, the env is empty
           expect(request.env[SECURE_HEADERS_CONFIG]).to be_nil
@@ -244,6 +247,81 @@ module SecureHeaders
 
           hash = SecureHeaders.header_hash_for(chrome_request)
           expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'; style-src 'self'")
+        end
+
+        context "setting two headers" do
+          it "sets identical values when the configs are the same" do
+            Configuration.default do |config|
+              config.csp = {
+                default_src: %w('self')
+              }
+              config.csp_report_only = {
+                default_src: %w('self')
+              }
+            end
+
+            hash = SecureHeaders.header_hash_for(request)
+            expect(hash['Content-Security-Policy']).to eq("default-src 'self'")
+            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+          end
+
+          it "sets different headers when the configs are different" do
+            Configuration.default do |config|
+              config.csp = {
+                default_src: %w('self')
+              }
+              config.csp_report_only = config.csp.merge({script_src: %w('self')})
+            end
+
+            hash = SecureHeaders.header_hash_for(request)
+            expect(hash['Content-Security-Policy']).to eq("default-src 'self'")
+            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self'")
+          end
+
+          it "allows appending to the enforced policy" do
+            Configuration.default do |config|
+              config.csp = {
+                default_src: %w('self')
+              }
+              config.csp_report_only = config.csp
+            end
+
+            SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :enforced)
+            hash = SecureHeaders.header_hash_for(request)
+            expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+          end
+
+          it "allows appending to the report only policy" do
+            Configuration.default do |config|
+              config.csp = {
+                default_src: %w('self')
+              }
+              config.csp_report_only = config.csp
+            end
+
+            SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :report_only)
+            hash = SecureHeaders.header_hash_for(request)
+            expect(hash['Content-Security-Policy']).to eq("default-src 'self'")
+            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+          end
+
+          it "allows appending to both policies" do
+            Configuration.default do |config|
+              config.csp = {
+                default_src: %w('self')
+              }
+              config.csp_report_only = config.csp
+            end
+
+            SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :both)
+            hash = SecureHeaders.header_hash_for(request)
+            expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+          end
+          it "allows overriding the enforced policy"
+          it "allows overriding the report only policy"
+          it "allows overriding both policies"
         end
       end
     end

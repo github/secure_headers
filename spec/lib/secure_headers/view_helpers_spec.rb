@@ -72,8 +72,11 @@ module SecureHeaders
 
     before(:all) do
       Configuration.default do |config|
-        config.csp[:script_src] = %w('self')
-        config.csp[:style_src] = %w('self')
+        config.csp = {
+          :default_src => %w('self'),
+          :script_src => %w('self'),
+          :style_src => %w('self')
+        }
       end
     end
 

@@ -163,6 +163,7 @@ module SecureHeaders
     }.freeze
 
     CONFIG_KEY = :csp
+    REPORT_ONLY_CONFIG_KEY = :csp_report_only
     STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
     HTTP_SCHEME_REGEX = %r{\Ahttps?://}
 

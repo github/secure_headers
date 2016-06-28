@@ -66,9 +66,19 @@ module SecureHeaders
     #
     # additions - a hash containing directives. e.g.
     #    script_src: %w(another-host.com)
-    def append_content_security_policy_directives(request, additions)
+    def append_content_security_policy_directives(request, additions, target=:both)
+      unless [:both, :enforced, :report_only].include?(target)
+        raise "Unrecognized target: #{target}. Must be [:both, :enforced, :report_only]"
+      end
+
       config = config_for(request)
-      config.dynamic_csp = CSP.combine_policies(config.current_csp, additions)
+      if [:both, :enforced].include?(target) && config.current_csp != OPT_OUT
+        config.dynamic_csp = CSP.combine_policies(config.current_csp, additions)
+      end
+      if [:both, :report_only].include?(target) && config.current_csp_report_only != OPT_OUT
+        config.dynamic_csp_report_only = CSP.combine_policies(config.current_csp_report_only, additions)
+      end
+
       override_secure_headers_request_config(request, config)
     end
 
@@ -109,7 +119,11 @@ module SecureHeaders
     def header_hash_for(request)
       config = config_for(request)
       unless ContentSecurityPolicy.idempotent_additions?(config.csp, config.current_csp)
-        config.rebuild_csp_header_cache!(request.user_agent)
+        config.rebuild_csp_header_cache!(request.user_agent, CSP::CONFIG_KEY)
+      end
+
+      unless ContentSecurityPolicy.idempotent_additions?(config.csp_report_only, config.current_csp_report_only)
+        config.rebuild_csp_header_cache!(request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
       end
 
       use_cached_headers(config.cached_headers, request)
@@ -190,7 +204,9 @@ module SecureHeaders
         ALL_HEADER_CLASSES
       else
         HTTP_HEADER_CLASSES
-      end
+      end.map do |klass|
+        klass::CONFIG_KEY
+      end.concat([CSP::REPORT_ONLY_CONFIG_KEY])
     end
 
     # Private: takes a precomputed hash of headers and returns the Headers
@@ -198,9 +214,9 @@ module SecureHeaders
     #
     # Returns a hash of header names / values valid for a given request.
     def use_cached_headers(headers, request)
-      header_classes_for(request).each_with_object({}) do |klass, hash|
-        if header = headers[klass::CONFIG_KEY]
-          header_name, value = if klass == CSP
+      header_classes_for(request).each_with_object({}) do |config_key, hash|
+        if header = headers[config_key]
+          header_name, value = if [CSP::CONFIG_KEY, CSP::REPORT_ONLY_CONFIG_KEY].include?(config_key)
             csp_header_for_ua(header, request)
           else
             header
