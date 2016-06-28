@@ -49,15 +49,16 @@ module SecureHeaders
     # frame-src is deprecated, child-src is being implemented. They are
     # very similar and in most cases, the same value can be used for both.
     def normalize_child_frame_src
-      Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{@config[:frame_src]}") if @config[:frame_src]
+      if @config[:frame_src] && @config[:child_src] && @config[:frame_src] != @config[:child_src]
+        Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] both :child_src and :frame_src supplied and do not match. This can lead to inconsistent behavior across browsers.")
+      elsif @config[:frame_src]
+        Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{@config[:frame_src]}.")
+      end
 
-      child_src = @config[:child_src] || @config[:frame_src]
-      if child_src
-        if supported_directives.include?(:child_src)
-          @config[:child_src] = child_src
-        else
-          @config[:frame_src] = child_src
-        end
+      if supported_directives.include?(:child_src)
+        @config[:child_src] = @config[:child_src] || @config[:frame_src]
+      else
+        @config[:frame_src] = @config[:frame_src] || @config[:child_src]
       end
     end
 
