@@ -53,20 +53,19 @@ SecureHeaders::Configuration.default do |config|
 
     # directive values: these values will directly translate into source directives
     default_src: %w(https: 'self'),
-    frame_src: %w('self' *.twimg.com itunes.apple.com),
+    base_uri: %w('self'),
+    block_all_mixed_content: true, # see http://www.w3.org/TR/mixed-content/
+    child_src: %w('self'),
     connect_src: %w(wws:),
     font_src: %w('self' data:),
+    form_action: %w('self' github.com),
+    frame_ancestors: %w('none'),
     img_src: %w(mycdn.com data:),
     media_src: %w(utoob.com),
     object_src: %w('self'),
+    plugin_types: %w(application/x-shockwave-flash),
     script_src: %w('self'),
     style_src: %w('unsafe-inline'),
-    base_uri: %w('self'),
-    child_src: %w('self'),
-    form_action: %w('self' github.com),
-    frame_ancestors: %w('none'),
-    plugin_types: %w(application/x-shockwave-flash),
-    block_all_mixed_content: true, # see http://www.w3.org/TR/mixed-content/
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
     report_uri: %w(https://report-uri.io/example-csp)
   }
