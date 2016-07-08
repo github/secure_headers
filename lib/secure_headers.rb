@@ -50,13 +50,31 @@ module SecureHeaders
     #
     # additions - a hash containing directives. e.g.
     #    script_src: %w(another-host.com)
-    def override_content_security_policy_directives(request, additions)
+    def override_content_security_policy_directives(request, additions, target=:both)
+      raise_on_unknown_target(target)
       config = config_for(request)
+
+      puts "before"
+      puts config.inspect
+
       if config.current_csp == OPT_OUT
         config.dynamic_csp = {}
       end
+      if config.current_csp_report_only == OPT_OUT
+        config.dynamic_csp_report_only = {}
+      end
 
-      config.dynamic_csp = config.current_csp.merge(additions)
+      if [:both, :enforced].include?(target) && config.current_csp != OPT_OUT
+        binding.pry
+        config.dynamic_csp = config.current_csp.merge(additions)
+      end
+      if [:both, :report_only].include?(target) && config.current_csp_report_only != OPT_OUT
+        binding.pry
+        config.dynamic_csp_report_only = config.current_csp_report_only.merge(additions)
+      end
+
+      puts "after"
+      puts config.inspect
       override_secure_headers_request_config(request, config)
     end
 
@@ -67,11 +85,9 @@ module SecureHeaders
     # additions - a hash containing directives. e.g.
     #    script_src: %w(another-host.com)
     def append_content_security_policy_directives(request, additions, target=:both)
-      unless [:both, :enforced, :report_only].include?(target)
-        raise "Unrecognized target: #{target}. Must be [:both, :enforced, :report_only]"
-      end
-
+      raise_on_unknown_target(target)
       config = config_for(request)
+
       if [:both, :enforced].include?(target) && config.current_csp != OPT_OUT
         config.dynamic_csp = CSP.combine_policies(config.current_csp, additions)
       end
@@ -118,6 +134,7 @@ module SecureHeaders
     # in Rack middleware.
     def header_hash_for(request)
       config = config_for(request)
+      puts "final config#{ config.inspect}"
       unless ContentSecurityPolicy.idempotent_additions?(config.csp, config.current_csp)
         config.rebuild_csp_header_cache!(request.user_agent, CSP::CONFIG_KEY)
       end
@@ -125,6 +142,8 @@ module SecureHeaders
       unless ContentSecurityPolicy.idempotent_additions?(config.csp_report_only, config.current_csp_report_only)
         config.rebuild_csp_header_cache!(request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
       end
+
+      puts "final config with cache#{ config.inspect}"
 
       use_cached_headers(config.cached_headers, request)
     end
@@ -176,6 +195,12 @@ module SecureHeaders
     end
 
     private
+    TARGETS = [:both, :enforced, :report_only]
+    def raise_on_unknown_target(target)
+      unless TARGETS.include?(target)
+        raise "Unrecognized target: #{target}. Must be [:both, :enforced, :report_only]"
+      end
+    end
 
     # Private: gets or creates a nonce for CSP.
     #

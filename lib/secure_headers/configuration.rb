@@ -122,7 +122,7 @@ module SecureHeaders
     def initialize(&block)
       self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
-      self.csp = self.class.send(:deep_copy, CSP::DEFAULT_CONFIG)
+      self.csp = OPT_OUT
       self.csp_report_only = OPT_OUT
       instance_eval &block if block_given?
     end

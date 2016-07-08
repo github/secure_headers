@@ -207,9 +207,14 @@ module SecureHeaders
         end
 
         it "overrides non-existant directives" do
-          Configuration.default
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self')
+            }
+          end
           SecureHeaders.override_content_security_policy_directives(request, img_src: [ContentSecurityPolicy::DATA_PROTOCOL])
           hash = SecureHeaders.header_hash_for(request)
+          puts hash
           expect(hash[CSP::HEADER_NAME]).to eq("default-src https:; img-src data:")
         end
 
