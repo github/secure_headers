@@ -23,6 +23,7 @@ module SecureHeaders
           # directive values: these values will directly translate into source directives
           default_src: %w(https: 'self'),
           frame_src: %w('self' *.twimg.com itunes.apple.com),
+          child_src: %w('self' *.twimg.com itunes.apple.com),
           connect_src: %w(wss:),
           font_src: %w('self' data:),
           img_src: %w(mycdn.com data:),
@@ -31,7 +32,6 @@ module SecureHeaders
           script_src: %w('self'),
           style_src: %w('unsafe-inline'),
           base_uri: %w('self'),
-          child_src: %w('self'),
           form_action: %w('self' github.com),
           frame_ancestors: %w('none'),
           plugin_types: %w(application/x-shockwave-flash),

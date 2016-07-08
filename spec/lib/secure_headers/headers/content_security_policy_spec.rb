@@ -24,7 +24,7 @@ module SecureHeaders
 
     describe "#value" do
       it "discards 'none' values if any other source expressions are present" do
-        csp = ContentSecurityPolicy.new(default_opts.merge(frame_src: %w('self' 'none')))
+        csp = ContentSecurityPolicy.new(default_opts.merge(child_src: %w('self' 'none')))
         expect(csp.value).not_to include("'none'")
       end
 
@@ -86,42 +86,68 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org")
       end
 
+      it "emits a warning when using frame-src" do
+        expect(Kernel).to receive(:warn).with(/:frame_src is deprecated, use :child_src instead./)
+        ContentSecurityPolicy.new(default_src: %w('self'), frame_src: %w('self')).value
+      end
+
+      it "emits a warning when child-src and frame-src are supplied but are not equal" do
+        expect(Kernel).to receive(:warn).with(/both :child_src and :frame_src supplied and do not match./)
+        ContentSecurityPolicy.new(default_src: %w('self'), child_src: %w(child-src.com), frame_src: %w(frame-src,com)).value
+      end
+
+      it "will still set inconsistent child/frame-src values to be less surprising" do
+        expect(Kernel).to receive(:warn).at_least(:once)
+        firefox = ContentSecurityPolicy.new({default_src: %w('self'), child_src: %w(child-src.com), frame_src: %w(frame-src,com)}, USER_AGENTS[:firefox]).value
+        firefox_transitional = ContentSecurityPolicy.new({default_src: %w('self'), child_src: %w(child-src.com), frame_src: %w(frame-src,com)}, USER_AGENTS[:firefox46]).value
+        expect(firefox).not_to eq(firefox_transitional)
+        expect(firefox).to match(/frame-src/)
+        expect(firefox).not_to match(/child-src/)
+        expect(firefox_transitional).to match(/child-src/)
+        expect(firefox_transitional).not_to match(/frame-src/)
+      end
+
       context "browser sniffing" do
         let (:complex_opts) do
-          ContentSecurityPolicy::ALL_DIRECTIVES.each_with_object({}) do |directive, hash|
-            hash[directive] = %w('self')
+          (ContentSecurityPolicy::ALL_DIRECTIVES - [:frame_src]).each_with_object({}) do |directive, hash|
+            hash[directive] = ["#{directive.to_s.gsub("_", "-")}.com"]
           end.merge({
             block_all_mixed_content: true,
             upgrade_insecure_requests: true,
             reflected_xss: "block",
-            script_src: %w('self'),
+            script_src: %w(script-src.com),
             script_nonce: 123456
           })
         end
 
         it "does not filter any directives for Chrome" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:chrome])
-          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; plugin-types plugin-types.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
 
         it "does not filter any directives for Opera" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:opera])
-          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; block-all-mixed-content; child-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; plugin-types 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; plugin-types plugin-types.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
 
         it "filters blocked-all-mixed-content, child-src, and plugin-types for firefox" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:firefox])
-          expect(policy.value).to eq("default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self' 'nonce-123456'; style-src 'self'; upgrade-insecure-requests; report-uri 'self'")
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
 
-        it "adds 'unsafe-inline', filters base-uri, blocked-all-mixed-content, upgrade-insecure-requests, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for Edge" do
+        it "filters blocked-all-mixed-content, frame-src, and plugin-types for firefox 46 and higher" do
+          policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:firefox46])
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
+        end
+
+        it "child-src value is copied to frame-src, adds 'unsafe-inline', filters base-uri, blocked-all-mixed-content, upgrade-insecure-requests, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for Edge" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:edge])
-          expect(policy.value).to eq("default-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; report-uri 'self'")
+          expect(policy.value).to eq("default-src default-src.com; connect-src connect-src.com; font-src font-src.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'unsafe-inline'; style-src style-src.com; report-uri report-uri.com")
         end
 
-        it "adds 'unsafe-inline', filters base-uri, blocked-all-mixed-content, upgrade-insecure-requests, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for safari" do
+        it "child-src value is copied to frame-src, adds 'unsafe-inline', filters base-uri, blocked-all-mixed-content, upgrade-insecure-requests, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for safari" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:safari6])
-          expect(policy.value).to eq("default-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'self'; img-src 'self'; media-src 'self'; object-src 'self'; sandbox 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; report-uri 'self'")
+          expect(policy.value).to eq("default-src default-src.com; connect-src connect-src.com; font-src font-src.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'unsafe-inline'; style-src style-src.com; report-uri report-uri.com")
         end
       end
     end
