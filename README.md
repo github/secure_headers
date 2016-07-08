@@ -56,7 +56,7 @@ SecureHeaders::Configuration.default do |config|
     base_uri: %w('self'),
     block_all_mixed_content: true, # see http://www.w3.org/TR/mixed-content/
     child_src: %w('self'),
-    connect_src: %w(wws:),
+    connect_src: %w(wss:),
     font_src: %w('self' data:),
     form_action: %w('self' github.com),
     frame_ancestors: %w('none'),
