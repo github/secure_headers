@@ -5,7 +5,7 @@ gemspec
 group :test do
   gem "tins", "~> 1.6.0" # 1.7 requires ruby 2.0
   gem "pry-nav"
-  gem "rack"
+  gem "rack", "~> 1"
   gem "rspec"
   gem "coveralls"
 end
