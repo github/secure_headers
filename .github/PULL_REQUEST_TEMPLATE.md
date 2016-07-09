@@ -1,3 +1,8 @@
+## All PRs:
+
+* [ ] Has tests
+* [ ] Documentation updated
+
 ## Adding a new header
 
 Generally, adding a new header is always OK.
@@ -12,3 +17,4 @@ Generally, adding a new header is always OK.
 * Is the directive supported by any user agent? If so, which?
 * What does it do?
 * What are the valid values for the directive?
+
