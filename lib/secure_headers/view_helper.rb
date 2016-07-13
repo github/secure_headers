@@ -110,4 +110,4 @@ end
 
 ActiveSupport.on_load :action_view do
   include SecureHeaders::ViewHelpers
-end
+end if defined?(ActiveSupport)
