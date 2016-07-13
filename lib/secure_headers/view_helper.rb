@@ -108,8 +108,6 @@ module SecureHeaders
   end
 end
 
-module ActionView #:nodoc:
-  class Base #:nodoc:
-    include SecureHeaders::ViewHelpers
-  end
+ActiveSupport.on_load :action_view do
+  include SecureHeaders::ViewHelpers
 end
