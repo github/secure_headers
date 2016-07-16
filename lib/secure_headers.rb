@@ -50,31 +50,24 @@ module SecureHeaders
     #
     # additions - a hash containing directives. e.g.
     #    script_src: %w(another-host.com)
-    def override_content_security_policy_directives(request, additions, target=:both)
-      raise_on_unknown_target(target)
-      config = config_for(request)
-
-      puts "before"
-      puts config.inspect
+    def override_content_security_policy_directives(request, additions, target = nil)
+      config, target = config_and_target(request, target)
 
       if config.current_csp == OPT_OUT
         config.dynamic_csp = {}
       end
       if config.current_csp_report_only == OPT_OUT
-        config.dynamic_csp_report_only = {}
+        config.dynamic_csp_report_only = { :report_only => true }
       end
 
       if [:both, :enforced].include?(target) && config.current_csp != OPT_OUT
-        binding.pry
         config.dynamic_csp = config.current_csp.merge(additions)
       end
-      if [:both, :report_only].include?(target) && config.current_csp_report_only != OPT_OUT
-        binding.pry
+
+      if [:both, :report_only].include?(target)
         config.dynamic_csp_report_only = config.current_csp_report_only.merge(additions)
       end
 
-      puts "after"
-      puts config.inspect
       override_secure_headers_request_config(request, config)
     end
 
@@ -84,13 +77,13 @@ module SecureHeaders
     #
     # additions - a hash containing directives. e.g.
     #    script_src: %w(another-host.com)
-    def append_content_security_policy_directives(request, additions, target=:both)
-      raise_on_unknown_target(target)
-      config = config_for(request)
+    def append_content_security_policy_directives(request, additions, target = nil)
+      config, target = config_and_target(request, target)
 
       if [:both, :enforced].include?(target) && config.current_csp != OPT_OUT
         config.dynamic_csp = CSP.combine_policies(config.current_csp, additions)
       end
+
       if [:both, :report_only].include?(target) && config.current_csp_report_only != OPT_OUT
         config.dynamic_csp_report_only = CSP.combine_policies(config.current_csp_report_only, additions)
       end
@@ -199,6 +192,21 @@ module SecureHeaders
     def raise_on_unknown_target(target)
       unless TARGETS.include?(target)
         raise "Unrecognized target: #{target}. Must be [:both, :enforced, :report_only]"
+      end
+    end
+
+    def config_and_target(request, target)
+      config = config_for(request)
+      target = guess_target(config) unless target
+      raise_on_unknown_target(target)
+      [config, target]
+    end
+
+    def guess_target(config)
+      if config.csp
+        :enforced
+      elsif config.csp_report_only
+        :report_only
       end
     end
 

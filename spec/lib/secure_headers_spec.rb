@@ -99,9 +99,9 @@ module SecureHeaders
         firefox_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:firefox]))
 
         # append an unsupported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, plugin_types: %w(flash))
+        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(flash)}, :enforced)
         # append a supported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, script_src: %w('self'))
+        SecureHeaders.override_content_security_policy_directives(firefox_request, {script_src: %w('self')}, :enforced)
 
         hash = SecureHeaders.header_hash_for(firefox_request)
 
@@ -178,7 +178,9 @@ module SecureHeaders
         end
 
         it "doesn't allow you to muck with csp configs when a dynamic policy is in use" do
-          default_config = Configuration.default
+          default_config = Configuration.default do |config|
+            config.csp = { default_src: %w('none')}.freeze
+          end
           expect { default_config.csp = {} }.to raise_error(NoMethodError)
 
           # config is frozen
@@ -215,6 +217,7 @@ module SecureHeaders
           SecureHeaders.override_content_security_policy_directives(request, img_src: [ContentSecurityPolicy::DATA_PROTOCOL])
           hash = SecureHeaders.header_hash_for(request)
           puts hash
+          expect(hash[CSP::REPORT_ONLY]).to be_nil
           expect(hash[CSP::HEADER_NAME]).to eq("default-src https:; img-src data:")
         end
 

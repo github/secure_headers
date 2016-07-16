@@ -84,6 +84,7 @@ module SecureHeaders
       # Public: perform a basic deep dup. The shallow copy provided by dup/clone
       # can lead to modifying parent objects.
       def deep_copy(config)
+        return unless config
         config.each_with_object({}) do |(key, value), hash|
           hash[key] = if value.is_a?(Array)
             value.dup
@@ -217,7 +218,6 @@ module SecureHeaders
           Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
         end
       end
-
       if self.dynamic_csp
         raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= instead."
       end
