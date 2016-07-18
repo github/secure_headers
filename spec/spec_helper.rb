@@ -25,6 +25,7 @@ USER_AGENTS = {
 }
 
 def expect_default_values(hash)
+  expect(hash[SecureHeaders::CSP::HEADER_NAME]).to be(nil)
   expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
   expect(hash[SecureHeaders::XDownloadOptions::HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::DEFAULT_VALUE)
   expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::DEFAULT_VALUE)
@@ -32,7 +33,6 @@ def expect_default_values(hash)
   expect(hash[SecureHeaders::XContentTypeOptions::HEADER_NAME]).to eq(SecureHeaders::XContentTypeOptions::DEFAULT_VALUE)
   expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
   expect(hash[SecureHeaders::ReferrerPolicy::HEADER_NAME]).to be_nil
-  expect(hash[SecureHeaders::CSP::HEADER_NAME]).to be(nil)
 end
 
 module SecureHeaders

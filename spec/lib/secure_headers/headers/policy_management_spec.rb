@@ -101,7 +101,12 @@ module SecureHeaders
 
     describe "#combine_policies" do
       it "combines the default-src value with the override if the directive was unconfigured" do
-        combined_config = CSP.combine_policies(Configuration.default.csp, script_src: %w(anothercdn.com))
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w(https:)
+          }
+        end
+        combined_config = CSP.combine_policies(Configuration.get.csp, script_src: %w(anothercdn.com))
         csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.name).to eq(CSP::HEADER_NAME)
         expect(csp.value).to eq("default-src https:; script-src https: anothercdn.com")

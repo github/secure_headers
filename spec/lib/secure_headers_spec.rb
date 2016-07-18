@@ -105,6 +105,8 @@ module SecureHeaders
 
         hash = SecureHeaders.header_hash_for(firefox_request)
 
+        pp hash
+
         # child-src is translated to frame-src
         expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; frame-src 'self'; script-src 'self'")
       end
@@ -188,6 +190,7 @@ module SecureHeaders
 
           SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
           new_config = SecureHeaders.config_for(request)
+          $debug = true
           expect { new_config.send(:csp=, {}) }.to raise_error(Configuration::IllegalPolicyModificationError)
 
           expect do

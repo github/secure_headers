@@ -127,16 +127,19 @@ module SecureHeaders
     # in Rack middleware.
     def header_hash_for(request)
       config = config_for(request)
-      puts "final config#{ config.inspect}"
+      puts "\nfinal config\n#{ config.inspect}"
       unless ContentSecurityPolicy.idempotent_additions?(config.csp, config.current_csp)
         config.rebuild_csp_header_cache!(request.user_agent, CSP::CONFIG_KEY)
       end
+
+      puts "\nafter enforced changes\n#{ config.inspect}"
 
       unless ContentSecurityPolicy.idempotent_additions?(config.csp_report_only, config.current_csp_report_only)
         config.rebuild_csp_header_cache!(request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
       end
 
-      puts "final config with cache#{ config.inspect}"
+      puts "\nfinal config with cache\n#{ config.inspect}"
+      pp config.cached_headers
 
       use_cached_headers(config.cached_headers, request)
     end
