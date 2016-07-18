@@ -1,3 +1,17 @@
+## 3.4.0 the frame-src/child-src transition for Firefox.
+
+Handle the `child-src`/`frame-src` transition semi-intelligently across versions. I think the code best descibes the behavior here:
+
+```ruby
+if supported_directives.include?(:child_src)
+  @config[:child_src] = @config[:child_src] || @config[:frame_src]
+else
+  @config[:frame_src] = @config[:frame_src] || @config[:child_src]
+end
+```
+
+Also, @koenpunt noticed that we were [loading view helpers](https://github.com/twitter/secureheaders/pull/272) in a way that Rails 5 did not like.
+
 ## 3.3.2 minor fix to silence warnings when using rake
 
 [@dankohn](https://github.com/twitter/secureheaders/issues/257) was seeing "already initialized" errors in his output. This change conditionally defines the constants.
