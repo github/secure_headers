@@ -180,6 +180,11 @@ module SecureHeaders
       :preserve_schemes
     ].freeze
 
+    NONCES = [
+      :script_nonce,
+      :style_nonce
+    ].freeze
+
     module ClassMethods
       # Public: generate a header name, value array that is user-agent-aware.
       #

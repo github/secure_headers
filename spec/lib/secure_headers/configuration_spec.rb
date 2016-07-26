@@ -4,9 +4,7 @@ module SecureHeaders
   describe Configuration do
     before(:each) do
       reset_config
-      Configuration.default do |config|
-        config.csp = { default_src: %w(https:) }
-      end
+      Configuration.default
     end
 
     it "has a default config" do

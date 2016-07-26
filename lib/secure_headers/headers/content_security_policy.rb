@@ -1,8 +1,8 @@
 require_relative 'policy_management'
+require_relative 'content_security_policy_config'
 require 'useragent'
 
 module SecureHeaders
-  class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicy
     include PolicyManagement
 
@@ -10,17 +10,22 @@ module SecureHeaders
     VERSION_46 = ::UserAgent::Version.new("46")
 
     def initialize(config = nil, user_agent = OTHER)
-      @config = Configuration.send(:deep_copy, config || DEFAULT_CONFIG)
+      @config = if config.is_a?(Hash)
+        ContentSecurityPolicyConfig.new(Configuration.send(:deep_copy, config || DEFAULT_CONFIG))
+      else
+        config
+      end
+
       @parsed_ua = if user_agent.is_a?(UserAgent::Browsers::Base)
         user_agent
       else
         UserAgent.parse(user_agent)
       end
       normalize_child_frame_src
-      @report_only = @config[:report_only]
-      @preserve_schemes = @config[:preserve_schemes]
-      @script_nonce = @config[:script_nonce]
-      @style_nonce = @config[:style_nonce]
+      @report_only = @config.report_only
+      @preserve_schemes = @config.preserve_schemes
+      @script_nonce = @config.script_nonce
+      @style_nonce = @config.style_nonce
     end
 
     ##
@@ -49,16 +54,16 @@ module SecureHeaders
     # frame-src is deprecated, child-src is being implemented. They are
     # very similar and in most cases, the same value can be used for both.
     def normalize_child_frame_src
-      if @config[:frame_src] && @config[:child_src] && @config[:frame_src] != @config[:child_src]
+      if @config.frame_src && @config.child_src && @config.frame_src != @config.child_src
         Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] both :child_src and :frame_src supplied and do not match. This can lead to inconsistent behavior across browsers.")
-      elsif @config[:frame_src]
-        Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{@config[:frame_src]}.")
+      elsif @config.frame_src
+        Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{@config.frame_src}.")
       end
 
       if supported_directives.include?(:child_src)
-        @config[:child_src] = @config[:child_src] || @config[:frame_src]
+        @config.child_src = @config.child_src || @config.frame_src
       else
-        @config[:frame_src] = @config[:frame_src] || @config[:child_src]
+        @config.frame_src = @config.frame_src || @config.child_src
       end
     end
 
@@ -73,9 +78,9 @@ module SecureHeaders
       directives.map do |directive_name|
         case DIRECTIVE_VALUE_TYPES[directive_name]
         when :boolean
-          symbol_to_hyphen_case(directive_name) if @config[directive_name]
+          symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
         when :string
-          [symbol_to_hyphen_case(directive_name), @config[directive_name]].join(" ")
+          [symbol_to_hyphen_case(directive_name), @config.directive_value(directive_name)].join(" ")
         else
           build_directive(directive_name)
         end
@@ -88,9 +93,9 @@ module SecureHeaders
     #
     # Returns a string representing a directive.
     def build_directive(directive)
-      return if @config[directive].nil?
+      return if @config.directive_value(directive).nil?
 
-      source_list = @config[directive].compact
+      source_list = @config.directive_value(directive).compact
       return if source_list.empty?
 
       normalized_source_list = minify_source_list(directive, source_list)
@@ -170,9 +175,11 @@ module SecureHeaders
     # Private: return the list of directives that are supported by the user agent,
     # starting with default-src and ending with report-uri.
     def directives
-      [DEFAULT_SRC,
+      [
+        DEFAULT_SRC,
         BODY_DIRECTIVES.select { |key| supported_directives.include?(key) },
-        REPORT_URI].flatten.select { |directive| @config.key?(directive) }
+        REPORT_URI
+      ].flatten.select { |directive| @config.directive_value(directive) }
     end
 
     # Private: Remove scheme from source expressions.
