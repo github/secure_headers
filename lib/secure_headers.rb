@@ -18,7 +18,10 @@ require "useragent"
 # All headers (except for hpkp) have a default value. Provide SecureHeaders::OPT_OUT
 # or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
-  OPT_OUT = :opt_out_of_protection
+  class NoOpHeaderConfig
+  end
+
+  OPT_OUT = NoOpHeaderConfig.new
   SECURE_HEADERS_CONFIG = "secure_headers_request_config".freeze
   NONCE_KEY = "secure_headers_content_security_policy_nonce".freeze
   HTTPS = "https".freeze
