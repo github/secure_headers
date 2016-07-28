@@ -48,7 +48,7 @@ The following methods are going to be called, unless they are provided in a `ski
     :enforce => proc {|controller| controller.my_feature_flag_api.enabled? },
     :frame_src => "https: http:.twimg.com http://itunes.apple.com",
     :img_src => "https:",
-    :connect_src => "wws:"
+    :connect_src => "wws:",
     :font_src => "'self' data:",
     :frame_src => "'self'",
     :img_src => "mycdn.com data:",
@@ -61,7 +61,7 @@ The following methods are going to be called, unless they are provided in a `ski
     :form_action => "'self' github.com",
     :frame_ancestors => "'none'",
     :plugin_types => 'application/x-shockwave-flash',
-    :block_all_mixed_content => '' # see [http://www.w3.org/TR/mixed-content/]()
+    :block_all_mixed_content => '', # see [http://www.w3.org/TR/mixed-content/]()
     :report_uri => '//example.com/uri-directive'
   }
   config.hpkp = {
