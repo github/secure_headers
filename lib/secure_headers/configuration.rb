@@ -123,7 +123,7 @@ module SecureHeaders
     def initialize(&block)
       self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
-      self.csp = OPT_OUT
+      self.csp = ContentSecurityPolicyConfig::DEFAULT
       self.csp_report_only = OPT_OUT
       instance_eval &block if block_given?
     end
@@ -134,10 +134,8 @@ module SecureHeaders
     def dup
       copy = self.class.new
       copy.cookies = @cookies
-      copy.csp = self.class.send(:deep_copy_if_hash, @csp)
-      copy.dynamic_csp = self.class.send(:deep_copy_if_hash, @dynamic_csp)
-      copy.csp_report_only = self.class.send(:deep_copy_if_hash, @csp_report_only)
-      copy.dynamic_csp_report_only = self.class.send(:deep_copy_if_hash, @dynamic_csp_report_only)
+      copy.csp = @csp.dup
+      copy.csp_report_only = @csp_report_only.dup
       copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
       copy.x_content_type_options = @x_content_type_options
       copy.hsts = @hsts

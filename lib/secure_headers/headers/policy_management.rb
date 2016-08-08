@@ -156,7 +156,7 @@ module SecureHeaders
       PLUGIN_TYPES              => :source_list,
       REFLECTED_XSS             => :string,
       REPORT_URI                => :source_list,
-      SANDBOX                   => :string,
+      SANDBOX                   => :source_list,
       SCRIPT_SRC                => :source_list,
       STYLE_SRC                 => :source_list,
       UPGRADE_INSECURE_REQUESTS => :boolean
@@ -202,7 +202,9 @@ module SecureHeaders
       def validate_config!(config)
         return if config.nil? || config == OPT_OUT
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
-        config.each do |key, value|
+        ContentSecurityPolicyConfig.attrs.each do |key|
+          value = config.directive_value(key)
+          next unless value
           if META_CONFIGS.include?(key)
             raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
           else

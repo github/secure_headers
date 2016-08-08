@@ -19,6 +19,13 @@ require "useragent"
 # or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
   class NoOpHeaderConfig
+    def boom
+      raise "Illegal State: attempted to modify NoOpHeaderConfig. Create a new config instead."
+    end
+
+    alias_method :[], :boom
+    alias_method :[]=, :boom
+    alias_method :keys, :boom
   end
 
   OPT_OUT = NoOpHeaderConfig.new

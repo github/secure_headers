@@ -5,47 +5,29 @@ module SecureHeaders
       base.attrs.each do |attr|
         base.send(:define_method, "#{attr}=") do |value|
           if self.class.attrs.include?(attr)
-            if PolicyManagement::DIRECTIVE_VALUE_TYPES[k] == :source_list
-              instance_variable_set("@{k}=", value.dup)
-              self.send("#{attr}=", value.dup)
-            else
-              self.send("#{attr}=", value)
+            value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
+            prev_value = self.instance_variable_get("@#{attr}")
+            self.instance_variable_set("@#{attr}", value)
+            if prev_value != self.instance_variable_get("@#{attr}")
+              @modified = true
             end
           else
-            raise "Unknown config directive: #{attr}"
+            raise ContentSecurityPolicyConfigError, "Unknown config directive: #{attr}=#{value}"
           end
-
-          @modified = true
         end
       end
     end
 
     def initialize(hash)
-      hash.keys.map do |k|
-        next unless hash[k]
-        if self.class.attrs.include?(k)
-          if PolicyManagement::DIRECTIVE_VALUE_TYPES[k] == :source_list
-            self.send("#{k}=", hash[k].dup)
-          else
-            self.send("#{k}=", hash[k])
-          end
-        else
-          binding.pry
-          raise "Unknown config directive: #{k}"
-        end
+      hash.keys.reject { |k| hash[k].nil? }.map do |k|
+        self.send("#{k}=", hash[k])
       end
+
+      @modified = false
     end
 
     def update_directive(directive, value)
-      if self.class.attrs.include?(directive)
-        if PolicyManagement::DIRECTIVE_VALUE_TYPES[k] == :source_list
-          instance_variable_set("@{k}=", hash[k].dup)
-        else
-          self.send("#{k}=", hash[k])
-        end
-      end
-
-
+      self.send("#{k}=", value)
     end
 
     def directive_value(directive)
@@ -53,6 +35,13 @@ module SecureHeaders
         self.send(directive)
       end
     end
+
+    def modified?
+      @modified
+    end
+
+    alias_method :[], :directive_value
+    alias_method :[]=, :update_directive
   end
 
   class ContentSecurityPolicyConfigError < StandardError; end
@@ -62,6 +51,25 @@ module SecureHeaders
     end
 
     include DynamicConfig
-    alias_method :report_only?, :report_only
+
+    # based on what was suggested in https://github.com/rails/rails/pull/24961/files
+    DEFAULT = {
+      default_src: %w('self' https:),
+      font_src: %w('self' https: data:),
+      img_src: %w('self' https: data:),
+      object_src: %w('none'),
+      script_src: %w(https:),
+      style_src: %w('self' https: 'unsafe-inline')
+    }
+
+    def report_only?
+      false
+    end
+  end
+
+  class ContentSecurityPolicyReportOnlyConfig < ContentSecurityPolicyConfig
+    def report_only?
+      true
+    end
   end
 end

@@ -11,7 +11,11 @@ module SecureHeaders
 
     def initialize(config = nil, user_agent = OTHER)
       @config = if config.is_a?(Hash)
-        ContentSecurityPolicyConfig.new(Configuration.send(:deep_copy, config || DEFAULT_CONFIG))
+        if config[:report_only]
+          ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
+        else
+          ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
+        end
       else
         config
       end
@@ -21,8 +25,7 @@ module SecureHeaders
       else
         UserAgent.parse(user_agent)
       end
-      normalize_child_frame_src
-      @report_only = @config.report_only
+      @frame_src = normalize_child_frame_src
       @preserve_schemes = @config.preserve_schemes
       @script_nonce = @config.script_nonce
       @style_nonce = @config.style_nonce
@@ -32,7 +35,7 @@ module SecureHeaders
     # Returns the name to use for the header. Either "Content-Security-Policy" or
     # "Content-Security-Policy-Report-Only"
     def name
-      if @report_only
+      if @config.report_only?
         REPORT_ONLY
       else
         HEADER_NAME
@@ -61,9 +64,9 @@ module SecureHeaders
       end
 
       if supported_directives.include?(:child_src)
-        @config.child_src = @config.child_src || @config.frame_src
+        @config.child_src || @config.frame_src
       else
-        @config.frame_src = @config.frame_src || @config.child_src
+        @config.frame_src || @config.child_src
       end
     end
 
@@ -76,8 +79,10 @@ module SecureHeaders
     # Returns a content security policy header value.
     def build_value
       directives.map do |directive_name|
+        puts directive_name
         case DIRECTIVE_VALUE_TYPES[directive_name]
         when :boolean
+          puts "   #{@config.directive_value(directive_name)}"
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
         when :string
           [symbol_to_hyphen_case(directive_name), @config.directive_value(directive_name)].join(" ")
@@ -93,11 +98,20 @@ module SecureHeaders
     #
     # Returns a string representing a directive.
     def build_directive(directive)
-      return if @config.directive_value(directive).nil?
-
-      source_list = @config.directive_value(directive).compact
-      return if source_list.empty?
-
+      source_list = case directive
+      when :child_src
+        if supported_directives.include?(:child_src)
+          @frame_src
+        end
+      when :frame_src
+        unless supported_directives.include?(:child_src)
+          @frame_src
+        end
+      else
+        @config.directive_value(directive)
+      end
+      puts "  #{directive}=#{source_list}"
+      return unless source_list && source_list.any?
       normalized_source_list = minify_source_list(directive, source_list)
       [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")
     end
@@ -106,6 +120,7 @@ module SecureHeaders
     # If a directive contains 'none' but has other values, 'none' is ommitted.
     # Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
     def minify_source_list(directive, source_list)
+      source_list.compact!
       if source_list.include?(STAR)
         keep_wildcard_sources(source_list)
       else
@@ -115,7 +130,7 @@ module SecureHeaders
         unless directive == REPORT_URI || @preserve_schemes
           strip_source_schemes!(source_list)
         end
-        dedup_source_list(source_list).join(" ")
+        dedup_source_list(source_list)
       end
     end
 
@@ -179,7 +194,7 @@ module SecureHeaders
         DEFAULT_SRC,
         BODY_DIRECTIVES.select { |key| supported_directives.include?(key) },
         REPORT_URI
-      ].flatten.select { |directive| @config.directive_value(directive) }
+      ].flatten
     end
 
     # Private: Remove scheme from source expressions.
