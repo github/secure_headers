@@ -125,7 +125,7 @@ end
 
 class MyController < ApplicationController
   def index
-    # Produces default-src 'self'; script-src example.org otherdomain.org
+    # Produces default-src 'self'; script-src example.org otherdomain.com
     use_secure_headers_override(:script_from_otherdomain_com)
   end
 
