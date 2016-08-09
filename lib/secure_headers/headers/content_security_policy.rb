@@ -81,10 +81,8 @@ module SecureHeaders
     # Returns a content security policy header value.
     def build_value
       directives.map do |directive_name|
-        puts directive_name
         case DIRECTIVE_VALUE_TYPES[directive_name]
         when :boolean
-          puts "   #{@config.directive_value(directive_name)}"
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
         when :string
           [symbol_to_hyphen_case(directive_name), @config.directive_value(directive_name)].join(" ")
@@ -112,7 +110,6 @@ module SecureHeaders
       else
         @config.directive_value(directive)
       end
-      puts "  #{directive}=#{source_list}"
       return unless source_list && source_list.any?
       normalized_source_list = minify_source_list(directive, source_list)
       [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")

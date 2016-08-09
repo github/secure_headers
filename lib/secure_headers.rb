@@ -148,19 +148,13 @@ module SecureHeaders
     # in Rack middleware.
     def header_hash_for(request)
       config = config_for(request)
-      puts "\nfinal config\n#{ config.inspect}"
       if config.csp != OPT_OUT && config.csp.modified?
         config.rebuild_csp_header_cache!(request.user_agent, CSP::CONFIG_KEY)
       end
 
-      puts "\nafter enforced changes\n#{ config.inspect}"
-
       if config.csp_report_only != OPT_OUT && config.csp_report_only.modified?
         config.rebuild_csp_header_cache!(request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
       end
-
-      puts "\nfinal config with cache\n#{ config.inspect}"
-      pp config.cached_headers
 
       use_cached_headers(config.cached_headers, request)
     end
