@@ -1,6 +1,7 @@
 module SecureHeaders
   module DynamicConfig
     def self.included(base)
+      base.send(:attr_writer, :modified)
       base.send(:attr_reader, *base.attrs)
       base.attrs.each do |attr|
         base.send(:define_method, "#{attr}=") do |value|
@@ -19,19 +20,12 @@ module SecureHeaders
     end
 
     def initialize(hash)
-      hash.keys.reject { |k| hash[k].nil? }.map do |k|
-        if self.class.attrs.include?(k)
-          self.send("#{k}=", hash[k])
-        else
-          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{hash[k]}"
-        end
-      end
-
+      from_hash(hash)
       @modified = false
     end
 
     def update_directive(directive, value)
-      self.send("#{k}=", value)
+      self.send("#{directive}=", value)
     end
 
     def directive_value(directive)
@@ -45,7 +39,15 @@ module SecureHeaders
     end
 
     def merge(new_hash)
-      self.class.new(CSP.combine_policies(self.to_h, new_hash))
+      CSP.combine_policies(self.to_h, new_hash)
+    end
+
+    def merge!(new_hash)
+      from_hash(new_hash)
+    end
+
+    def append(new_hash)
+      from_hash(CSP.combine_policies(self.to_h, new_hash))
     end
 
     def to_h
@@ -64,6 +66,17 @@ module SecureHeaders
 
     alias_method :[], :directive_value
     alias_method :[]=, :update_directive
+
+    private
+    def from_hash(hash)
+      hash.keys.reject { |k| hash[k].nil? }.map do |k|
+        if self.class.attrs.include?(k)
+          self.send("#{k}=", hash[k])
+        else
+          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{hash[k]}"
+        end
+      end
+    end
   end
 
   class ContentSecurityPolicyConfigError < StandardError; end

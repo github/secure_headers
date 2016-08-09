@@ -156,50 +156,6 @@ module SecureHeaders
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
-        it "dups global configuration just once when overriding n times and only calls idempotent_additions? once per header" do
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self')
-            }
-          end
-
-          expect(CSP).to receive(:idempotent_additions?).twice
-
-          # before an override occurs, the env is empty
-          expect(request.env[SECURE_HEADERS_CONFIG]).to be_nil
-
-          SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
-          new_config = SecureHeaders.config_for(request)
-          expect(new_config).to_not be(Configuration.get)
-
-          SecureHeaders.override_content_security_policy_directives(request, script_src: %w(yet.anothercdn.com))
-          current_config = SecureHeaders.config_for(request)
-          expect(current_config).to be(new_config)
-
-          SecureHeaders.header_hash_for(request)
-        end
-
-        it "doesn't allow you to muck with csp configs when a dynamic policy is in use" do
-          default_config = Configuration.default do |config|
-            config.csp = { default_src: %w('none')}.freeze
-          end
-          expect { default_config.csp = {} }.to raise_error(NoMethodError)
-
-          # config is frozen
-          expect { default_config.send(:csp=, {}) }.to raise_error(RuntimeError)
-
-          SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
-          new_config = SecureHeaders.config_for(request)
-          $debug = true
-          expect { new_config.send(:csp=, {}) }.to raise_error(Configuration::IllegalPolicyModificationError)
-
-          expect do
-            new_config.instance_eval do
-              new_config.csp = {}
-            end
-          end.to raise_error(Configuration::IllegalPolicyModificationError)
-        end
-
         it "overrides individual directives" do
           Configuration.default do |config|
             config.csp = {
@@ -214,7 +170,7 @@ module SecureHeaders
         it "overrides non-existant directives" do
           Configuration.default do |config|
             config.csp = {
-              default_src: %w('self')
+              default_src: %w(https:)
             }
           end
           SecureHeaders.override_content_security_policy_directives(request, img_src: [ContentSecurityPolicy::DATA_PROTOCOL])

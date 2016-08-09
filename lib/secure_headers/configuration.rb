@@ -191,14 +191,12 @@ module SecureHeaders
       @cookies = (@cookies || {}).merge(secure: secure_cookies)
     end
 
-    protected
-
     def csp=(new_csp)
       if new_csp == OPT_OUT
         @csp = OPT_OUT
       else
         if new_csp.is_a?(ContentSecurityPolicyConfig)
-          @csp = new_csp
+          @csp = new_csp.dup
         else
           if new_csp[:report_only]
             Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
@@ -214,16 +212,20 @@ module SecureHeaders
       if new_csp == OPT_OUT
         @csp_report_only = OPT_OUT
       else
-        if new_csp.is_a?(Hash)
-          new_csp = ContentSecurityPolicyReportOnlyConfig.new(new_csp)
+        new_csp = if new_csp.is_a?(ContentSecurityPolicyConfig)
+          ContentSecurityPolicyReportOnlyConfig.new(new_csp.to_h)
+        elsif new_csp.is_a?(Hash)
           if new_csp[:report_only] == false
             Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was supplied a config with report_only: false. Use #csp="
           end
+          ContentSecurityPolicyReportOnlyConfig.new(new_csp)
         end
 
         @csp_report_only = new_csp
       end
     end
+
+    protected
 
     def cookies=(cookies)
       @cookies = cookies

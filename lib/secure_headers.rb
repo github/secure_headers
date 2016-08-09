@@ -74,19 +74,19 @@ module SecureHeaders
     def override_content_security_policy_directives(request, additions, target = nil)
       config, target = config_and_target(request, target)
 
-      if config.current_csp == OPT_OUT
-        config.dynamic_csp = {}
+      if config.csp == OPT_OUT
+        config.csp = ContentSecurityPolicyConfig.new({})
       end
-      if config.current_csp_report_only == OPT_OUT
-        config.dynamic_csp_report_only = { :report_only => true }
+      if config.csp_report_only == OPT_OUT
+        config.csp_report_only = ContentSecurityPolicyReportOnlyConfig.new({})
       end
 
-      if [:both, :enforced].include?(target) && config.current_csp != OPT_OUT
-        config.dynamic_csp = config.current_csp.merge(additions)
+      if [:both, :enforced].include?(target)
+        config.csp.merge!(additions)
       end
 
       if [:both, :report_only].include?(target)
-        config.dynamic_csp_report_only = config.current_csp_report_only.merge(additions)
+        config.csp_report_only.merge!(additions)
       end
 
       override_secure_headers_request_config(request, config)
@@ -101,12 +101,12 @@ module SecureHeaders
     def append_content_security_policy_directives(request, additions, target = nil)
       config, target = config_and_target(request, target)
 
-      if [:both, :enforced].include?(target) && config.current_csp != OPT_OUT
-        config.dynamic_csp = CSP.combine_policies(config.current_csp, additions)
+      if [:both, :enforced].include?(target) && config.csp != OPT_OUT
+        config.csp.append(additions)
       end
 
-      if [:both, :report_only].include?(target) && config.current_csp_report_only != OPT_OUT
-        config.dynamic_csp_report_only = CSP.combine_policies(config.current_csp_report_only, additions)
+      if [:both, :report_only].include?(target) && config.csp_report_only != OPT_OUT
+        config.csp_report_only.append(additions)
       end
 
       override_secure_headers_request_config(request, config)
@@ -149,13 +149,13 @@ module SecureHeaders
     def header_hash_for(request)
       config = config_for(request)
       puts "\nfinal config\n#{ config.inspect}"
-      unless ContentSecurityPolicy.idempotent_additions?(config.csp, config.current_csp)
+      if config.csp != OPT_OUT && config.csp.modified?
         config.rebuild_csp_header_cache!(request.user_agent, CSP::CONFIG_KEY)
       end
 
       puts "\nafter enforced changes\n#{ config.inspect}"
 
-      unless ContentSecurityPolicy.idempotent_additions?(config.csp_report_only, config.current_csp_report_only)
+      if config.csp_report_only != OPT_OUT && config.csp_report_only.modified?
         config.rebuild_csp_header_cache!(request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
       end
 
@@ -227,10 +227,12 @@ module SecureHeaders
     end
 
     def guess_target(config)
-      if config.csp
+      if config.csp != OPT_OUT
         :enforced
-      elsif config.csp_report_only
+      elsif config.csp_report_only != OPT_OUT
         :report_only
+      else
+        :both
       end
     end
 
