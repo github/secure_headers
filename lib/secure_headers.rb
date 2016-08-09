@@ -14,13 +14,24 @@ require "secure_headers/middleware"
 require "secure_headers/railtie"
 require "secure_headers/view_helper"
 require "useragent"
+require "singleton"
 
 # All headers (except for hpkp) have a default value. Provide SecureHeaders::OPT_OUT
 # or ":optout_of_protection" as a config value to disable a given header
 module SecureHeaders
   class NoOpHeaderConfig
-    def boom
+    include Singleton
+
+    def boom(arg = nil)
       raise "Illegal State: attempted to modify NoOpHeaderConfig. Create a new config instead."
+    end
+
+    def to_h
+      {}
+    end
+
+    def dup
+      self.class.instance
     end
 
     alias_method :[], :boom
@@ -28,7 +39,7 @@ module SecureHeaders
     alias_method :keys, :boom
   end
 
-  OPT_OUT = NoOpHeaderConfig.new
+  OPT_OUT = NoOpHeaderConfig.instance
   SECURE_HEADERS_CONFIG = "secure_headers_request_config".freeze
   NONCE_KEY = "secure_headers_content_security_policy_nonce".freeze
   HTTPS = "https".freeze

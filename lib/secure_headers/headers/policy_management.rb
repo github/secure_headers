@@ -201,7 +201,7 @@ module SecureHeaders
       # script_src => h*t*t*p: will not raise an exception)
       def validate_config!(config)
         return if config.nil? || config == OPT_OUT
-        raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
+        raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
         ContentSecurityPolicyConfig.attrs.each do |key|
           value = config.directive_value(key)
           next unless value
@@ -239,7 +239,7 @@ module SecureHeaders
       # 3. if a value in additions does exist in the original config, the two
       # values are joined.
       def combine_policies(original, additions)
-        if original == OPT_OUT
+        if original == {}
           raise ContentSecurityPolicyConfigError.new("Attempted to override an opt-out CSP config.")
         end
 

@@ -16,6 +16,8 @@ module SecureHeaders
         else
           ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
         end
+      elsif config.nil?
+        ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
       else
         config
       end

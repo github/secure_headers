@@ -20,7 +20,11 @@ module SecureHeaders
 
     def initialize(hash)
       hash.keys.reject { |k| hash[k].nil? }.map do |k|
-        self.send("#{k}=", hash[k])
+        if self.class.attrs.include?(k)
+          self.send("#{k}=", hash[k])
+        else
+          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{hash[k]}"
+        end
       end
 
       @modified = false
@@ -38,6 +42,24 @@ module SecureHeaders
 
     def modified?
       @modified
+    end
+
+    def merge(new_hash)
+      self.class.new(CSP.combine_policies(self.to_h, new_hash))
+    end
+
+    def to_h
+      self.class.attrs.each_with_object({}) do |key, hash|
+        hash[key] = self.send(key)
+      end.reject { |_, v| v.nil? }
+    end
+
+    def dup
+      self.class.new(self.to_h)
+    end
+
+    def ==(o)
+      self.class == o.class && self.to_h == o.to_h
     end
 
     alias_method :[], :directive_value

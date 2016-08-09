@@ -74,8 +74,6 @@ module SecureHeaders
           ALL_HEADER_CLASSES.each do |klass|
             config.send("#{klass::CONFIG_KEY}=", OPT_OUT)
           end
-          config.dynamic_csp = OPT_OUT
-          config.dynamic_csp_report_only = OPT_OUT
         end
 
         add_configuration(NOOP_CONFIGURATION, noop_config)
@@ -105,8 +103,6 @@ module SecureHeaders
       end
     end
 
-    attr_accessor :dynamic_csp, :dynamic_csp_report_only
-
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
       :referrer_policy
@@ -134,8 +130,8 @@ module SecureHeaders
     def dup
       copy = self.class.new
       copy.cookies = @cookies
-      copy.csp = @csp.dup
-      copy.csp_report_only = @csp_report_only.dup
+      copy.csp = @csp.dup if @csp
+      copy.csp_report_only = @csp_report_only.dup if @csp_report_only
       copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
       copy.x_content_type_options = @x_content_type_options
       copy.hsts = @hsts
@@ -151,11 +147,6 @@ module SecureHeaders
 
     def opt_out(header)
       send("#{header}=", OPT_OUT)
-      if header == CSP::CONFIG_KEY
-        self.dynamic_csp = OPT_OUT
-      elsif header == CSP::REPORT_ONLY_CONFIG_KEY
-        self.dynamic_csp_report_only = OPT_OUT
-      end
       self.cached_headers.delete(header)
     end
 
@@ -168,20 +159,12 @@ module SecureHeaders
     def rebuild_csp_header_cache!(user_agent, header_key)
       self.cached_headers[header_key] = {}
 
-      csp = header_key == CSP::CONFIG_KEY ? self.current_csp : self.current_csp_report_only
+      csp = header_key == CSP::CONFIG_KEY ? self.csp : self.csp_report_only
       unless csp == OPT_OUT
         user_agent = UserAgent.parse(user_agent)
         variation = CSP.ua_to_variation(user_agent)
         self.cached_headers[header_key][variation] = CSP.make_header(csp, user_agent)
       end
-    end
-
-    def current_csp
-      @dynamic_csp || @csp
-    end
-
-    def current_csp_report_only
-      @dynamic_csp_report_only || @csp_report_only
     end
 
     # Public: validates all configurations values.
@@ -211,33 +194,35 @@ module SecureHeaders
     protected
 
     def csp=(new_csp)
-      unless new_csp == OPT_OUT
-        if new_csp[:report_only]
-          Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
+      if new_csp == OPT_OUT
+        @csp = OPT_OUT
+      else
+        if new_csp.is_a?(ContentSecurityPolicyConfig)
+          @csp = new_csp
+        else
+          if new_csp[:report_only]
+            Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
+            self.csp_report_only = new_csp
+          else
+            @csp = ContentSecurityPolicyConfig.new(new_csp)
+          end
         end
       end
-      if self.dynamic_csp
-        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= instead."
-      end
-      @csp = self.class.send(:deep_copy_if_hash, new_csp)
     end
 
     def csp_report_only=(new_csp)
-      new_csp = self.class.send(:deep_copy_if_hash, new_csp)
-      unless new_csp == OPT_OUT
-        if new_csp[:report_only] == false
-          Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was supplied a config with report_only: false. Use #csp="
+      if new_csp == OPT_OUT
+        @csp_report_only = OPT_OUT
+      else
+        if new_csp.is_a?(Hash)
+          new_csp = ContentSecurityPolicyReportOnlyConfig.new(new_csp)
+          if new_csp[:report_only] == false
+            Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was supplied a config with report_only: false. Use #csp="
+          end
         end
 
-        if new_csp[:report_only].nil?
-          new_csp[:report_only] = true
-        end
+        @csp_report_only = new_csp
       end
-
-      if self.dynamic_csp_report_only
-        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp_report_only= instead."
-      end
-      @csp_report_only = new_csp
     end
 
     def cookies=(cookies)
@@ -292,8 +277,8 @@ module SecureHeaders
     #
     # Returns nothing
     def generate_csp_headers(headers)
-      generate_csp_headers_for_config(headers, CSP::CONFIG_KEY, self.current_csp)
-      generate_csp_headers_for_config(headers, CSP::REPORT_ONLY_CONFIG_KEY, self.current_csp_report_only)
+      generate_csp_headers_for_config(headers, CSP::CONFIG_KEY, self.csp)
+      generate_csp_headers_for_config(headers, CSP::REPORT_ONLY_CONFIG_KEY, self.csp_report_only)
     end
 
     def generate_csp_headers_for_config(headers, header_key, csp_config)
