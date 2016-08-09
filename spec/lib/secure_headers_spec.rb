@@ -99,13 +99,11 @@ module SecureHeaders
         firefox_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:firefox]))
 
         # append an unsupported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(flash)}, :enforced)
+        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(flash)})
         # append a supported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, {script_src: %w('self')}, :enforced)
+        SecureHeaders.override_content_security_policy_directives(firefox_request, {script_src: %w('self')})
 
         hash = SecureHeaders.header_hash_for(firefox_request)
-
-        pp hash
 
         # child-src is translated to frame-src
         expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; frame-src 'self'; script-src 'self'")
