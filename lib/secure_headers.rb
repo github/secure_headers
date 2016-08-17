@@ -228,7 +228,9 @@ module SecureHeaders
     end
 
     def guess_target(config)
-      if config.csp != OPT_OUT
+      if config.csp != OPT_OUT && config.csp_report_only != OPT_OUT
+        :both
+      elsif config.csp != OPT_OUT
         :enforced
       elsif config.csp_report_only != OPT_OUT
         :report_only
