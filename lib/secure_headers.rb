@@ -155,11 +155,11 @@ module SecureHeaders
       config = config_for(request, prevent_dup = true)
       headers = config.cached_headers
 
-      if config.csp != OPT_OUT && config.csp.modified?
+      if !config.csp.opt_out? && config.csp.modified?
         headers = update_cached_csp(config, headers, request.user_agent, CSP::CONFIG_KEY)
       end
 
-      if config.csp_report_only != OPT_OUT && config.csp_report_only.modified?
+      if !config.csp_report_only.opt_out? && config.csp_report_only.modified?
         headers = update_cached_csp(config, headers, request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
       end
 
@@ -234,9 +234,9 @@ module SecureHeaders
     def guess_target(config)
       if !config.csp.opt_out? && !config.csp_report_only.opt_out?
         :both
-      elsif config.csp != OPT_OUT
+      elsif !config.csp.opt_out?
         :enforced
-      elsif config.csp_report_only != OPT_OUT
+      elsif !config.csp_report_only.opt_out?
         :report_only
       else
         :both
@@ -310,24 +310,6 @@ module SecureHeaders
     # Returns a CSP [header, value] array
     def csp_header_for_ua(headers, request)
       headers[CSP.ua_to_variation(UserAgent.parse(request.user_agent))]
-    end
-
-    # Private: optionally build a header with a given configure
-    #
-    # klass - corresponding Class for a given header
-    # config - A string, symbol, or hash config for the header
-    # user_agent - A string representing the UA  (only used for CSP feature sniffing)
-    #
-    # Returns a 2 element array [header_name, header_value] or nil if config
-    # is OPT_OUT
-    def make_header(klass, header_config, user_agent = nil)
-      unless header_config == OPT_OUT
-        if klass == CSP
-          klass.make_header(header_config, user_agent)
-        else
-          klass.make_header(header_config)
-        end
-      end
     end
   end
 
