@@ -106,11 +106,11 @@ module SecureHeaders
     def append_content_security_policy_directives(request, additions, target = nil)
       config, target = config_and_target(request, target)
 
-      if [:both, :enforced].include?(target) && config.csp != OPT_OUT
+      if [:both, :enforced].include?(target) && !config.csp.opt_out?
         config.csp.append(additions)
       end
 
-      if [:both, :report_only].include?(target) && config.csp_report_only != OPT_OUT
+      if [:both, :report_only].include?(target) && !config.csp_report_only.opt_out?
         config.csp_report_only.append(additions)
       end
 
