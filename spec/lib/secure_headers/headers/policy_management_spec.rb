@@ -177,19 +177,5 @@ module SecureHeaders
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
     end
-
-    describe "#idempotent_additions?" do
-      specify { expect(ContentSecurityPolicy.idempotent_additions?(OPT_OUT, script_src: %w(b.com))).to be false }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w(c.com))).to be false }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, style_src: %w(b.com))).to be false }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w(a.com b.com c.com))).to be false }
-
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w(b.com))).to be true }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w(b.com a.com))).to be true }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: %w())).to be true }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, script_src: [nil])).to be true }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, style_src: [nil])).to be true }
-      specify { expect(ContentSecurityPolicy.idempotent_additions?({script_src: %w(a.com b.com)}, style_src: nil)).to be true }
-    end
   end
 end

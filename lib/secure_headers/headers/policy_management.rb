@@ -213,18 +213,6 @@ module SecureHeaders
         end
       end
 
-      # Public: determine if merging +additions+ will cause a change to the
-      # actual value of the config.
-      #
-      # e.g. config = { script_src: %w(example.org google.com)} and
-      # additions = { script_src: %w(google.com)} then idempotent_additions? would return
-      # because google.com is already in the config.
-      def idempotent_additions?(config, additions)
-        return true if config == OPT_OUT && additions == OPT_OUT
-        return false if config == OPT_OUT
-        config == combine_policies(config, additions)
-      end
-
       # Public: combine the values from two different configs.
       #
       # original - the main config
