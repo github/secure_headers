@@ -37,11 +37,7 @@ module SecureHeaders
     # Returns the name to use for the header. Either "Content-Security-Policy" or
     # "Content-Security-Policy-Report-Only"
     def name
-      if @config.report_only?
-        REPORT_ONLY
-      else
-        HEADER_NAME
-      end
+      @config.class.const_get(:HEADER_NAME)
     end
 
     ##

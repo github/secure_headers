@@ -262,14 +262,14 @@ module SecureHeaders
     # Returns nothing
     def generate_csp_headers(headers)
       generate_csp_headers_for_config(headers, CSP::CONFIG_KEY, self.csp)
-      generate_csp_headers_for_config(headers, CSP::REPORT_ONLY_CONFIG_KEY, self.csp_report_only)
+      generate_csp_headers_for_config(headers, CSPRO::CONFIG_KEY, self.csp_report_only)
     end
 
     def generate_csp_headers_for_config(headers, header_key, csp_config)
       unless csp_config.opt_out?
         headers[header_key] = {}
-        CSP::VARIATIONS.each do |name, _|
-          csp = CSP.make_header(csp_config, UserAgent.parse(name))
+        ContentSecurityPolicy::VARIATIONS.each do |name, _|
+          csp = ContentSecurityPolicy.make_header(csp_config, UserAgent.parse(name))
           headers[header_key][name] = csp.freeze
         end
       end

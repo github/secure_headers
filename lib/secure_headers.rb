@@ -47,10 +47,12 @@ module SecureHeaders
   SECURE_HEADERS_CONFIG = "secure_headers_request_config".freeze
   NONCE_KEY = "secure_headers_content_security_policy_nonce".freeze
   HTTPS = "https".freeze
-  CSP = ContentSecurityPolicy
+  CSP = ContentSecurityPolicyConfig
+  CSPRO = ContentSecurityPolicyReportOnlyConfig
 
   ALL_HEADER_CLASSES = [
-    ContentSecurityPolicy,
+    ContentSecurityPolicyConfig,
+    ContentSecurityPolicyReportOnlyConfig,
     StrictTransportSecurity,
     PublicKeyPins,
     ReferrerPolicy,
@@ -61,7 +63,7 @@ module SecureHeaders
     XXssProtection
   ].freeze
 
-  ALL_HEADERS_BESIDES_CSP = (ALL_HEADER_CLASSES - [CSP]).freeze
+  ALL_HEADERS_BESIDES_CSP = (ALL_HEADER_CLASSES - [CSP, CSPRO]).freeze
 
   # Headers set on http requests (excludes STS and HPKP)
   HTTP_HEADER_CLASSES =
@@ -160,7 +162,7 @@ module SecureHeaders
       end
 
       if !config.csp_report_only.opt_out? && config.csp_report_only.modified?
-        headers = update_cached_csp(config, headers, request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
+        headers = update_cached_csp(config, headers, request.user_agent, CSPRO::CONFIG_KEY)
       end
 
       use_cached_headers(headers, request)
@@ -184,7 +186,7 @@ module SecureHeaders
     #
     # Returns the nonce
     def content_security_policy_script_nonce(request)
-      content_security_policy_nonce(request, CSP::SCRIPT_SRC)
+      content_security_policy_nonce(request, ContentSecurityPolicy::SCRIPT_SRC)
     end
 
     # Public: gets or creates a nonce for CSP.
@@ -193,7 +195,7 @@ module SecureHeaders
     #
     # Returns the nonce
     def content_security_policy_style_nonce(request)
-      content_security_policy_nonce(request, CSP::STYLE_SRC)
+      content_security_policy_nonce(request, ContentSecurityPolicy::STYLE_SRC)
     end
 
     # Public: Retreives the config for a given header type:
@@ -248,7 +250,7 @@ module SecureHeaders
     # Returns the nonce
     def content_security_policy_nonce(request, script_or_style)
       request.env[NONCE_KEY] ||= SecureRandom.base64(32).chomp
-      nonce_key = script_or_style == CSP::SCRIPT_SRC ? :script_nonce : :style_nonce
+      nonce_key = script_or_style == ContentSecurityPolicy::SCRIPT_SRC ? :script_nonce : :style_nonce
       append_content_security_policy_directives(request, nonce_key => request.env[NONCE_KEY])
       request.env[NONCE_KEY]
     end
@@ -272,7 +274,7 @@ module SecureHeaders
         HTTP_HEADER_CLASSES
       end.map do |klass|
         klass::CONFIG_KEY
-      end.concat([CSP::REPORT_ONLY_CONFIG_KEY])
+      end
     end
 
     # Private: takes a precomputed hash of headers and returns the Headers
@@ -282,7 +284,7 @@ module SecureHeaders
     def use_cached_headers(headers, request)
       header_classes_for(request).each_with_object({}) do |config_key, hash|
         if header = headers[config_key]
-          header_name, value = if [CSP::CONFIG_KEY, CSP::REPORT_ONLY_CONFIG_KEY].include?(config_key)
+          header_name, value = if [CSP::CONFIG_KEY, CSPRO::CONFIG_KEY].include?(config_key)
             csp_header_for_ua(header, request)
           else
             header
@@ -298,8 +300,8 @@ module SecureHeaders
 
       csp = header_key == CSP::CONFIG_KEY ? config.csp : config.csp_report_only
       user_agent = UserAgent.parse(user_agent)
-      variation = CSP.ua_to_variation(user_agent)
-      headers[header_key][variation] = CSP.make_header(csp, user_agent)
+      variation = ContentSecurityPolicy.ua_to_variation(user_agent)
+      headers[header_key][variation] = ContentSecurityPolicy.make_header(csp, user_agent)
       headers
     end
 
@@ -309,7 +311,7 @@ module SecureHeaders
     #
     # Returns a CSP [header, value] array
     def csp_header_for_ua(headers, request)
-      headers[CSP.ua_to_variation(UserAgent.parse(request.user_agent))]
+      headers[ContentSecurityPolicy.ua_to_variation(UserAgent.parse(request.user_agent))]
     end
   end
 

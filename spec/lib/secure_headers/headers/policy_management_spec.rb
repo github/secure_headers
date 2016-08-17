@@ -40,61 +40,61 @@ module SecureHeaders
           report_uri: %w(https://example.com/uri-directive)
         }
 
-        CSP.validate_config!(ContentSecurityPolicyConfig.new(config))
+        ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(config))
       end
 
       it "requires a :default_src value" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(script_src: %('self')))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(script_src: %('self')))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
       it "requires :report_only to be a truthy value" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_only: "steve")))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_only: "steve")))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
       it "requires :preserve_schemes to be a truthy value" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(preserve_schemes: "steve")))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(preserve_schemes: "steve")))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
       it "requires :block_all_mixed_content to be a boolean value" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(block_all_mixed_content: "steve")))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(block_all_mixed_content: "steve")))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
       it "requires :upgrade_insecure_requests to be a boolean value" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(upgrade_insecure_requests: "steve")))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(upgrade_insecure_requests: "steve")))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
       it "requires all source lists to be an array of strings" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_src: "steve"))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: "steve"))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
       it "allows nil values" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w('self'), script_src: ["https:", nil]))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w('self'), script_src: ["https:", nil]))
         end.to_not raise_error
       end
 
       it "rejects unknown directives / config" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w('self'), default_src_totally_mispelled: "steve"))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w('self'), default_src_totally_mispelled: "steve"))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
       # this is mostly to ensure people don't use the antiquated shorthands common in other configs
       it "performs light validation on source lists" do
         expect do
-          CSP.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w(self none inline eval)))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w(self none inline eval)))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
     end
@@ -106,7 +106,7 @@ module SecureHeaders
             default_src: %w(https:)
           }
         end
-        combined_config = CSP.combine_policies(Configuration.get.csp.to_h, script_src: %w(anothercdn.com))
+        combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, script_src: %w(anothercdn.com))
         csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.name).to eq(CSP::HEADER_NAME)
         expect(csp.value).to eq("default-src https:; script-src https: anothercdn.com")
@@ -120,7 +120,7 @@ module SecureHeaders
           }.freeze
         end
         report_uri = "https://report-uri.io/asdf"
-        combined_config = CSP.combine_policies(Configuration.get.csp.to_h, report_uri: [report_uri])
+        combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, report_uri: [report_uri])
         csp = ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox])
         expect(csp.value).to include("report-uri #{report_uri}")
       end
@@ -132,12 +132,12 @@ module SecureHeaders
             report_only: false
           }.freeze
         end
-        non_default_source_additions = CSP::NON_FETCH_SOURCES.each_with_object({}) do |directive, hash|
+        non_default_source_additions = ContentSecurityPolicy::NON_FETCH_SOURCES.each_with_object({}) do |directive, hash|
           hash[directive] = %w("http://example.org)
         end
-        combined_config = CSP.combine_policies(Configuration.get.csp.to_h, non_default_source_additions)
+        combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, non_default_source_additions)
 
-        CSP::NON_FETCH_SOURCES.each do |directive|
+        ContentSecurityPolicy::NON_FETCH_SOURCES.each do |directive|
           expect(combined_config[directive]).to eq(%w("http://example.org))
         end
 
@@ -151,9 +151,9 @@ module SecureHeaders
             report_only: false
           }
         end
-        combined_config = CSP.combine_policies(Configuration.get.csp.to_h, report_only: true)
+        combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, report_only: true)
         csp = ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox])
-        expect(csp.name).to eq(CSP::REPORT_ONLY)
+        expect(csp.name).to eq(ContentSecurityPolicyReportOnlyConfig::HEADER_NAME)
       end
 
       it "overrides the :block_all_mixed_content flag" do
@@ -163,7 +163,7 @@ module SecureHeaders
             block_all_mixed_content: false
           }
         end
-        combined_config = CSP.combine_policies(Configuration.get.csp.to_h, block_all_mixed_content: true)
+        combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, block_all_mixed_content: true)
         csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.value).to eq("default-src https:; block-all-mixed-content")
       end
@@ -173,7 +173,7 @@ module SecureHeaders
           config.csp = OPT_OUT
         end
         expect do
-          CSP.combine_policies(Configuration.get.csp.to_h, script_src: %w(anothercdn.com))
+          ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, script_src: %w(anothercdn.com))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
     end

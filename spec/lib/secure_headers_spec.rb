@@ -33,7 +33,7 @@ module SecureHeaders
           config.csp_report_only = { default_src: %w('self')} # no default value
         end
         SecureHeaders.opt_out_of_header(request, CSP::CONFIG_KEY)
-        SecureHeaders.opt_out_of_header(request, CSP::REPORT_ONLY_CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, CSPRO::CONFIG_KEY)
         SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
         hash = SecureHeaders.header_hash_for(request)
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
@@ -186,7 +186,7 @@ module SecureHeaders
           end
           SecureHeaders.override_content_security_policy_directives(request, img_src: [ContentSecurityPolicy::DATA_PROTOCOL])
           hash = SecureHeaders.header_hash_for(request)
-          expect(hash[CSP::REPORT_ONLY]).to be_nil
+          expect(hash[CSPRO::HEADER_NAME]).to be_nil
           expect(hash[CSP::HEADER_NAME]).to eq("default-src https:; img-src data:")
         end
 
@@ -367,7 +367,7 @@ module SecureHeaders
       it "validates your csp config upon configuration" do
         expect do
           Configuration.default do |config|
-            config.csp = { CSP::DEFAULT_SRC => '123456' }
+            config.csp = { ContentSecurityPolicy::DEFAULT_SRC => '123456' }
           end
         end.to raise_error(ContentSecurityPolicyConfigError)
       end

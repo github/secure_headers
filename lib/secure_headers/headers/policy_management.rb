@@ -7,9 +7,6 @@ module SecureHeaders
     MODERN_BROWSERS = %w(Chrome Opera Firefox)
     DEFAULT_VALUE = "default-src https:".freeze
     DEFAULT_CONFIG = { default_src: %w(https:) }.freeze
-    HEADER_NAME = "Content-Security-Policy".freeze
-    REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
-    HEADER_NAMES = [HEADER_NAME, REPORT_ONLY]
     DATA_PROTOCOL = "data:".freeze
     BLOB_PROTOCOL = "blob:".freeze
     SELF = "'self'".freeze
@@ -162,8 +159,7 @@ module SecureHeaders
       UPGRADE_INSECURE_REQUESTS => :boolean
     }.freeze
 
-    CONFIG_KEY = :csp
-    REPORT_ONLY_CONFIG_KEY = :csp_report_only
+
     STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
     HTTP_SCHEME_REGEX = %r{\Ahttps?://}
 

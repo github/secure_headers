@@ -14,11 +14,11 @@ module SecureHeaders
 
     describe "#name" do
       context "when in report-only mode" do
-        specify { expect(ContentSecurityPolicy.new(default_opts.merge(report_only: true)).name).to eq(ContentSecurityPolicy::HEADER_NAME + "-Report-Only") }
+        specify { expect(ContentSecurityPolicy.new(default_opts.merge(report_only: true)).name).to eq(ContentSecurityPolicyReportOnlyConfig::HEADER_NAME) }
       end
 
       context "when in enforce mode" do
-        specify { expect(ContentSecurityPolicy.new(default_opts).name).to eq(ContentSecurityPolicy::HEADER_NAME) }
+        specify { expect(ContentSecurityPolicy.new(default_opts).name).to eq(ContentSecurityPolicyConfig::HEADER_NAME) }
       end
     end
 

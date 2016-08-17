@@ -39,7 +39,7 @@ module SecureHeaders
     end
 
     def merge(new_hash)
-      CSP.combine_policies(self.to_h, new_hash)
+      ContentSecurityPolicy.combine_policies(self.to_h, new_hash)
     end
 
     def merge!(new_hash)
@@ -47,7 +47,7 @@ module SecureHeaders
     end
 
     def append(new_hash)
-      from_hash(CSP.combine_policies(self.to_h, new_hash))
+      from_hash(ContentSecurityPolicy.combine_policies(self.to_h, new_hash))
     end
 
     def to_h
@@ -85,6 +85,9 @@ module SecureHeaders
 
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicyConfig
+    CONFIG_KEY = :csp
+    HEADER_NAME = "Content-Security-Policy".freeze
+
     def self.attrs
       PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
     end
@@ -107,6 +110,9 @@ module SecureHeaders
   end
 
   class ContentSecurityPolicyReportOnlyConfig < ContentSecurityPolicyConfig
+    CONFIG_KEY = :csp_report_only
+    HEADER_NAME = "Content-Security-Policy-Report-Only".freeze
+
     def report_only?
       true
     end
