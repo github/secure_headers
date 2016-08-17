@@ -119,7 +119,7 @@ module SecureHeaders
     def initialize(&block)
       self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
-      self.csp = ContentSecurityPolicyConfig::DEFAULT
+      self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
       self.csp_report_only = OPT_OUT
       instance_eval &block if block_given?
     end
@@ -202,7 +202,7 @@ module SecureHeaders
       else
         new_csp = if new_csp.is_a?(ContentSecurityPolicyConfig)
           ContentSecurityPolicyReportOnlyConfig.new(new_csp.to_h)
-        elsif new_csp.is_a?(Hash)
+        else
           if new_csp[:report_only] == false
             Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was supplied a config with report_only: false. Use #csp="
           end
