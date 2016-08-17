@@ -108,7 +108,7 @@ module SecureHeaders
         end
         combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, script_src: %w(anothercdn.com))
         csp = ContentSecurityPolicy.new(combined_config)
-        expect(csp.name).to eq(CSP::HEADER_NAME)
+        expect(csp.name).to eq(ContentSecurityPolicyConfig::HEADER_NAME)
         expect(csp.value).to eq("default-src https:; script-src https: anothercdn.com")
       end
 

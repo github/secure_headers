@@ -118,10 +118,10 @@ module SecureHeaders
         Message.new(request).result
         _, env = middleware.call request.env
 
-        expect(env[CSP::HEADER_NAME]).to match(/script-src[^;]*'#{Regexp.escape(expected_hash)}'/)
-        expect(env[CSP::HEADER_NAME]).to match(/script-src[^;]*'nonce-abc123'/)
-        expect(env[CSP::HEADER_NAME]).to match(/style-src[^;]*'nonce-abc123'/)
-        expect(env[CSP::HEADER_NAME]).to match(/style-src[^;]*'#{Regexp.escape(expected_style_hash)}'/)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/script-src[^;]*'#{Regexp.escape(expected_hash)}'/)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/script-src[^;]*'nonce-abc123'/)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'nonce-abc123'/)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'#{Regexp.escape(expected_style_hash)}'/)
       end
     end
   end

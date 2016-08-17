@@ -16,7 +16,7 @@ module SecureHeaders
 
     it "raises a NotYetConfiguredError if trying to opt-out of unconfigured headers" do
       expect do
-        SecureHeaders.opt_out_of_header(request, CSP::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyConfig::CONFIG_KEY)
       end.to raise_error(Configuration::NotYetConfiguredError)
     end
 
@@ -32,8 +32,8 @@ module SecureHeaders
         Configuration.default do |config|
           config.csp_report_only = { default_src: %w('self')} # no default value
         end
-        SecureHeaders.opt_out_of_header(request, CSP::CONFIG_KEY)
-        SecureHeaders.opt_out_of_header(request, CSPRO::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyConfig::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY)
         SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
         hash = SecureHeaders.header_hash_for(request)
         expect(hash['Content-Security-Policy-Report-Only']).to be_nil
@@ -98,7 +98,7 @@ module SecureHeaders
         SecureHeaders.override_content_security_policy_directives(request, default_src: %w(https:), script_src: %w('self'))
 
         hash = SecureHeaders.header_hash_for(request)
-        expect(hash[CSP::HEADER_NAME]).to eq("default-src https:; script-src 'self'")
+        expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src https:; script-src 'self'")
         expect(hash[XFrameOptions::HEADER_NAME]).to eq(XFrameOptions::SAMEORIGIN)
       end
 
@@ -119,7 +119,7 @@ module SecureHeaders
         hash = SecureHeaders.header_hash_for(firefox_request)
 
         # child-src is translated to frame-src
-        expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; frame-src 'self'; script-src 'self'")
+        expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; frame-src 'self'; script-src 'self'")
       end
 
       it "produces a hash of headers with default config" do
@@ -164,7 +164,7 @@ module SecureHeaders
 
           SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
           hash = SecureHeaders.header_hash_for(request)
-          expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
         it "overrides individual directives" do
@@ -175,7 +175,7 @@ module SecureHeaders
           end
           SecureHeaders.override_content_security_policy_directives(request, default_src: %w('none'))
           hash = SecureHeaders.header_hash_for(request)
-          expect(hash[CSP::HEADER_NAME]).to eq("default-src 'none'")
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'none'")
         end
 
         it "overrides non-existant directives" do
@@ -186,8 +186,8 @@ module SecureHeaders
           end
           SecureHeaders.override_content_security_policy_directives(request, img_src: [ContentSecurityPolicy::DATA_PROTOCOL])
           hash = SecureHeaders.header_hash_for(request)
-          expect(hash[CSPRO::HEADER_NAME]).to be_nil
-          expect(hash[CSP::HEADER_NAME]).to eq("default-src https:; img-src data:")
+          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to be_nil
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src https:; img-src data:")
         end
 
         it "does not append a nonce when the browser does not support it" do
@@ -202,7 +202,7 @@ module SecureHeaders
           safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari5]))
           nonce = SecureHeaders.content_security_policy_script_nonce(safari_request)
           hash = SecureHeaders.header_hash_for(safari_request)
-          expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'; style-src 'self'")
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'; style-src 'self'")
         end
 
         it "appends a nonce to the script-src when used" do

@@ -261,8 +261,8 @@ module SecureHeaders
     #
     # Returns nothing
     def generate_csp_headers(headers)
-      generate_csp_headers_for_config(headers, CSP::CONFIG_KEY, self.csp)
-      generate_csp_headers_for_config(headers, CSPRO::CONFIG_KEY, self.csp_report_only)
+      generate_csp_headers_for_config(headers, ContentSecurityPolicyConfig::CONFIG_KEY, self.csp)
+      generate_csp_headers_for_config(headers, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY, self.csp_report_only)
     end
 
     def generate_csp_headers_for_config(headers, header_key, csp_config)

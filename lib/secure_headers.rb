@@ -47,8 +47,6 @@ module SecureHeaders
   SECURE_HEADERS_CONFIG = "secure_headers_request_config".freeze
   NONCE_KEY = "secure_headers_content_security_policy_nonce".freeze
   HTTPS = "https".freeze
-  CSP = ContentSecurityPolicyConfig
-  CSPRO = ContentSecurityPolicyReportOnlyConfig
 
   ALL_HEADER_CLASSES = [
     ContentSecurityPolicyConfig,
@@ -63,7 +61,10 @@ module SecureHeaders
     XXssProtection
   ].freeze
 
-  ALL_HEADERS_BESIDES_CSP = (ALL_HEADER_CLASSES - [CSP, CSPRO]).freeze
+  ALL_HEADERS_BESIDES_CSP = (
+    ALL_HEADER_CLASSES -
+      [ContentSecurityPolicyConfig, ContentSecurityPolicyReportOnlyConfig]
+  ).freeze
 
   # Headers set on http requests (excludes STS and HPKP)
   HTTP_HEADER_CLASSES =
@@ -158,11 +159,11 @@ module SecureHeaders
       headers = config.cached_headers
 
       if !config.csp.opt_out? && config.csp.modified?
-        headers = update_cached_csp(config, headers, request.user_agent, CSP::CONFIG_KEY)
+        headers = update_cached_csp(config, headers, request.user_agent, ContentSecurityPolicyConfig::CONFIG_KEY)
       end
 
       if !config.csp_report_only.opt_out? && config.csp_report_only.modified?
-        headers = update_cached_csp(config, headers, request.user_agent, CSPRO::CONFIG_KEY)
+        headers = update_cached_csp(config, headers, request.user_agent, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY)
       end
 
       use_cached_headers(headers, request)
@@ -284,7 +285,7 @@ module SecureHeaders
     def use_cached_headers(headers, request)
       header_classes_for(request).each_with_object({}) do |config_key, hash|
         if header = headers[config_key]
-          header_name, value = if [CSP::CONFIG_KEY, CSPRO::CONFIG_KEY].include?(config_key)
+          header_name, value = if [ContentSecurityPolicyConfig::CONFIG_KEY, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY].include?(config_key)
             csp_header_for_ua(header, request)
           else
             header
@@ -298,7 +299,7 @@ module SecureHeaders
       headers = Configuration.send(:deep_copy, headers)
       headers[header_key] = {}
 
-      csp = header_key == CSP::CONFIG_KEY ? config.csp : config.csp_report_only
+      csp = header_key == ContentSecurityPolicyConfig::CONFIG_KEY ? config.csp : config.csp_report_only
       user_agent = UserAgent.parse(user_agent)
       variation = ContentSecurityPolicy.ua_to_variation(user_agent)
       headers[header_key][variation] = ContentSecurityPolicy.make_header(csp, user_agent)
