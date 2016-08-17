@@ -19,7 +19,7 @@ module SecureHeaders
       elsif config.nil?
         ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
       else
-        config
+        config.dup
       end
 
       @parsed_ua = if user_agent.is_a?(UserAgent::Browsers::Base)

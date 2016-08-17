@@ -74,18 +74,19 @@ module SecureHeaders
     def override_content_security_policy_directives(request, additions, target = nil)
       config, target = config_and_target(request, target)
 
-      if config.csp == OPT_OUT
-        config.csp = ContentSecurityPolicyConfig.new({})
-      end
-      if config.csp_report_only == OPT_OUT
-        config.csp_report_only = ContentSecurityPolicyReportOnlyConfig.new({})
-      end
-
       if [:both, :enforced].include?(target)
+        if config.csp == OPT_OUT
+          config.csp = ContentSecurityPolicyConfig.new({})
+        end
+
         config.csp.merge!(additions)
       end
 
       if [:both, :report_only].include?(target)
+        if config.csp_report_only == OPT_OUT
+          config.csp_report_only = ContentSecurityPolicyReportOnlyConfig.new({})
+        end
+
         config.csp_report_only.merge!(additions)
       end
 
@@ -147,16 +148,18 @@ module SecureHeaders
     # returned is meant to be merged into the header value from `@app.call(env)`
     # in Rack middleware.
     def header_hash_for(request)
-      config = config_for(request)
+      config = config_for(request, prevent_dup = true)
+      headers = config.cached_headers
+
       if config.csp != OPT_OUT && config.csp.modified?
-        config.rebuild_csp_header_cache!(request.user_agent, CSP::CONFIG_KEY)
+        headers = update_cached_csp(config, headers, request.user_agent, CSP::CONFIG_KEY)
       end
 
       if config.csp_report_only != OPT_OUT && config.csp_report_only.modified?
-        config.rebuild_csp_header_cache!(request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
+        headers = update_cached_csp(config, headers, request.user_agent, CSP::REPORT_ONLY_CONFIG_KEY)
       end
 
-      use_cached_headers(config.cached_headers, request)
+      use_cached_headers(headers, request)
     end
 
     # Public: specify which named override will be used for this request.
@@ -194,11 +197,15 @@ module SecureHeaders
     # Checks to see if there is an override for this request, then
     # Checks to see if a named override is used for this request, then
     # Falls back to the global config
-    def config_for(request)
+    def config_for(request, prevent_dup = false)
       config = request.env[SECURE_HEADERS_CONFIG] ||
         Configuration.get(Configuration::DEFAULT_CONFIG)
 
-      if config.frozen?
+
+      # Global configs are frozen, per-request configs are not. When we're not
+      # making modifications to the config, prevent_dup ensures we don't dup
+      # the object unnecessarily. It's not necessarily frozen to begin with.
+      if config.frozen? && !prevent_dup
         config.dup
       else
         config
@@ -277,6 +284,17 @@ module SecureHeaders
           hash[header_name] = value
         end
       end
+    end
+
+    def update_cached_csp(config, headers, user_agent, header_key)
+      headers = Configuration.send(:deep_copy, headers)
+      headers[header_key] = {}
+
+      csp = header_key == CSP::CONFIG_KEY ? config.csp : config.csp_report_only
+      user_agent = UserAgent.parse(user_agent)
+      variation = CSP.ua_to_variation(user_agent)
+      headers[header_key][variation] = CSP.make_header(csp, user_agent)
+      headers
     end
 
     # Private: chooses the applicable CSP header for the provided user agent.

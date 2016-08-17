@@ -155,18 +155,6 @@ module SecureHeaders
       self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(value)
     end
 
-    # Public: generated cached headers for a specific user agent.
-    def rebuild_csp_header_cache!(user_agent, header_key)
-      self.cached_headers[header_key] = {}
-
-      csp = header_key == CSP::CONFIG_KEY ? self.csp : self.csp_report_only
-      unless csp == OPT_OUT
-        user_agent = UserAgent.parse(user_agent)
-        variation = CSP.ua_to_variation(user_agent)
-        self.cached_headers[header_key][variation] = CSP.make_header(csp, user_agent)
-      end
-    end
-
     # Public: validates all configurations values.
     #
     # Raises various configuration errors if any invalid config is detected.
