@@ -200,7 +200,7 @@ module SecureHeaders
       # Does not validate the invididual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
       def validate_config!(config)
-        return if config.nil? || config == OPT_OUT
+        return if config.nil? || config.opt_out?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
         ContentSecurityPolicyConfig.attrs.each do |key|
           value = config.directive_value(key)

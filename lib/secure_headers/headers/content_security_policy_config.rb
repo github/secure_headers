@@ -60,6 +60,10 @@ module SecureHeaders
       self.class.new(self.to_h)
     end
 
+    def opt_out?
+      self == OPT_OUT
+    end
+
     def ==(o)
       self.class == o.class && self.to_h == o.to_h
     end

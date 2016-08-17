@@ -272,7 +272,7 @@ module SecureHeaders
     end
 
     def generate_csp_headers_for_config(headers, header_key, csp_config)
-      unless csp_config == OPT_OUT
+      unless csp_config.opt_out?
         headers[header_key] = {}
         CSP::VARIATIONS.each do |name, _|
           csp = CSP.make_header(csp_config, UserAgent.parse(name))

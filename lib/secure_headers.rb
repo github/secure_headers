@@ -34,6 +34,10 @@ module SecureHeaders
       self.class.instance
     end
 
+    def opt_out?
+      true
+    end
+
     alias_method :[], :boom
     alias_method :[]=, :boom
     alias_method :keys, :boom
@@ -75,7 +79,7 @@ module SecureHeaders
       config, target = config_and_target(request, target)
 
       if [:both, :enforced].include?(target)
-        if config.csp == OPT_OUT
+        if config.csp.opt_out?
           config.csp = ContentSecurityPolicyConfig.new({})
         end
 
@@ -83,7 +87,7 @@ module SecureHeaders
       end
 
       if [:both, :report_only].include?(target)
-        if config.csp_report_only == OPT_OUT
+        if config.csp_report_only.opt_out?
           config.csp_report_only = ContentSecurityPolicyReportOnlyConfig.new({})
         end
 
