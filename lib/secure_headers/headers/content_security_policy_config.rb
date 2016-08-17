@@ -61,7 +61,7 @@ module SecureHeaders
     end
 
     def opt_out?
-      self == OPT_OUT
+      false
     end
 
     def ==(o)

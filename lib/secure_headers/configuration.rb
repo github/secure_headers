@@ -180,36 +180,30 @@ module SecureHeaders
     end
 
     def csp=(new_csp)
-      if new_csp == OPT_OUT
-        @csp = OPT_OUT
+      if new_csp.respond_to?(:opt_out?)
+        @csp = new_csp.dup
       else
-        if new_csp.is_a?(ContentSecurityPolicyConfig)
-          @csp = new_csp.dup
+        if new_csp[:report_only]
+          Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
+          self.csp_report_only = new_csp
         else
-          if new_csp[:report_only]
-            Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
-            self.csp_report_only = new_csp
-          else
-            @csp = ContentSecurityPolicyConfig.new(new_csp)
-          end
+          @csp = ContentSecurityPolicyConfig.new(new_csp)
         end
       end
     end
 
     def csp_report_only=(new_csp)
-      if new_csp == OPT_OUT
-        @csp_report_only = OPT_OUT
-      else
-        new_csp = if new_csp.is_a?(ContentSecurityPolicyConfig)
+      @csp_report_only = begin
+         if new_csp.is_a?(ContentSecurityPolicyConfig)
           ContentSecurityPolicyReportOnlyConfig.new(new_csp.to_h)
+        elsif new_csp.respond_to?(:opt_out?)
+          new_csp.dup
         else
           if new_csp[:report_only] == false
             Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was supplied a config with report_only: false. Use #csp="
           end
           ContentSecurityPolicyReportOnlyConfig.new(new_csp)
         end
-
-        @csp_report_only = new_csp
       end
     end
 

@@ -59,7 +59,20 @@ module SecureHeaders
       end
 
       it "allows you to opt out entirely" do
-        Configuration.default
+        # configure the disabled-by-default headers to ensure they also do not get set
+        Configuration.default do |config|
+          config.csp_report_only = { :default_src => ["example.com"] }
+          config.hpkp = {
+            report_only: false,
+            max_age: 10000000,
+            include_subdomains: true,
+            report_uri: "https://report-uri.io/example-hpkp",
+            pins: [
+              {sha256: "abc"},
+              {sha256: "123"}
+            ]
+          }
+        end
         SecureHeaders.opt_out_of_all_protection(request)
         hash = SecureHeaders.header_hash_for(request)
         ALL_HEADER_CLASSES.each do |klass|
