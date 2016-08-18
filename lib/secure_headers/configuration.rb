@@ -194,10 +194,16 @@ module SecureHeaders
       end
     end
 
+    # Configures the Content-Security-Policy-Report-Only header. `new_csp` cannot
+    # contain `report_only: false` or an error will be raised.
+    #
+    # NOTE: if csp has not been configured/has the default value when
+    # configuring csp_report_only, the code will assume you mean to only use
+    # report-only mode and you will be opted-out of enforce mode.
     def csp_report_only=(new_csp)
       @csp_report_only = begin
-         if new_csp.is_a?(ContentSecurityPolicyConfig)
-          ContentSecurityPolicyReportOnlyConfig.new(new_csp.to_h)
+        if new_csp.is_a?(ContentSecurityPolicyConfig)
+          new_csp.make_report_only
         elsif new_csp.respond_to?(:opt_out?)
           new_csp.dup
         else
@@ -207,6 +213,11 @@ module SecureHeaders
             ContentSecurityPolicyReportOnlyConfig.new(new_csp)
           end
         end
+      end
+
+      if !@csp_report_only.opt_out? && @csp.to_h == ContentSecurityPolicyConfig::DEFAULT
+        Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was configured before `#csp=`. It is assumed you intended to opt out of `#csp=` so be sure to add `config.csp = SecureHeaders::OPT_OUT` to your config. Ensure that #csp_report_only is configured after #csp="
+        @csp = OPT_OUT
       end
     end
 

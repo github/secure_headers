@@ -107,6 +107,10 @@ module SecureHeaders
     def report_only?
       false
     end
+
+    def make_report_only
+      ContentSecurityPolicyReportOnlyConfig.new(self.to_h)
+    end
   end
 
   class ContentSecurityPolicyReportOnlyConfig < ContentSecurityPolicyConfig
@@ -115,6 +119,10 @@ module SecureHeaders
 
     def report_only?
       true
+    end
+
+    def make_report_only
+      self
     end
   end
 end
