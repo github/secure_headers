@@ -94,6 +94,61 @@ use SecureHeaders::Middleware
 
 All headers except for PublicKeyPins have a default value. See the [corresponding classes for their defaults](https://github.com/twitter/secureheaders/tree/master/lib/secure_headers/headers).
 
+## Named Appends
+
+Named Appends are blocks of code that can be reused and composed during requests. e.g. If a certain partial is rendered conditionally, and the csp needs to be adjusted for that partial, you can create a named append for that situation. The value returned by the block will be passed into `append_content_security_policy_directives`. The current request object is passed as an argument to the block for even more flexibility.
+
+```ruby
+def show
+  if include_widget?
+    @widget = widget.render
+    use_content_security_policy_named_append(:widget_partial)
+  end
+end
+
+
+SecureHeaders::Configuration.named_append(:widget_partial) do |request|
+  if request.controller_instance.current_user.in_test_bucket?
+    { child_src: %w(beta.thirdpartyhost.com) }
+  else
+    { child_src: %w(thirdpartyhost.com) }
+  end
+end
+```
+
+You can use as many named appends as you would like per request, but be careful because order of inclusion matters. Consider the following:
+
+```ruby
+SecureHeader::Configuration.default do |config|
+  config.csp = { default_src: %w('self')}
+end
+
+SecureHeaders::Configuration.named_append(:A) do |request|
+  { default_src: %w(myhost.com) }
+end
+
+SecureHeaders::Configuration.named_append(:B) do |request|
+  { script_src: %w('unsafe-eval') }
+end
+```
+
+The following code will produce different policies due to the way policies are normalized (e.g. providing a previously undefined directive that inherits from `default-src`, removing host source values when `*` is provided. Removing `'none'` when additional values are present, etc.):
+
+```ruby
+def index
+  use_content_security_policy_named_append(:A)
+  use_content_security_policy_named_append(:B)
+  # produces default-src 'self' myhost.com; script-src 'self' myhost.com 'unsafe-eval';
+end
+
+def show
+  use_content_security_policy_named_append(:B)
+  use_content_security_policy_named_append(:A)
+  # produces default-src 'self' myhost.com; script-src 'self' 'unsafe-eval';
+end
+```
+
+
 ## Named overrides
 
 Named overrides serve two purposes:

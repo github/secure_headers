@@ -151,6 +151,28 @@ module SecureHeaders
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
+        it "supports named appends" do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self')
+            }
+          end
+
+          Configuration.named_append(:moar_default_sources) do |request|
+            { default_src: %w(https:)}
+          end
+
+          Configuration.named_append(:how_about_a_script_src_too) do |request|
+            { script_src: %w('unsafe-inline')}
+          end
+
+          SecureHeaders.use_content_security_policy_named_append(request, :moar_default_sources)
+          SecureHeaders.use_content_security_policy_named_append(request, :how_about_a_script_src_too)
+          hash = SecureHeaders.header_hash_for(request)
+
+          expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self' https:; script-src 'self' https: 'unsafe-inline'")
+        end
+
         it "dups global configuration just once when overriding n times and only calls idempotent_additions? once" do
           Configuration.default do |config|
             config.csp = {
