@@ -157,16 +157,26 @@ module SecureHeaders
     def header_hash_for(request)
       config = config_for(request, prevent_dup = true)
       headers = config.cached_headers
+      user_agent = UserAgent.parse(request.user_agent)
 
       if !config.csp.opt_out? && config.csp.modified?
-        headers = update_cached_csp(config.csp, headers, request.user_agent)
+        headers = update_cached_csp(config.csp, headers, user_agent)
       end
 
       if !config.csp_report_only.opt_out? && config.csp_report_only.modified?
-        headers = update_cached_csp(config.csp_report_only, headers, request.user_agent)
+        headers = update_cached_csp(config.csp_report_only, headers, user_agent)
       end
 
-      use_cached_headers(headers, request)
+      header_classes_for(request).each_with_object({}) do |klass, hash|
+        if header = headers[klass::CONFIG_KEY]
+          header_name, value = if [ContentSecurityPolicyConfig, ContentSecurityPolicyReportOnlyConfig].include?(klass)
+            csp_header_for_ua(header, user_agent)
+          else
+            header
+          end
+          hash[header_name] = value
+        end
+      end
     end
 
     # Public: specify which named override will be used for this request.
@@ -276,28 +286,9 @@ module SecureHeaders
       end
     end
 
-    # Private: takes a precomputed hash of headers and returns the Headers
-    # customized for the request.
-    #
-    # Returns a hash of header names / values valid for a given request.
-    def use_cached_headers(headers, request)
-      header_classes_for(request).each_with_object({}) do |klass, hash|
-        if header = headers[klass::CONFIG_KEY]
-          header_name, value = if [ContentSecurityPolicyConfig, ContentSecurityPolicyReportOnlyConfig].include?(klass)
-            csp_header_for_ua(header, request)
-          else
-            header
-          end
-          hash[header_name] = value
-        end
-      end
-    end
-
     def update_cached_csp(config, headers, user_agent)
       headers = Configuration.send(:deep_copy, headers)
       headers[config.class::CONFIG_KEY] = {}
-
-      user_agent = UserAgent.parse(user_agent)
       variation = ContentSecurityPolicy.ua_to_variation(user_agent)
       headers[config.class::CONFIG_KEY][variation] = ContentSecurityPolicy.make_header(config, user_agent)
       headers
@@ -308,8 +299,8 @@ module SecureHeaders
     # headers - a hash of header_config_key => [header_name, header_value]
     #
     # Returns a CSP [header, value] array
-    def csp_header_for_ua(headers, request)
-      headers[ContentSecurityPolicy.ua_to_variation(UserAgent.parse(request.user_agent))]
+    def csp_header_for_ua(headers, user_agent)
+      headers[ContentSecurityPolicy.ua_to_variation(user_agent)]
     end
   end
 
