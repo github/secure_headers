@@ -201,10 +201,11 @@ module SecureHeaders
         elsif new_csp.respond_to?(:opt_out?)
           new_csp.dup
         else
-          if new_csp[:report_only] == false
-            Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was supplied a config with report_only: false. Use #csp="
+          if new_csp[:report_only] == false # nil is a valid value on which we do not want to raise
+            raise ContentSecurityPolicyConfigError, "`#csp_report_only=` was supplied a config with report_only: false. Use #csp="
+          else
+            ContentSecurityPolicyReportOnlyConfig.new(new_csp)
           end
-          ContentSecurityPolicyReportOnlyConfig.new(new_csp)
         end
       end
     end

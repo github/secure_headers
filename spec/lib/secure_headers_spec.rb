@@ -244,6 +244,17 @@ module SecureHeaders
           expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'")
         end
 
+        it "Raises an error if csp_report_only is used with `report_only: false`" do
+          expect do
+            Configuration.default do |config|
+              config.csp_report_only = {
+                default_src: %w('self'),
+                report_only: false
+              }
+            end
+          end.to raise_error(ContentSecurityPolicyConfigError)
+        end
+
         context "setting two headers" do
           before(:each) do
             Configuration.default do |config|
