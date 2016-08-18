@@ -7,8 +7,6 @@ module SecureHeaders
     class NotYetConfiguredError < StandardError; end
     class IllegalPolicyModificationError < StandardError; end
     class << self
-      @@appends = {}
-
       # Public: Set the global default configuration.
       #
       # Optionally supply a block to override the defaults set by this library.
@@ -49,12 +47,14 @@ module SecureHeaders
       end
 
       def named_appends(name)
-        @@appends[name]
+        @appends ||= {}
+        @appends[name]
       end
 
       def named_append(name, target = nil, &block)
+        @appends ||= {}
         raise "Provide a configuration block" unless block_given?
-        @@appends[name] = block
+        @appends[name] = block
       end
 
       private
