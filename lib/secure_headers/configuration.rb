@@ -184,7 +184,9 @@ module SecureHeaders
         @csp = new_csp.dup
       else
         if new_csp[:report_only]
+          # Deprecated configuration implies that CSPRO should be set, CSP should not - so opt out
           Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
+          @csp = OPT_OUT
           self.csp_report_only = new_csp
         else
           @csp = ContentSecurityPolicyConfig.new(new_csp)

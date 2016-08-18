@@ -226,6 +226,24 @@ module SecureHeaders
           expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'; style-src 'self'")
         end
 
+        it "supports the deprecated `report_only: true` format" do
+          expect(Kernel).to receive(:warn).once
+
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self'),
+              report_only: true
+            }
+          end
+
+          expect(Configuration.get.csp).to eq(OPT_OUT)
+          expect(Configuration.get.csp_report_only).to be_a(ContentSecurityPolicyReportOnlyConfig)
+
+          hash = SecureHeaders.header_hash_for(request)
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
+          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'")
+        end
+
         context "setting two headers" do
           before(:each) do
             Configuration.default do |config|
