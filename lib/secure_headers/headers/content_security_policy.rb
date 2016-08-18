@@ -19,7 +19,7 @@ module SecureHeaders
       elsif config.nil?
         ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
       else
-        config.dup
+        config
       end
 
       @parsed_ua = if user_agent.is_a?(UserAgent::Browsers::Base)
@@ -115,15 +115,15 @@ module SecureHeaders
     # If a directive contains 'none' but has other values, 'none' is ommitted.
     # Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
     def minify_source_list(directive, source_list)
-      source_list.compact!
+      source_list = source_list.compact
       if source_list.include?(STAR)
         keep_wildcard_sources(source_list)
       else
-        populate_nonces!(directive, source_list)
-        reject_all_values_if_none!(source_list)
+        source_list = populate_nonces(directive, source_list)
+        source_list = reject_all_values_if_none(source_list)
 
         unless directive == REPORT_URI || @preserve_schemes
-          strip_source_schemes!(source_list)
+          source_list = strip_source_schemes(source_list)
         end
         dedup_source_list(source_list)
       end
@@ -135,8 +135,12 @@ module SecureHeaders
     end
 
     # Discard any 'none' values if more directives are supplied since none may override values.
-    def reject_all_values_if_none!(source_list)
-      source_list.reject! { |value| value == NONE } if source_list.length > 1
+    def reject_all_values_if_none(source_list)
+      if source_list.length > 1
+        source_list.reject { |value| value == NONE }
+      else
+        source_list
+      end
     end
 
     # Removes duplicates and sources that already match an existing wild card.
@@ -158,12 +162,14 @@ module SecureHeaders
 
     # Private: append a nonce to the script/style directories if script_nonce
     # or style_nonce are provided.
-    def populate_nonces!(directive, source_list)
+    def populate_nonces(directive, source_list)
       case directive
       when SCRIPT_SRC
         append_nonce(source_list, @script_nonce)
       when STYLE_SRC
         append_nonce(source_list, @style_nonce)
+      else
+        source_list
       end
     end
 
@@ -180,6 +186,8 @@ module SecureHeaders
           source_list << UNSAFE_INLINE
         end
       end
+
+      source_list
     end
 
     # Private: return the list of directives that are supported by the user agent,
@@ -193,8 +201,8 @@ module SecureHeaders
     end
 
     # Private: Remove scheme from source expressions.
-    def strip_source_schemes!(source_list)
-      source_list.map! { |source_expression| source_expression.sub(HTTP_SCHEME_REGEX, "") }
+    def strip_source_schemes(source_list)
+      source_list.map { |source_expression| source_expression.sub(HTTP_SCHEME_REGEX, "") }
     end
 
     # Private: determine which directives are supported for the given user agent.
