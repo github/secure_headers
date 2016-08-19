@@ -52,6 +52,7 @@ module SecureHeaders
     FORM_ACTION = :form_action
     FRAME_ANCESTORS = :frame_ancestors
     PLUGIN_TYPES = :plugin_types
+    REQUIRE_SRI_FOR = :require_sri_for
 
     # These are directives that do not inherit the default-src value. This is
     # useful when calling #combine_policies.
@@ -60,7 +61,8 @@ module SecureHeaders
       FORM_ACTION,
       FRAME_ANCESTORS,
       PLUGIN_TYPES,
-      REPORT_URI
+      REPORT_URI,
+      REQUIRE_SRI_FOR
     ]
 
     DIRECTIVES_2_0 = [
@@ -88,26 +90,23 @@ module SecureHeaders
     UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
     DIRECTIVES_DRAFT = [
       BLOCK_ALL_MIXED_CONTENT,
-      UPGRADE_INSECURE_REQUESTS
+      UPGRADE_INSECURE_REQUESTS,
+      REQUIRE_SRI_FOR
     ].freeze
-
-    EDGE_DIRECTIVES = DIRECTIVES_1_0
-    SAFARI_DIRECTIVES = DIRECTIVES_1_0
 
     FIREFOX_UNSUPPORTED_DIRECTIVES = [
       BLOCK_ALL_MIXED_CONTENT,
       CHILD_SRC,
-      PLUGIN_TYPES
+      PLUGIN_TYPES,
+      REQUIRE_SRI_FOR
     ].freeze
 
     FIREFOX_46_DEPRECATED_DIRECTIVES = [
       FRAME_SRC
     ].freeze
 
-    FIREFOX_46_UNSUPPORTED_DIRECTIVES = [
-      BLOCK_ALL_MIXED_CONTENT,
-      PLUGIN_TYPES
-    ].freeze
+    FIREFOX_46_UNSUPPORTED_DIRECTIVES = FIREFOX_UNSUPPORTED_DIRECTIVES - [CHILD_SRC]
+    FIREFOX_50_UNSUPPORTED_DIRECTIVES = FIREFOX_46_UNSUPPORTED_DIRECTIVES - [REQUIRE_SRI_FOR]
 
     FIREFOX_DIRECTIVES = (
       DIRECTIVES_2_0 + DIRECTIVES_DRAFT - FIREFOX_UNSUPPORTED_DIRECTIVES
@@ -117,9 +116,16 @@ module SecureHeaders
       DIRECTIVES_2_0 + DIRECTIVES_DRAFT - FIREFOX_46_UNSUPPORTED_DIRECTIVES - FIREFOX_46_DEPRECATED_DIRECTIVES
     ).freeze
 
+    FIREFOX_50_DIRECTIVES = (
+      DIRECTIVES_2_0 + DIRECTIVES_DRAFT - FIREFOX_50_UNSUPPORTED_DIRECTIVES - FIREFOX_46_DEPRECATED_DIRECTIVES
+    ).freeze
+
     CHROME_DIRECTIVES = (
       DIRECTIVES_2_0 + DIRECTIVES_DRAFT
     ).freeze
+
+    EDGE_DIRECTIVES = DIRECTIVES_1_0
+    SAFARI_DIRECTIVES = DIRECTIVES_1_0
 
     ALL_DIRECTIVES = [DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT].flatten.uniq.sort
 
@@ -131,7 +137,8 @@ module SecureHeaders
       "Chrome" => CHROME_DIRECTIVES,
       "Opera" => CHROME_DIRECTIVES,
       "Firefox" => FIREFOX_DIRECTIVES,
-      "FirefoxTransitional" => FIREFOX_46_DIRECTIVES,
+      "Firefox46" => FIREFOX_46_DIRECTIVES,
+      "Firefox50" => FIREFOX_50_DIRECTIVES,
       "Safari" => SAFARI_DIRECTIVES,
       "Edge" => EDGE_DIRECTIVES,
       "Other" => CHROME_DIRECTIVES
@@ -156,6 +163,7 @@ module SecureHeaders
       PLUGIN_TYPES              => :source_list,
       REFLECTED_XSS             => :string,
       REPORT_URI                => :source_list,
+      REQUIRE_SRI_FOR           => :source_list,
       SANDBOX                   => :string,
       SCRIPT_SRC                => :source_list,
       STYLE_SRC                 => :source_list,

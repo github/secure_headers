@@ -8,6 +8,7 @@ module SecureHeaders
 
     # constants to be used for version-specific UA sniffing
     VERSION_46 = ::UserAgent::Version.new("46")
+    VERSION_50 = ::UserAgent::Version.new("50")
 
     def initialize(config = nil, user_agent = OTHER)
       @config = Configuration.send(:deep_copy, config || DEFAULT_CONFIG)
@@ -186,15 +187,13 @@ module SecureHeaders
     #
     # Returns an array of symbols representing the directives.
     def supported_directives
-      @supported_directives ||= if VARIATIONS[@parsed_ua.browser]
-        if @parsed_ua.browser == "Firefox" && @parsed_ua.version >= VERSION_46
-          VARIATIONS["FirefoxTransitional"]
-        else
-          VARIATIONS[@parsed_ua.browser]
+      @supported_directives ||= if @parsed_ua.browser == "Firefox"
+        if @parsed_ua.version >= VERSION_50
+          VARIATIONS["Firefox50"]
+        elsif @parsed_ua.version >= VERSION_46
+          VARIATIONS["Firefox46"]
         end
-      else
-        VARIATIONS[OTHER]
-      end
+      end || VARIATIONS[@parsed_ua.browser] || VARIATIONS[OTHER]
     end
 
     def nonces_supported?

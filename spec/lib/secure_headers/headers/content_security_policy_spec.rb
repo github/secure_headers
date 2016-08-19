@@ -116,28 +116,34 @@ module SecureHeaders
             upgrade_insecure_requests: true,
             reflected_xss: "block",
             script_src: %w(script-src.com),
-            script_nonce: 123456
+            script_nonce: 123456,
+            require_sri_for: %w(script style)
           })
         end
 
         it "does not filter any directives for Chrome" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:chrome])
-          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; plugin-types plugin-types.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; plugin-types plugin-types.com; require-sri-for script style; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
 
         it "does not filter any directives for Opera" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:opera])
-          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; plugin-types plugin-types.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; plugin-types plugin-types.com; require-sri-for script style; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
 
-        it "filters blocked-all-mixed-content, child-src, and plugin-types for firefox" do
+        it "filters require-sri-for, blocked-all-mixed-content, child-src, and plugin-types for firefox" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:firefox])
           expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
 
-        it "filters blocked-all-mixed-content, frame-src, and plugin-types for firefox 46 and higher" do
+        it "filters require-sri-for, blocked-all-mixed-content, frame-src, and plugin-types for firefox 46 - 49" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:firefox46])
           expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
+        end
+
+        it "filters blocked-all-mixed-content, frame-src, and plugin-types for firefox 50 and higher" do
+          policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:firefox50])
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; require-sri-for script style; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
 
         it "child-src value is copied to frame-src, adds 'unsafe-inline', filters base-uri, blocked-all-mixed-content, upgrade-insecure-requests, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for Edge" do
