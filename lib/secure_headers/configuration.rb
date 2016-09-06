@@ -46,6 +46,17 @@ module SecureHeaders
         @configurations[name]
       end
 
+      def named_appends(name)
+        @appends ||= {}
+        @appends[name]
+      end
+
+      def named_append(name, target = nil, &block)
+        @appends ||= {}
+        raise "Provide a configuration block" unless block_given?
+        @appends[name] = block
+      end
+
       private
 
       # Private: add a valid configuration to the global set of named configs.
