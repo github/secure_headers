@@ -138,6 +138,10 @@ module SecureHeaders
       end
 
       context "content security policy" do
+        let(:chrome_request) {
+          Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:chrome]))
+        }
+
         it "appends a value to csp directive" do
           Configuration.default do |config|
             config.csp = {
@@ -149,6 +153,30 @@ module SecureHeaders
           SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
           hash = SecureHeaders.header_hash_for(request)
           expect(hash[CSP::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
+        end
+
+        it "appends a nonce to a missing script-src value" do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self')
+            }
+          end
+
+          SecureHeaders.content_security_policy_script_nonce(request) # should add the value to the header
+          hash = SecureHeaders.header_hash_for(chrome_request)
+          expect(hash[CSP::HEADER_NAME]).to match /\Adefault-src 'self'; script-src 'self' 'nonce-.*'\z/
+        end
+
+        it "appends a hash to a missing script-src value" do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self')
+            }
+          end
+
+          SecureHeaders.append_content_security_policy_directives(request, script_src: %w('sha256-abc123'))
+          hash = SecureHeaders.header_hash_for(chrome_request)
+          expect(hash[CSP::HEADER_NAME]).to match /\Adefault-src 'self'; script-src 'self' 'sha256-abc123'\z/
         end
 
         it "dups global configuration just once when overriding n times and only calls idempotent_additions? once" do
@@ -234,7 +262,6 @@ module SecureHeaders
             }
           end
 
-          chrome_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:chrome]))
           nonce = SecureHeaders.content_security_policy_script_nonce(chrome_request)
 
           # simulate the nonce being used multiple times in a request:

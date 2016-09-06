@@ -53,16 +53,6 @@ module SecureHeaders
     FRAME_ANCESTORS = :frame_ancestors
     PLUGIN_TYPES = :plugin_types
 
-    # These are directives that do not inherit the default-src value. This is
-    # useful when calling #combine_policies.
-    NON_FETCH_SOURCES = [
-      BASE_URI,
-      FORM_ACTION,
-      FRAME_ANCESTORS,
-      PLUGIN_TYPES,
-      REPORT_URI
-    ]
-
     DIRECTIVES_2_0 = [
       DIRECTIVES_1_0,
       BASE_URI,
@@ -126,6 +116,18 @@ module SecureHeaders
     # Think of default-src and report-uri as the beginning and end respectively,
     # everything else is in between.
     BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
+
+    # These are directives that do not inherit the default-src value. This is
+    # useful when calling #combine_policies.
+    NON_FETCH_SOURCES = [
+      BASE_URI,
+      FORM_ACTION,
+      FRAME_ANCESTORS,
+      PLUGIN_TYPES,
+      REPORT_URI
+    ]
+
+    FETCH_SOURCES = ALL_DIRECTIVES - NON_FETCH_SOURCES
 
     VARIATIONS = {
       "Chrome" => CHROME_DIRECTIVES,
@@ -268,8 +270,23 @@ module SecureHeaders
       def populate_fetch_source_with_default!(original, additions)
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.keys.each do |directive|
-          unless original[directive] || !source_list?(directive) || NON_FETCH_SOURCES.include?(directive)
-            original[directive] = original[:default_src]
+          if !original[directive] && ((source_list?(directive) && FETCH_SOURCES.include?(directive)) || nonce_added?(original, additions))
+            if nonce_added?(original, additions)
+              inferred_directive = directive.to_s.gsub(/_nonce/, "_src").to_sym
+              unless original[inferred_directive] || NON_FETCH_SOURCES.include?(inferred_directive)
+                original[inferred_directive] = original[:default_src]
+              end
+            else
+              original[directive] = original[:default_src]
+            end
+          end
+        end
+      end
+
+      def nonce_added?(original, additions)
+        [:script_nonce, :style_nonce].each do |nonce|
+          if additions[nonce] && !original[nonce]
+            return true
           end
         end
       end
