@@ -108,6 +108,7 @@ end
 
 
 SecureHeaders::Configuration.named_append(:widget_partial) do |request|
+  SecureHeaders.override_x_frame_options(request, "DENY")
   if request.controller_instance.current_user.in_test_bucket?
     { child_src: %w(beta.thirdpartyhost.com) }
   else
