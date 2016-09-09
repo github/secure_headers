@@ -120,6 +120,11 @@ module SecureHeaders
       override_secure_headers_request_config(request, config)
     end
 
+    def use_content_security_policy_named_append(request, name)
+      additions = SecureHeaders::Configuration.named_appends(name).call(request)
+      append_content_security_policy_directives(request, additions)
+    end
+
     # Public: override X-Frame-Options settings for this request.
     #
     # value - deny, sameorigin, or allowall
@@ -332,5 +337,9 @@ module SecureHeaders
 
   def override_x_frame_options(value)
     SecureHeaders.override_x_frame_options(request, value)
+  end
+
+  def use_content_security_policy_named_append(name)
+    SecureHeaders.use_content_security_policy_named_append(request, name)
   end
 end
