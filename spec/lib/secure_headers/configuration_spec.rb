@@ -36,8 +36,8 @@ module SecureHeaders
 
       config = Configuration.get(:test_override)
       noop = Configuration.get(Configuration::NOOP_CONFIGURATION)
-      [:csp, :dynamic_csp, :cookies].each do |key|
-        expect(config.send(key)).to eq(noop.send(key)), "Value not copied: #{key}."
+      [:csp, :csp_report_only, :cookies].each do |key|
+        expect(config.send(key)).to eq(noop.send(key))
       end
     end
 
@@ -65,7 +65,7 @@ module SecureHeaders
       default = Configuration.get
       override = Configuration.get(:override)
 
-      expect(override.csp).not_to eq(default.csp)
+      expect(override.csp.directive_value(:default_src)).not_to be(default.csp.directive_value(:default_src))
     end
 
     it "allows you to override an override" do
@@ -78,9 +78,9 @@ module SecureHeaders
       end
 
       original_override = Configuration.get(:override)
-      expect(original_override.csp).to eq(default_src: %w('self'))
+      expect(original_override.csp.to_h).to eq(default_src: %w('self'))
       override_config = Configuration.get(:second_override)
-      expect(override_config.csp).to eq(default_src: %w('self'), script_src: %w(example.org))
+      expect(override_config.csp.to_h).to eq(default_src: %w('self'), script_src: %w('self' example.org))
     end
 
     it "deprecates the secure_cookies configuration" do

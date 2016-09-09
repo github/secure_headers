@@ -7,9 +7,6 @@ module SecureHeaders
     MODERN_BROWSERS = %w(Chrome Opera Firefox)
     DEFAULT_VALUE = "default-src https:".freeze
     DEFAULT_CONFIG = { default_src: %w(https:) }.freeze
-    HEADER_NAME = "Content-Security-Policy".freeze
-    REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
-    HEADER_NAMES = [HEADER_NAME, REPORT_ONLY]
     DATA_PROTOCOL = "data:".freeze
     BLOB_PROTOCOL = "blob:".freeze
     SELF = "'self'".freeze
@@ -158,13 +155,13 @@ module SecureHeaders
       PLUGIN_TYPES              => :source_list,
       REFLECTED_XSS             => :string,
       REPORT_URI                => :source_list,
-      SANDBOX                   => :string,
+      SANDBOX                   => :source_list,
       SCRIPT_SRC                => :source_list,
       STYLE_SRC                 => :source_list,
       UPGRADE_INSECURE_REQUESTS => :boolean
     }.freeze
 
-    CONFIG_KEY = :csp
+
     STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
     HTTP_SCHEME_REGEX = %r{\Ahttps?://}
 
@@ -179,6 +176,11 @@ module SecureHeaders
     META_CONFIGS = [
       :report_only,
       :preserve_schemes
+    ].freeze
+
+    NONCES = [
+      :script_nonce,
+      :style_nonce
     ].freeze
 
     module ClassMethods
@@ -196,27 +198,17 @@ module SecureHeaders
       # Does not validate the invididual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
       def validate_config!(config)
-        return if config.nil? || config == OPT_OUT
-        raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config[:default_src]
-        config.each do |key, value|
+        return if config.nil? || config.opt_out?
+        raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
+        ContentSecurityPolicyConfig.attrs.each do |key|
+          value = config.directive_value(key)
+          next unless value
           if META_CONFIGS.include?(key)
             raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
           else
             validate_directive!(key, value)
           end
         end
-      end
-
-      # Public: determine if merging +additions+ will cause a change to the
-      # actual value of the config.
-      #
-      # e.g. config = { script_src: %w(example.org google.com)} and
-      # additions = { script_src: %w(google.com)} then idempotent_additions? would return
-      # because google.com is already in the config.
-      def idempotent_additions?(config, additions)
-        return true if config == OPT_OUT && additions == OPT_OUT
-        return false if config == OPT_OUT
-        config == combine_policies(config, additions)
       end
 
       # Public: combine the values from two different configs.
@@ -233,7 +225,7 @@ module SecureHeaders
       # 3. if a value in additions does exist in the original config, the two
       # values are joined.
       def combine_policies(original, additions)
-        if original == OPT_OUT
+        if original == {}
           raise ContentSecurityPolicyConfigError.new("Attempted to override an opt-out CSP config.")
         end
 

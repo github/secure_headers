@@ -51,7 +51,7 @@ module SecureHeaders
       SecureHeaders.use_secure_headers_override(request, "my_custom_config")
       expect(request.env[SECURE_HEADERS_CONFIG]).to be(Configuration.get("my_custom_config"))
       _, env = middleware.call request.env
-      expect(env[CSP::HEADER_NAME]).to match("example.org")
+      expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match("example.org")
     end
 
     context "secure_cookies" do

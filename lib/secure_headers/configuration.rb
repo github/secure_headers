@@ -85,7 +85,6 @@ module SecureHeaders
           ALL_HEADER_CLASSES.each do |klass|
             config.send("#{klass::CONFIG_KEY}=", OPT_OUT)
           end
-          config.dynamic_csp = OPT_OUT
         end
 
         add_configuration(NOOP_CONFIGURATION, noop_config)
@@ -94,6 +93,7 @@ module SecureHeaders
       # Public: perform a basic deep dup. The shallow copy provided by dup/clone
       # can lead to modifying parent objects.
       def deep_copy(config)
+        return unless config
         config.each_with_object({}) do |(key, value), hash|
           hash[key] = if value.is_a?(Array)
             value.dup
@@ -114,13 +114,11 @@ module SecureHeaders
       end
     end
 
-    attr_accessor :dynamic_csp
-
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
       :referrer_policy
 
-    attr_reader :cached_headers, :csp, :cookies, :hpkp, :hpkp_report_host
+    attr_reader :cached_headers, :csp, :cookies, :csp_report_only, :hpkp, :hpkp_report_host
 
     HASH_CONFIG_FILE = ENV["secure_headers_generated_hashes_file"] || "config/secure_headers_generated_hashes.yml"
     if File.exists?(HASH_CONFIG_FILE)
@@ -132,7 +130,8 @@ module SecureHeaders
     def initialize(&block)
       self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
-      self.csp = self.class.send(:deep_copy, CSP::DEFAULT_CONFIG)
+      self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
+      self.csp_report_only = OPT_OUT
       instance_eval &block if block_given?
     end
 
@@ -142,8 +141,8 @@ module SecureHeaders
     def dup
       copy = self.class.new
       copy.cookies = @cookies
-      copy.csp = self.class.send(:deep_copy_if_hash, @csp)
-      copy.dynamic_csp = self.class.send(:deep_copy_if_hash, @dynamic_csp)
+      copy.csp = @csp.dup if @csp
+      copy.csp_report_only = @csp_report_only.dup if @csp_report_only
       copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
       copy.x_content_type_options = @x_content_type_options
       copy.hsts = @hsts
@@ -159,29 +158,12 @@ module SecureHeaders
 
     def opt_out(header)
       send("#{header}=", OPT_OUT)
-      if header == CSP::CONFIG_KEY
-        dynamic_csp = OPT_OUT
-      end
       self.cached_headers.delete(header)
     end
 
     def update_x_frame_options(value)
       @x_frame_options = value
       self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(value)
-    end
-
-    # Public: generated cached headers for a specific user agent.
-    def rebuild_csp_header_cache!(user_agent)
-      self.cached_headers[CSP::CONFIG_KEY] = {}
-      unless current_csp == OPT_OUT
-        user_agent = UserAgent.parse(user_agent)
-        variation = CSP.ua_to_variation(user_agent)
-        self.cached_headers[CSP::CONFIG_KEY][variation] = CSP.make_header(current_csp, user_agent)
-      end
-    end
-
-    def current_csp
-      @dynamic_csp || @csp
     end
 
     # Public: validates all configurations values.
@@ -192,6 +174,7 @@ module SecureHeaders
     def validate_config!
       StrictTransportSecurity.validate_config!(@hsts)
       ContentSecurityPolicy.validate_config!(@csp)
+      ContentSecurityPolicy.validate_config!(@csp_report_only)
       ReferrerPolicy.validate_config!(@referrer_policy)
       XFrameOptions.validate_config!(@x_frame_options)
       XContentTypeOptions.validate_config!(@x_content_type_options)
@@ -207,15 +190,49 @@ module SecureHeaders
       @cookies = (@cookies || {}).merge(secure: secure_cookies)
     end
 
-    protected
-
     def csp=(new_csp)
-      if self.dynamic_csp
-        raise IllegalPolicyModificationError, "You are attempting to modify CSP settings directly. Use dynamic_csp= instead."
+      if new_csp.respond_to?(:opt_out?)
+        @csp = new_csp.dup
+      else
+        if new_csp[:report_only]
+          # Deprecated configuration implies that CSPRO should be set, CSP should not - so opt out
+          Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
+          @csp = OPT_OUT
+          self.csp_report_only = new_csp
+        else
+          @csp = ContentSecurityPolicyConfig.new(new_csp)
+        end
+      end
+    end
+
+    # Configures the Content-Security-Policy-Report-Only header. `new_csp` cannot
+    # contain `report_only: false` or an error will be raised.
+    #
+    # NOTE: if csp has not been configured/has the default value when
+    # configuring csp_report_only, the code will assume you mean to only use
+    # report-only mode and you will be opted-out of enforce mode.
+    def csp_report_only=(new_csp)
+      @csp_report_only = begin
+        if new_csp.is_a?(ContentSecurityPolicyConfig)
+          new_csp.make_report_only
+        elsif new_csp.respond_to?(:opt_out?)
+          new_csp.dup
+        else
+          if new_csp[:report_only] == false # nil is a valid value on which we do not want to raise
+            raise ContentSecurityPolicyConfigError, "`#csp_report_only=` was supplied a config with report_only: false. Use #csp="
+          else
+            ContentSecurityPolicyReportOnlyConfig.new(new_csp)
+          end
+        end
       end
 
-      @csp = self.class.send(:deep_copy_if_hash, new_csp)
+      if !@csp_report_only.opt_out? && @csp.to_h == ContentSecurityPolicyConfig::DEFAULT
+        Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was configured before `#csp=`. It is assumed you intended to opt out of `#csp=` so be sure to add `config.csp = SecureHeaders::OPT_OUT` to your config. Ensure that #csp_report_only is configured after #csp="
+        @csp = OPT_OUT
+      end
     end
+
+    protected
 
     def cookies=(cookies)
       @cookies = cookies
@@ -269,12 +286,16 @@ module SecureHeaders
     #
     # Returns nothing
     def generate_csp_headers(headers)
-      unless @csp == OPT_OUT
-        headers[CSP::CONFIG_KEY] = {}
-        csp_config = self.current_csp
-        CSP::VARIATIONS.each do |name, _|
-          csp = CSP.make_header(csp_config, UserAgent.parse(name))
-          headers[CSP::CONFIG_KEY][name] = csp.freeze
+      generate_csp_headers_for_config(headers, ContentSecurityPolicyConfig::CONFIG_KEY, self.csp)
+      generate_csp_headers_for_config(headers, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY, self.csp_report_only)
+    end
+
+    def generate_csp_headers_for_config(headers, header_key, csp_config)
+      unless csp_config.opt_out?
+        headers[header_key] = {}
+        ContentSecurityPolicy::VARIATIONS.each do |name, _|
+          csp = ContentSecurityPolicy.make_header(csp_config, UserAgent.parse(name))
+          headers[header_key][name] = csp.freeze
         end
       end
     end
