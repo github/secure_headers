@@ -27,6 +27,16 @@ class Message < ERB
     background-color: black;
   }
 <% end %>
+
+<script nonce="<%= content_security_policy_script_nonce %>">
+  alert(1)
+</script>
+
+<style nonce="<%= content_security_policy_style_nonce %>">
+  body {
+    background-color: black;
+  }
+</style>
 <%= @name %>
 
 TEMPLATE
