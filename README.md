@@ -122,8 +122,6 @@ Configuration.default do |config|
 end
 ```
 
-If **
-
 ## Named Appends
 
 Named Appends are blocks of code that can be reused and composed during requests. e.g. If a certain partial is rendered conditionally, and the csp needs to be adjusted for that partial, you can create a named append for that situation. The value returned by the block will be passed into `append_content_security_policy_directives`. The current request object is passed as an argument to the block for even more flexibility.
