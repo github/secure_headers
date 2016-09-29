@@ -9,6 +9,7 @@ group :test do
   gem "rack", "~> 1"
   gem "rspec"
   gem "coveralls"
+  gem "term-ansicolor", "< 1.4"
 end
 
 group :guard do
