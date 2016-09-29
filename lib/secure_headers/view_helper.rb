@@ -34,6 +34,14 @@ module SecureHeaders
       end
     end
 
+    def content_security_policy_script_nonce
+      content_security_policy_nonce(:script)
+    end
+
+    def content_security_policy_style_nonce
+      content_security_policy_nonce(:style)
+    end
+
     ##
     # Checks to see if the hashed code is expected and adds the hash source
     # value to the current CSP.
