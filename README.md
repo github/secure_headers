@@ -20,10 +20,6 @@ It can also mark all http cookies with the Secure, HttpOnly and SameSite attribu
 
 `secure_headers` is a library with a global config, per request overrides, and rack middleware that enables you customize your application settings.
 
-## Use
-
-`gem install secure_headers`
-
 ## Configuration
 
 If you do not supply a `default` configuration, exceptions will be raised. If you would like to use a default configuration (which is fairly locked down), just call `SecureHeaders::Configuration.default` without any arguments or block.
