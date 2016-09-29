@@ -277,6 +277,20 @@ module SecureHeaders
           expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'; style-src 'self'")
         end
 
+        it "uses a nonce for safari 10+" do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self'),
+              script_src: %w(mycdn.com)
+            }
+          end
+
+          safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari10]))
+          nonce = SecureHeaders.content_security_policy_script_nonce(safari_request)
+          hash = SecureHeaders.header_hash_for(safari_request)
+          expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'")
+        end
+
         it "supports the deprecated `report_only: true` format" do
           expect(Kernel).to receive(:warn).once
 

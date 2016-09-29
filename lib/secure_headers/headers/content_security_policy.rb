@@ -8,6 +8,7 @@ module SecureHeaders
 
     # constants to be used for version-specific UA sniffing
     VERSION_46 = ::UserAgent::Version.new("46")
+    VERSION_10 = ::UserAgent::Version.new("10")
 
     def initialize(config = nil, user_agent = OTHER)
       @config = if config.is_a?(Hash)
@@ -223,7 +224,8 @@ module SecureHeaders
     end
 
     def nonces_supported?
-      @nonces_supported ||= MODERN_BROWSERS.include?(@parsed_ua.browser)
+      @nonces_supported ||= MODERN_BROWSERS.include?(@parsed_ua.browser) ||
+        @parsed_ua.browser == "Safari" && @parsed_ua.version >= VERSION_10
     end
 
     def symbol_to_hyphen_case(sym)
