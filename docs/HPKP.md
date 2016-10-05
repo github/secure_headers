@@ -1,4 +1,4 @@
-### Public Key Pins
+## HTTP Public Key Pins
 
 Be aware that pinning error reporting is governed by the same rules as everything else. If you have a pinning failure that tries to report back to the same origin, by definition this will not work.
 

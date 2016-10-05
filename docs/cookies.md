@@ -1,4 +1,4 @@
-### Cookies
+## Cookies
 
 SecureHeaders supports `Secure`, `HttpOnly` and [`SameSite`](https://tools.ietf.org/html/draft-west-first-party-cookies-07) cookies. These can be defined in the form of a boolean, or as a Hash for more refined configuration.
 

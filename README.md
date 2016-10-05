@@ -22,7 +22,13 @@ It can also mark all http cookies with the Secure, HttpOnly and SameSite attribu
 
 ## Documentation
 
-[Find the latest documention here.](docs/README.md)
+- [Getting Started](getting_started.md)
+- [Base Configuration](configuration.md)
+- [Named overrides and appends](named_overrides_and_appends.md)
+- [Per action configuration](per_action_configuration.md)
+- [Cookies](cookies.md)
+- [HPKP](HPKP.md)
+- [Hashes](hashes.md)
 
 ## Similar libraries
 
