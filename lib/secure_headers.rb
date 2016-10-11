@@ -47,6 +47,7 @@ module SecureHeaders
   SECURE_HEADERS_CONFIG = "secure_headers_request_config".freeze
   NONCE_KEY = "secure_headers_content_security_policy_nonce".freeze
   HTTPS = "https".freeze
+  CSP = ContentSecurityPolicy
 
   ALL_HEADER_CLASSES = [
     ContentSecurityPolicyConfig,

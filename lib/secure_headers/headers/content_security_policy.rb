@@ -224,8 +224,7 @@ module SecureHeaders
     end
 
     def nonces_supported?
-      @nonces_supported ||= MODERN_BROWSERS.include?(@parsed_ua.browser) ||
-        @parsed_ua.browser == "Safari" && @parsed_ua.version >= VERSION_10
+      @nonces_supported ||= self.class.nonces_supported?(@parsed_ua)
     end
 
     def symbol_to_hyphen_case(sym)

@@ -211,6 +211,15 @@ module SecureHeaders
         end
       end
 
+      # Public: check if a user agent supports CSP nonces
+      #
+      # user_agent - a String or a UserAgent object
+      def nonces_supported?(user_agent)
+        user_agent = UserAgent.parse(user_agent) if user_agent.is_a?(String)
+        MODERN_BROWSERS.include?(user_agent.browser) ||
+          user_agent.browser == "Safari" && user_agent.version >= CSP::VERSION_10
+      end
+
       # Public: combine the values from two different configs.
       #
       # original - the main config
