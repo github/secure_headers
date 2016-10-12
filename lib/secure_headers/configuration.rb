@@ -140,7 +140,7 @@ module SecureHeaders
     # Returns a deep-dup'd copy of this configuration.
     def dup
       copy = self.class.new
-      copy.cookies = @cookies
+      copy.cookies = self.class.send(:deep_copy_if_hash, @cookies)
       copy.csp = @csp.dup if @csp
       copy.csp_report_only = @csp_report_only.dup if @csp_report_only
       copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
