@@ -1,6 +1,7 @@
-## 3.5.0.pre
+## 3.5.0
 
 This release adds support for setting two CSP headers (enforced/report-only) and management around them.
+
 
 ## 3.4.1 Named Appends
 
