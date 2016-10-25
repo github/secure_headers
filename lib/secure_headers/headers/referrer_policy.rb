@@ -6,6 +6,9 @@ module SecureHeaders
     VALID_POLICIES = %w(
       no-referrer
       no-referrer-when-downgrade
+      same-origin
+      strict-origin
+      strict-origin-when-cross-origin
       origin
       origin-when-cross-origin
       unsafe-url
