@@ -18,6 +18,24 @@ module SecureHeaders
         end.not_to raise_error
       end
 
+      it "accepts 'same-origin'" do
+        expect do
+          ReferrerPolicy.validate_config!("same-origin")
+        end.not_to raise_error
+      end
+
+      it "accepts 'strict-origin'" do
+        expect do
+          ReferrerPolicy.validate_config!("strict-origin")
+        end.not_to raise_error
+      end
+
+      it "accepts 'strict-origin-when-cross-origin'" do
+        expect do
+          ReferrerPolicy.validate_config!("strict-origin-when-cross-origin")
+        end.not_to raise_error
+      end
+
       it "accepts 'origin'" do
         expect do
           ReferrerPolicy.validate_config!("origin")
