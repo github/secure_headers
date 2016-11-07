@@ -149,6 +149,13 @@ module SecureHeaders
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:safari6])
           expect(policy.value).to eq("default-src default-src.com; connect-src connect-src.com; font-src font-src.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'unsafe-inline'; style-src style-src.com; report-uri report-uri.com")
         end
+
+        it "falls back to standard Firefox defaults when the useragent version is not present" do
+          ua = USER_AGENTS[:firefox].dup
+          allow(ua).to receive(:version).and_return(nil)
+          policy = ContentSecurityPolicy.new(complex_opts, ua)
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
+        end
       end
     end
   end
