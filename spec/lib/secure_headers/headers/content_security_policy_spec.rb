@@ -107,6 +107,11 @@ module SecureHeaders
         expect(firefox_transitional).not_to match(/frame-src/)
       end
 
+      it "supports strict-dynamic" do
+        csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456}, USER_AGENTS[:chrome])
+        expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456'")
+      end
+
       context "browser sniffing" do
         let (:complex_opts) do
           (ContentSecurityPolicy::ALL_DIRECTIVES - [:frame_src]).each_with_object({}) do |directive, hash|

@@ -14,6 +14,7 @@ module SecureHeaders
     STAR = "*".freeze
     UNSAFE_INLINE = "'unsafe-inline'".freeze
     UNSAFE_EVAL = "'unsafe-eval'".freeze
+    STRICT_DYNAMIC = "'strict-dynamic'".freeze
 
     # leftover deprecated values that will be in common use upon upgrading.
     DEPRECATED_SOURCE_VALUES = [SELF, NONE, UNSAFE_EVAL, UNSAFE_INLINE, "inline", "eval"].map { |value| value.delete("'") }.freeze
