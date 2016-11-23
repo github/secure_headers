@@ -11,7 +11,7 @@ if defined?(Rails::Railtie)
 
       initializer "secure_headers.action_controller" do
         ActiveSupport.on_load(:action_controller) do
-          include ::SecureHeaders
+          include ::SecureHeaders::ControllerExtension
 
           unless Rails.application.config.action_dispatch.default_headers.nil?
             conflicting_headers.each do |header|
@@ -26,7 +26,7 @@ if defined?(Rails::Railtie)
 else
   module ActionController
     class Base
-      include ::SecureHeaders
+      include ::SecureHeaders::ControllerExtension
     end
   end
 end
