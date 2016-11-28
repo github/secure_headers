@@ -107,6 +107,11 @@ module SecureHeaders
         expect(firefox_transitional).not_to match(/frame-src/)
       end
 
+      it "supports strict-dynamic" do
+        csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456}, USER_AGENTS[:chrome])
+        expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456'")
+      end
+
       context "browser sniffing" do
         let (:complex_opts) do
           (ContentSecurityPolicy::ALL_DIRECTIVES - [:frame_src]).each_with_object({}) do |directive, hash|
@@ -148,6 +153,13 @@ module SecureHeaders
         it "child-src value is copied to frame-src, adds 'unsafe-inline', filters base-uri, blocked-all-mixed-content, upgrade-insecure-requests, child-src, form-action, frame-ancestors, nonce sources, hash sources, and plugin-types for safari" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:safari6])
           expect(policy.value).to eq("default-src default-src.com; connect-src connect-src.com; font-src font-src.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'unsafe-inline'; style-src style-src.com; report-uri report-uri.com")
+        end
+
+        it "falls back to standard Firefox defaults when the useragent version is not present" do
+          ua = USER_AGENTS[:firefox].dup
+          allow(ua).to receive(:version).and_return(nil)
+          policy = ContentSecurityPolicy.new(complex_opts, ua)
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
         end
       end
     end

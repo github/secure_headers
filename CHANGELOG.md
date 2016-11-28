@@ -1,6 +1,12 @@
-## 3.5.0.pre
+## 3.5.1
+
+* Fix bug that can occur when useragent library version is older, resulting in a nil version sometimes.
+* Add constant for `strict-dynamic`
+
+## 3.5.0
 
 This release adds support for setting two CSP headers (enforced/report-only) and management around them.
+
 
 ## 3.4.1 Named Appends
 

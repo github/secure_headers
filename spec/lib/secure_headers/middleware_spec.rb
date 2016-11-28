@@ -105,6 +105,18 @@ module SecureHeaders
         _, env = cookie_middleware.call request.env
         expect(env['Set-Cookie']).to eq("foo=bar")
       end
+
+      it "sets the secure cookie flag correctly on interleaved http/https requests" do
+        Configuration.default { |config| config.cookies = { secure: true } }
+
+        request = Rack::Request.new("HTTPS" => "off")
+        _, env = cookie_middleware.call request.env
+        expect(env['Set-Cookie']).to eq("foo=bar")
+
+        request = Rack::Request.new("HTTPS" => "on")
+        _, env = cookie_middleware.call request.env
+        expect(env['Set-Cookie']).to eq("foo=bar; secure")
+      end
     end
   end
 end

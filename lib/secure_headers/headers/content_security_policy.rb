@@ -9,6 +9,7 @@ module SecureHeaders
     # constants to be used for version-specific UA sniffing
     VERSION_46 = ::UserAgent::Version.new("46")
     VERSION_10 = ::UserAgent::Version.new("10")
+    FALLBACK_VERSION = ::UserAgent::Version.new("0")
 
     def initialize(config = nil, user_agent = OTHER)
       @config = if config.is_a?(Hash)
@@ -213,7 +214,7 @@ module SecureHeaders
     # Returns an array of symbols representing the directives.
     def supported_directives
       @supported_directives ||= if VARIATIONS[@parsed_ua.browser]
-        if @parsed_ua.browser == "Firefox" && @parsed_ua.version >= VERSION_46
+        if @parsed_ua.browser == "Firefox" && ((@parsed_ua.version || FALLBACK_VERSION) >= VERSION_46)
           VARIATIONS["FirefoxTransitional"]
         else
           VARIATIONS[@parsed_ua.browser]
@@ -224,8 +225,7 @@ module SecureHeaders
     end
 
     def nonces_supported?
-      @nonces_supported ||= MODERN_BROWSERS.include?(@parsed_ua.browser) ||
-        @parsed_ua.browser == "Safari" && @parsed_ua.version >= VERSION_10
+      @nonces_supported ||= self.class.nonces_supported?(@parsed_ua)
     end
 
     def symbol_to_hyphen_case(sym)
