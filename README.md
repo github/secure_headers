@@ -25,13 +25,26 @@ It can also mark all http cookies with the Secure, HttpOnly and SameSite attribu
 
 ## Documentation
 
-- [Getting Started](getting_started.md)
-- [Base Configuration](configuration.md)
 - [Named overrides and appends](named_overrides_and_appends.md)
 - [Per action configuration](per_action_configuration.md)
 - [Cookies](cookies.md)
 - [HPKP](HPKP.md)
 - [Hashes](hashes.md)
+- [Sinatra Config](sinatra.md)
+
+## Getting Started
+
+### Rails 3+
+
+For Rails 3+ applications, `secure_headers` has a `railtie` that should automatically include the middleware. If for some reason the middleware is not being included follow the instructions for Rails 2.
+
+### Rails 2
+
+For Rails 2 or non-rails applications, an explicit statement is required to use the middleware component.
+
+```ruby
+use SecureHeaders::Middleware
+```
 
 ## Configuration
 
@@ -98,7 +111,7 @@ end
 
 ## Default values
 
-All headers except for PublicKeyPins have a default value. See the [corresponding classes for their defaults](https://github.com/twitter/secureheaders/tree/master/lib/secure_headers/headers). The default set of headers is:
+All headers except for PublicKeyPins have a default value. The default set of headers is:
 
 ```
 Content-Security-Policy: default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'
