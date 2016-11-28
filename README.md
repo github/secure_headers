@@ -25,12 +25,12 @@ It can also mark all http cookies with the Secure, HttpOnly and SameSite attribu
 
 ## Documentation
 
-- [Named overrides and appends](named_overrides_and_appends.md)
-- [Per action configuration](per_action_configuration.md)
-- [Cookies](cookies.md)
-- [HPKP](HPKP.md)
-- [Hashes](hashes.md)
-- [Sinatra Config](sinatra.md)
+- [Named overrides and appends](docs/named_overrides_and_appends.md)
+- [Per action configuration](docs/per_action_configuration.md)
+- [Cookies](docs/cookies.md)
+- [HPKP](docs/HPKP.md)
+- [Hashes](docs/hashes.md)
+- [Sinatra Config](docs/sinatra.md)
 
 ## Getting Started
 
