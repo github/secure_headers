@@ -39,7 +39,7 @@ module SecureHeaders
 
           begin
             JSON.dump(config)
-          rescue JSON::GeneratorError
+          rescue JSON::GeneratorError, Encoding::UndefinedConversionError
             raise ClearSiteDataConfigError.new("types must serializable by JSON")
           end
         else
