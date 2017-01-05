@@ -69,6 +69,12 @@ SecureHeaders::Configuration.default do |config|
   config.x_download_options = "noopen"
   config.x_permitted_cross_domain_policies = "none"
   config.referrer_policy = "origin-when-cross-origin"
+  config.clear_site_data = [
+    "cache",
+    "cookies",
+    "storage",
+    "executionContexts"
+  ]
   config.csp = {
     # "meta" values. these will shaped the header, but the values are not included in the header.
     report_only: true,      # default: false [DEPRECATED from 3.5.0: instead, configure csp_report_only]

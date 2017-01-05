@@ -51,6 +51,7 @@ module SecureHeaders
   CSP = ContentSecurityPolicy
 
   ALL_HEADER_CLASSES = [
+    ClearSiteData,
     ContentSecurityPolicyConfig,
     ContentSecurityPolicyReportOnlyConfig,
     StrictTransportSecurity,
