@@ -530,6 +530,14 @@ module SecureHeaders
         end.to raise_error(XContentTypeOptionsConfigError)
       end
 
+      it "validates your clear site data config upon configuration" do
+        expect do
+          Configuration.default do |config|
+            config.clear_site_data = 1
+          end
+        end.to raise_error(ClearSiteDataConfigError)
+      end
+
       it "validates your x_xss config upon configuration" do
         expect do
           Configuration.default do |config|
