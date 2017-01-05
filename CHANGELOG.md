@@ -1,3 +1,7 @@
+## 3.6.0
+
+Add support for the clear-site-data header
+
 ## 3.5.1
 
 * Fix bug that can occur when useragent library version is older, resulting in a nil version sometimes.
