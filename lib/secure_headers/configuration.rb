@@ -116,7 +116,7 @@ module SecureHeaders
 
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
-      :referrer_policy
+      :referrer_policy, :clear_site_data
 
     attr_reader :cached_headers, :csp, :cookies, :csp_report_only, :hpkp, :hpkp_report_host
 
@@ -150,6 +150,7 @@ module SecureHeaders
       copy.x_xss_protection = @x_xss_protection
       copy.x_download_options = @x_download_options
       copy.x_permitted_cross_domain_policies = @x_permitted_cross_domain_policies
+      copy.clear_site_data = @clear_site_data
       copy.referrer_policy = @referrer_policy
       copy.hpkp = @hpkp
       copy.hpkp_report_host = @hpkp_report_host
@@ -181,6 +182,7 @@ module SecureHeaders
       XXssProtection.validate_config!(@x_xss_protection)
       XDownloadOptions.validate_config!(@x_download_options)
       XPermittedCrossDomainPolicies.validate_config!(@x_permitted_cross_domain_policies)
+      ClearSiteData.validate_config!(@clear_site_data)
       PublicKeyPins.validate_config!(@hpkp)
       Cookie.validate_config!(@cookies)
     end

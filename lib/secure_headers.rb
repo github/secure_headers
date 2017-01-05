@@ -10,6 +10,7 @@ require "secure_headers/headers/x_content_type_options"
 require "secure_headers/headers/x_download_options"
 require "secure_headers/headers/x_permitted_cross_domain_policies"
 require "secure_headers/headers/referrer_policy"
+require "secure_headers/headers/clear_site_data"
 require "secure_headers/middleware"
 require "secure_headers/railtie"
 require "secure_headers/view_helper"
@@ -50,6 +51,7 @@ module SecureHeaders
   CSP = ContentSecurityPolicy
 
   ALL_HEADER_CLASSES = [
+    ClearSiteData,
     ContentSecurityPolicyConfig,
     ContentSecurityPolicyReportOnlyConfig,
     StrictTransportSecurity,
