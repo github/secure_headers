@@ -52,8 +52,9 @@ module SecureHeaders
 
     def to_h
       self.class.attrs.each_with_object({}) do |key, hash|
-        hash[key] = self.send(key)
-      end.reject { |_, v| v.nil? }
+        value = self.send(key)
+        hash[key] = value unless value.nil?
+      end
     end
 
     def dup
