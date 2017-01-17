@@ -271,7 +271,7 @@ module SecureHeaders
       # copy the default-src value to the original config. This modifies the original hash.
       def populate_fetch_source_with_default!(original, additions)
         # in case we would be appending to an empty directive, fill it with the default-src value
-        additions.keys.each do |directive|
+        additions.each_key do |directive|
           if !original[directive] && ((source_list?(directive) && FETCH_SOURCES.include?(directive)) || nonce_added?(original, additions))
             if nonce_added?(original, additions)
               inferred_directive = directive.to_s.gsub(/_nonce/, "_src").to_sym
