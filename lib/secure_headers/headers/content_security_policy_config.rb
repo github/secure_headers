@@ -6,13 +6,7 @@ module SecureHeaders
       base.attrs.each do |attr|
         base.send(:define_method, "#{attr}=") do |value|
           if self.class.attrs.include?(attr)
-            value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
-            attr_variable = "@#{attr}"
-            prev_value = self.instance_variable_get(attr_variable)
-            self.instance_variable_set(attr_variable, value)
-            if prev_value != self.instance_variable_get(attr_variable)
-              @modified = true
-            end
+            write_attribute(attr, value)
           else
             raise ContentSecurityPolicyConfigError, "Unknown config directive: #{attr}=#{value}"
           end
@@ -79,10 +73,20 @@ module SecureHeaders
         next if v.nil?
 
         if self.class.attrs.include?(k)
-          self.send("#{k}=", v)
+          write_attribute(k, v)
         else
           raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{v}"
         end
+      end
+    end
+
+    def write_attribute(attr, value)
+      value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
+      attr_variable = "@#{attr}"
+      prev_value = self.instance_variable_get(attr_variable)
+      self.instance_variable_set(attr_variable, value)
+      if prev_value != self.instance_variable_get(attr_variable)
+        @modified = true
       end
     end
   end
