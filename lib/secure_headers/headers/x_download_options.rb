@@ -1,7 +1,7 @@
 module SecureHeaders
   class XDOConfigError < StandardError; end
   class XDownloadOptions
-    HEADER_NAME = "X-Download-Options"
+    HEADER_NAME = "X-Download-Options".freeze
     DEFAULT_VALUE = 'noopen'
     CONFIG_KEY = :x_download_options
 
