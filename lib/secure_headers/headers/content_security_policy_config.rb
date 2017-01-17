@@ -75,11 +75,13 @@ module SecureHeaders
 
     private
     def from_hash(hash)
-      hash.keys.reject { |k| hash[k].nil? }.map do |k|
+      hash.each_pair do |k, v|
+        next if v.nil?
+
         if self.class.attrs.include?(k)
-          self.send("#{k}=", hash[k])
+          self.send("#{k}=", v)
         else
-          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{hash[k]}"
+          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{v}"
         end
       end
     end
