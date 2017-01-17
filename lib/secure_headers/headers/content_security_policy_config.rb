@@ -88,8 +88,9 @@ module SecureHeaders
     CONFIG_KEY = :csp
     HEADER_NAME = "Content-Security-Policy".freeze
 
+    ATTRS = PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
     def self.attrs
-      PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
+      ATTRS
     end
 
     include DynamicConfig
