@@ -85,7 +85,7 @@ module SecureHeaders
       attr_variable = "@#{attr}"
       prev_value = self.instance_variable_get(attr_variable)
       self.instance_variable_set(attr_variable, value)
-      if prev_value != self.instance_variable_get(attr_variable)
+      if prev_value != value
         @modified = true
       end
     end
