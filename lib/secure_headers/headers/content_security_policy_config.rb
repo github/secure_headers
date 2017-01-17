@@ -7,9 +7,10 @@ module SecureHeaders
         base.send(:define_method, "#{attr}=") do |value|
           if self.class.attrs.include?(attr)
             value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
-            prev_value = self.instance_variable_get("@#{attr}")
-            self.instance_variable_set("@#{attr}", value)
-            if prev_value != self.instance_variable_get("@#{attr}")
+            attr_variable = "@#{attr}"
+            prev_value = self.instance_variable_get(attr_variable)
+            self.instance_variable_set(attr_variable, value)
+            if prev_value != self.instance_variable_get(attr_variable)
               @modified = true
             end
           else
