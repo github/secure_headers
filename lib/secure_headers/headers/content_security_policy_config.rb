@@ -6,12 +6,7 @@ module SecureHeaders
       base.attrs.each do |attr|
         base.send(:define_method, "#{attr}=") do |value|
           if self.class.attrs.include?(attr)
-            value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
-            prev_value = self.instance_variable_get("@#{attr}")
-            self.instance_variable_set("@#{attr}", value)
-            if prev_value != self.instance_variable_get("@#{attr}")
-              @modified = true
-            end
+            write_attribute(attr, value)
           else
             raise ContentSecurityPolicyConfigError, "Unknown config directive: #{attr}=#{value}"
           end
@@ -52,8 +47,9 @@ module SecureHeaders
 
     def to_h
       self.class.attrs.each_with_object({}) do |key, hash|
-        hash[key] = self.send(key)
-      end.reject { |_, v| v.nil? }
+        value = self.send(key)
+        hash[key] = value unless value.nil?
+      end
     end
 
     def dup
@@ -73,12 +69,24 @@ module SecureHeaders
 
     private
     def from_hash(hash)
-      hash.keys.reject { |k| hash[k].nil? }.map do |k|
+      hash.each_pair do |k, v|
+        next if v.nil?
+
         if self.class.attrs.include?(k)
-          self.send("#{k}=", hash[k])
+          write_attribute(k, v)
         else
-          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{hash[k]}"
+          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{v}"
         end
+      end
+    end
+
+    def write_attribute(attr, value)
+      value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
+      attr_variable = "@#{attr}"
+      prev_value = self.instance_variable_get(attr_variable)
+      self.instance_variable_set(attr_variable, value)
+      if prev_value != value
+        @modified = true
       end
     end
   end
@@ -88,8 +96,9 @@ module SecureHeaders
     CONFIG_KEY = :csp
     HEADER_NAME = "Content-Security-Policy".freeze
 
+    ATTRS = PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
     def self.attrs
-      PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
+      ATTRS
     end
 
     include DynamicConfig

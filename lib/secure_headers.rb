@@ -177,7 +177,7 @@ module SecureHeaders
 
       header_classes_for(request).each_with_object({}) do |klass, hash|
         if header = headers[klass::CONFIG_KEY]
-          header_name, value = if [ContentSecurityPolicyConfig, ContentSecurityPolicyReportOnlyConfig].include?(klass)
+          header_name, value = if klass == ContentSecurityPolicyConfig || klass == ContentSecurityPolicyReportOnlyConfig
             csp_header_for_ua(header, user_agent)
           else
             header

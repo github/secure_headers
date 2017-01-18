@@ -262,7 +262,7 @@ module SecureHeaders
       end
     end
 
-    # Public: Precompute the header names and values for this configuraiton.
+    # Public: Precompute the header names and values for this configuration.
     # Ensures that headers generated at configure time, not on demand.
     #
     # Returns the cached headers
