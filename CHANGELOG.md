@@ -1,3 +1,8 @@
+## 3.6.1
+
+Improved memory use via minor improvements clever hacks that are sadly needed.
+Thanks @carlosantoniodasilva!
+
 ## 3.6.0
 
 Add support for the clear-site-data header
