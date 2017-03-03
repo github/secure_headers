@@ -81,6 +81,7 @@ module SecureHeaders
 
     EDGE_DIRECTIVES = DIRECTIVES_1_0
     SAFARI_DIRECTIVES = DIRECTIVES_1_0
+    SAFARI_10_DIRECTIVES = DIRECTIVES_2_0
 
     FIREFOX_UNSUPPORTED_DIRECTIVES = [
       BLOCK_ALL_MIXED_CONTENT,
@@ -133,6 +134,7 @@ module SecureHeaders
       "Firefox" => FIREFOX_DIRECTIVES,
       "FirefoxTransitional" => FIREFOX_46_DIRECTIVES,
       "Safari" => SAFARI_DIRECTIVES,
+      "SafariTransitional" => SAFARI_10_DIRECTIVES,
       "Edge" => EDGE_DIRECTIVES,
       "Other" => CHROME_DIRECTIVES
     }.freeze
