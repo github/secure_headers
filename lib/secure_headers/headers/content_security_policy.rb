@@ -216,6 +216,8 @@ module SecureHeaders
       @supported_directives ||= if VARIATIONS[@parsed_ua.browser]
         if @parsed_ua.browser == "Firefox" && ((@parsed_ua.version || FALLBACK_VERSION) >= VERSION_46)
           VARIATIONS["FirefoxTransitional"]
+        elsif @parsed_ua.browser == "Safari" && ((@parsed_ua.version || FALLBACK_VERSION) >= VERSION_10)
+          VARIATIONS["SafariTransitional"]
         else
           VARIATIONS[@parsed_ua.browser]
         end

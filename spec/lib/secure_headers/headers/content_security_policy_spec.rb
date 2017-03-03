@@ -155,6 +155,11 @@ module SecureHeaders
           expect(policy.value).to eq("default-src default-src.com; connect-src connect-src.com; font-src font-src.com; frame-src child-src.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; sandbox sandbox.com; script-src script-src.com 'unsafe-inline'; style-src style-src.com; report-uri report-uri.com")
         end
 
+        it "adds 'unsafe-inline', filters  blocked-all-mixed-content, upgrade-insecure-requests, nonce sources, and hash sources for safari 10 and higher" do
+          policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:safari10])
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; media-src media-src.com; object-src object-src.com; plugin-types plugin-types.com; sandbox sandbox.com; script-src script-src.com 'nonce-123456'; style-src style-src.com; report-uri report-uri.com")
+        end
+
         it "falls back to standard Firefox defaults when the useragent version is not present" do
           ua = USER_AGENTS[:firefox].dup
           allow(ua).to receive(:version).and_return(nil)
