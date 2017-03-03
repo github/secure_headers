@@ -1,3 +1,7 @@
+## 3.6.2
+
+Now that Safari 10 supports nonces and it appears to work, enable the nonce feature for safari.
+
 ## 3.6.1
 
 Improved memory use via minor improvements clever hacks that are sadly needed.
