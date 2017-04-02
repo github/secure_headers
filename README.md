@@ -19,6 +19,7 @@ The gem will automatically apply several headers that are related to security.  
 - Referrer-Policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
 - Clear-Site-Data - Clearing browser data for origin. [Clear-Site-Data specification](https://www.w3.org/TR/clear-site-data/).
+- Expect-CT - Only use certificates that are present in the certificate transparency logs. [Expect-CT draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
 
 It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes (when configured to do so).
 
@@ -76,6 +77,11 @@ SecureHeaders::Configuration.default do |config|
     "storage",
     "executionContexts"
   ]
+  config.expect_ct = {
+    enforce: false,
+    max_age: 1.day.to_i
+    report_uri: "https://report-uri.io/example-ct"
+  }
   config.csp = {
     # "meta" values. these will shaped the header, but the values are not included in the header.
     # report_only: true,      # default: false [DEPRECATED from 3.5.0: instead, configure csp_report_only]
