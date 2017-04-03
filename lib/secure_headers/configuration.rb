@@ -116,7 +116,7 @@ module SecureHeaders
 
     attr_writer :hsts, :x_frame_options, :x_content_type_options,
       :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
-      :referrer_policy, :clear_site_data, :expect_ct
+      :referrer_policy, :clear_site_data, :expect_certificate_transparency
 
     attr_reader :cached_headers, :csp, :cookies, :csp_report_only, :hpkp, :hpkp_report_host
 
@@ -151,7 +151,7 @@ module SecureHeaders
       copy.x_download_options = @x_download_options
       copy.x_permitted_cross_domain_policies = @x_permitted_cross_domain_policies
       copy.clear_site_data = @clear_site_data
-      copy.expect_ct = @expect_ct
+      copy.expect_certificate_transparency = @expect_certificate_transparency
       copy.referrer_policy = @referrer_policy
       copy.hpkp = @hpkp
       copy.hpkp_report_host = @hpkp_report_host
@@ -184,7 +184,7 @@ module SecureHeaders
       XDownloadOptions.validate_config!(@x_download_options)
       XPermittedCrossDomainPolicies.validate_config!(@x_permitted_cross_domain_policies)
       ClearSiteData.validate_config!(@clear_site_data)
-      ExpectCt.validate_config!(@expect_ct)
+      ExpectCertificateTransparency.validate_config!(@expect_certificate_transparency)
       PublicKeyPins.validate_config!(@hpkp)
       Cookie.validate_config!(@cookies)
     end

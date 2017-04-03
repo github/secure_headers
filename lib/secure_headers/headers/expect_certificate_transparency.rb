@@ -1,13 +1,13 @@
 module SecureHeaders
-  class ExpectCtConfigError < StandardError; end
+  class ExpectCertificateTransparencyConfigError < StandardError; end
 
-  class ExpectCt
-    HEADER_NAME = 'Expect-CT'.freeze
-    CONFIG_KEY  = :expect_ct
-    INVALID_CONFIGURATION_ERROR = 'config must be a hash.'.freeze
-    INVALID_ENFORCE_VALUE_ERROR = 'enforce must be a boolean'.freeze
-    REQUIRED_MAX_AGE_ERROR      = 'max-age is a required directive.'.freeze
-    INVALID_MAX_AGE_ERROR       = 'max-age must be a number.'.freeze
+  class ExpectCertificateTransparency
+    HEADER_NAME = "Expect-CT".freeze
+    CONFIG_KEY  = :expect_certificate_transparency
+    INVALID_CONFIGURATION_ERROR = "config must be a hash.".freeze
+    INVALID_ENFORCE_VALUE_ERROR = "enforce must be a boolean".freeze
+    REQUIRED_MAX_AGE_ERROR      = "max-age is a required directive.".freeze
+    INVALID_MAX_AGE_ERROR       = "max-age must be a number.".freeze
 
     class << self
       # Public: Generate a Expect-CT header.
@@ -23,16 +23,16 @@ module SecureHeaders
 
       def validate_config!(config)
         return if config.nil? || config == OPT_OUT
-        raise ExpectCtConfigError.new(INVALID_CONFIGURATION_ERROR) unless config.is_a? Hash
+        raise ExpectCertificateTransparencyConfigError.new(INVALID_CONFIGURATION_ERROR) unless config.is_a? Hash
 
         unless [true, false, nil].include?(config[:enforce])
-          raise ExpectCtConfigError.new(INVALID_ENFORCE_VALUE_ERROR)
+          raise ExpectCertificateTransparencyConfigError.new(INVALID_ENFORCE_VALUE_ERROR)
         end
 
         if !config[:max_age]
-          raise ExpectCtConfigError.new(REQUIRED_MAX_AGE_ERROR)
+          raise ExpectCertificateTransparencyConfigError.new(REQUIRED_MAX_AGE_ERROR)
         elsif config[:max_age].to_s !~ /\A\d+\z/
-          raise ExpectCtConfigError.new(INVALID_MAX_AGE_ERROR)
+          raise ExpectCertificateTransparencyConfigError.new(INVALID_MAX_AGE_ERROR)
         end
       end
     end
