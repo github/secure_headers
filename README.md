@@ -79,7 +79,7 @@ SecureHeaders::Configuration.default do |config|
   ]
   config.expect_certificate_transparency = {
     enforce: false,
-    max_age: 1.day.to_i
+    max_age: 1.day.to_i,
     report_uri: "https://report-uri.io/example-ct"
   }
   config.csp = {
