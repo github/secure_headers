@@ -59,8 +59,6 @@ module SecureHeaders
     def normalize_child_frame_src
       if @config.frame_src && @config.child_src && @config.frame_src != @config.child_src
         Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] both :child_src and :frame_src supplied and do not match. This can lead to inconsistent behavior across browsers.")
-      elsif @config.frame_src
-        Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{@config.frame_src}.")
       end
 
       if supported_directives.include?(:child_src)
