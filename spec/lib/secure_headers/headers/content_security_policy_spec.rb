@@ -86,8 +86,8 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org")
       end
 
-      it "emits a warning when using frame-src" do
-        expect(Kernel).to receive(:warn).with(/:frame_src is deprecated, use :child_src instead./)
+      it "does not emit a warning when using frame-src" do
+        expect(Kernel).to_not receive(:warn)
         ContentSecurityPolicy.new(default_src: %w('self'), frame_src: %w('self')).value
       end
 
