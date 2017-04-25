@@ -1,3 +1,7 @@
+## 3.6.3
+
+Remove deprecation warning when setting `frame-src`. It is no longer deprecated.
+
 ## 3.6.2
 
 Now that Safari 10 supports nonces and it appears to work, enable the nonce feature for safari.
