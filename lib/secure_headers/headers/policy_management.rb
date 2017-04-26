@@ -274,27 +274,15 @@ module SecureHeaders
       def populate_fetch_source_with_default!(original, additions)
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.each_key do |directive|
-          if !original[directive] && ((source_list?(directive) && FETCH_SOURCES.include?(directive)) || nonce_added?(original, additions))
-            if nonce_added?(original, additions)
-              inferred_directive = directive.to_s.gsub(/_nonce/, "_src").to_sym
-              unless original[inferred_directive] || NON_FETCH_SOURCES.include?(inferred_directive)
-                original[inferred_directive] = original[:default_src]
-              end
-            else
-              original[directive] = original[:default_src]
+          if !original[directive]
+            inferred_directive = directive.to_s.gsub(/_nonce/, "_src").to_sym
+            unless original[inferred_directive] || NON_FETCH_SOURCES.include?(inferred_directive)
+              original[inferred_directive] = original[:default_src]
             end
           end
         end
       end
-
-      def nonce_added?(original, additions)
-        [:script_nonce, :style_nonce].each do |nonce|
-          if additions[nonce] && !original[nonce]
-            return true
-          end
-        end
-      end
-
+      
       def source_list?(directive)
         DIRECTIVE_VALUE_TYPES[directive] == :source_list
       end
