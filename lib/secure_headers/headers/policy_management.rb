@@ -278,13 +278,19 @@ module SecureHeaders
             if nonce_added?(original, additions)
               inferred_directive = directive.to_s.gsub(/_nonce/, "_src").to_sym
               unless original[inferred_directive] || NON_FETCH_SOURCES.include?(inferred_directive)
-                original[inferred_directive] = original[:default_src]
+                original[inferred_directive] = default_for(directive, original)
               end
             else
-              original[directive] = original[:default_src]
+              original[directive] = default_for(directive, original)
             end
           end
         end
+      end
+
+      def default_for(directive, original)
+        return original[FRAME_SRC] if directive == CHILD_SRC && original[FRAME_SRC]
+        return original[CHILD_SRC] if directive == FRAME_SRC && original[CHILD_SRC]
+        original[DEFAULT_SRC]
       end
 
       def nonce_added?(original, additions)
