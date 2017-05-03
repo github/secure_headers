@@ -1,3 +1,7 @@
+## 3.6.4
+
+Fix case where mixing frame-src/child-src dynamically would behave in unexpected ways: https://github.com/twitter/secureheaders/pull/325
+
 ## 3.6.3
 
 Remove deprecation warning when setting `frame-src`. It is no longer deprecated.
