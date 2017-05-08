@@ -289,14 +289,6 @@ module SecureHeaders
         original[DEFAULT_SRC]
       end
 
-      def nonce_added?(original, additions)
-        [:script_nonce, :style_nonce].each do |nonce|
-          if additions[nonce] && !original[nonce]
-            return true
-          end
-        end
-      end
-
       def source_list?(directive)
         DIRECTIVE_VALUE_TYPES[directive] == :source_list
       end
