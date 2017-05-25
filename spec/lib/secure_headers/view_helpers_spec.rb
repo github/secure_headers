@@ -37,7 +37,6 @@ class Message < ERB
     background-color: black;
   }
 </style>
-<%= @name %>
 
 TEMPLATE
   end
