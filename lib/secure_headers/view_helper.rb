@@ -95,9 +95,9 @@ module SecureHeaders
       <<-EOF
 \n\n*** WARNING: Unrecognized hash in #{file_path}!!! Value: #{hash_value} ***
 #{content}
-*** Run #{SECURE_HEADERS_RAKE_TASK} or add the following to config/script_hashes.yml:***
+*** Run #{SECURE_HEADERS_RAKE_TASK} or add the following to config/secure_headers_generated_hashes.yml:***
 #{file_path}:
-- #{hash_value}\n\n
+- \"#{hash_value}\"\n\n
       NOTE: dynamic javascript is not supported using script hash integration
       on purpose. It defeats the point of using it in the first place.
       EOF
