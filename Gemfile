@@ -8,6 +8,7 @@ group :test do
   gem "json", "~> 1"
   gem "rack", "~> 1"
   gem "rspec"
+  gem "rubocop"
   gem "coveralls"
   gem "term-ansicolor", "< 1.4"
 end
