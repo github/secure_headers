@@ -348,9 +348,9 @@ module SecureHeaders
       end
 
       def ensure_valid_sources!(directive, source_expression)
-        source_expression.each do |source_expression|
-          if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
-            raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
+        source_expression.each do |expression|
+          if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(expression)
+            raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{expression}). This value must be single quoted.")
           end
         end
       end

@@ -163,7 +163,8 @@ module SecureHeaders
     # returned is meant to be merged into the header value from `@app.call(env)`
     # in Rack middleware.
     def header_hash_for(request)
-      config = config_for(request, prevent_dup = true)
+      prevent_dup = true
+      config = config_for(request, prevent_dup)
       headers = config.cached_headers
       user_agent = UserAgent.parse(request.user_agent)
 

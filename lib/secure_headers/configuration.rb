@@ -31,7 +31,7 @@ module SecureHeaders
           raise NotYetConfiguredError, "#{base} policy not yet supplied"
         end
         override = @configurations[base].dup
-        override.instance_eval &block if block_given?
+        override.instance_eval(&block) if block_given?
         add_configuration(name, override)
       end
 
@@ -120,19 +120,36 @@ module SecureHeaders
 
     attr_reader :cached_headers, :csp, :cookies, :csp_report_only, :hpkp, :hpkp_report_host
 
+    @script_hashes = nil
+    @style_hashes = nil
+
     HASH_CONFIG_FILE = ENV["secure_headers_generated_hashes_file"] || "config/secure_headers_generated_hashes.yml"
-    if File.exists?(HASH_CONFIG_FILE)
+    if File.exist?(HASH_CONFIG_FILE)
       config = YAML.safe_load(File.open(HASH_CONFIG_FILE))
       @script_hashes = config["scripts"]
       @style_hashes = config["styles"]
     end
 
     def initialize(&block)
+      @cookies = nil
+      @clear_site_data = nil
+      @csp = nil
+      @csp_report_only = nil
+      @hpkp_report_host = nil
+      @hpkp = nil
+      @hsts = nil
+      @x_content_type_options = nil
+      @x_download_options = nil
+      @x_frame_options = nil
+      @x_permitted_cross_domain_policies = nil
+      @x_xss_protection = nil
+
       self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
       self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
       self.csp_report_only = OPT_OUT
-      instance_eval &block if block_given?
+
+      instance_eval(&block) if block_given?
     end
 
     # Public: copy everything but the cached headers

@@ -49,7 +49,7 @@ module SecureHeaders
     end
 
     def value
-      header_value = [
+      [
         max_age_directive,
         pin_directives,
         report_uri_directive,
