@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   class PublicKeyPinsConfigError < StandardError; end
   class PublicKeyPins
@@ -54,7 +55,7 @@ module SecureHeaders
         pin_directives,
         report_uri_directive,
         subdomain_directive
-      ].compact.join('; ').strip
+      ].compact.join("; ").strip
     end
 
     def pin_directives
@@ -63,7 +64,7 @@ module SecureHeaders
         pin.map do |token, hash|
           "pin-#{token}=\"#{hash}\"" if HASH_ALGORITHMS.include?(token)
         end
-      end.join('; ')
+      end.join("; ")
     end
 
     def max_age_directive
@@ -75,7 +76,7 @@ module SecureHeaders
     end
 
     def subdomain_directive
-      @include_subdomains ? 'includeSubDomains' : nil
+      @include_subdomains ? "includeSubDomains" : nil
     end
   end
 end

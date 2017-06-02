@@ -1,8 +1,9 @@
+# frozen_string_literal: true
 module SecureHeaders
   class XDOConfigError < StandardError; end
   class XDownloadOptions
     HEADER_NAME = "X-Download-Options".freeze
-    DEFAULT_VALUE = 'noopen'
+    DEFAULT_VALUE = "noopen"
     CONFIG_KEY = :x_download_options
 
     class << self

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "spec_helper"
 
 module SecureHeaders
@@ -19,8 +20,8 @@ module SecureHeaders
         config.hpkp = {
           max_age: 10000000,
           pins: [
-            {sha256: 'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c'},
-            {sha256: '73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f'}
+            {sha256: "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c"},
+            {sha256: "73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f"}
           ],
           report_uri: "https://#{report_host}/example-hpkp"
         }
@@ -62,7 +63,7 @@ module SecureHeaders
           end
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
-          expect(env['Set-Cookie']).to eq("foo=bar; secure")
+          expect(env["Set-Cookie"]).to eq("foo=bar; secure")
         end
       end
 
@@ -73,7 +74,7 @@ module SecureHeaders
           end
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
-          expect(env['Set-Cookie']).to eq("foo=bar")
+          expect(env["Set-Cookie"]).to eq("foo=bar")
         end
       end
     end
@@ -84,7 +85,7 @@ module SecureHeaders
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
 
-        expect(env['Set-Cookie']).to eq("foo=bar; secure; HttpOnly")
+        expect(env["Set-Cookie"]).to eq("foo=bar; secure; HttpOnly")
       end
 
       it "flags cookies with a combination of SameSite configurations" do
@@ -94,8 +95,8 @@ module SecureHeaders
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
 
-        expect(env['Set-Cookie']).to match("_session=foobar; SameSite=Strict")
-        expect(env['Set-Cookie']).to match("_guest=true; SameSite=Lax")
+        expect(env["Set-Cookie"]).to match("_session=foobar; SameSite=Strict")
+        expect(env["Set-Cookie"]).to match("_guest=true; SameSite=Lax")
       end
 
       it "disables secure cookies for non-https requests" do
@@ -103,7 +104,7 @@ module SecureHeaders
 
         request = Rack::Request.new("HTTPS" => "off")
         _, env = cookie_middleware.call request.env
-        expect(env['Set-Cookie']).to eq("foo=bar")
+        expect(env["Set-Cookie"]).to eq("foo=bar")
       end
 
       it "sets the secure cookie flag correctly on interleaved http/https requests" do
@@ -111,11 +112,11 @@ module SecureHeaders
 
         request = Rack::Request.new("HTTPS" => "off")
         _, env = cookie_middleware.call request.env
-        expect(env['Set-Cookie']).to eq("foo=bar")
+        expect(env["Set-Cookie"]).to eq("foo=bar")
 
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
-        expect(env['Set-Cookie']).to eq("foo=bar; secure")
+        expect(env["Set-Cookie"]).to eq("foo=bar; secure")
       end
     end
   end

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   class ReferrerPolicyConfigError < StandardError; end
   class ReferrerPolicy

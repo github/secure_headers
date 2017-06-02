@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
+# frozen_string_literal: true
 Gem::Specification.new do |gem|
   gem.name          = "secure_headers"
   gem.version       = "3.6.4"
   gem.authors       = ["Neil Matatall"]
   gem.email         = ["neil.matatall@gmail.com"]
-  gem.description   = 'Manages application of security headers with many safe defaults.'
+  gem.description   = "Manages application of security headers with many safe defaults."
   gem.summary       = 'Add easily configured security headers to responses
     including content-security-policy, x-frame-options,
     strict-transport-security, etc.'

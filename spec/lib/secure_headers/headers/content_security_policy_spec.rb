@@ -1,4 +1,5 @@
-require 'spec_helper'
+# frozen_string_literal: true
+require "spec_helper"
 
 module SecureHeaders
   describe ContentSecurityPolicy do
@@ -52,7 +53,7 @@ module SecureHeaders
       end
 
       it "does not remove schemes when :preserve_schemes is true" do
-        csp = ContentSecurityPolicy.new(default_src: %w(https://example.org), :preserve_schemes => true)
+        csp = ContentSecurityPolicy.new(default_src: %w(https://example.org), preserve_schemes: true)
         expect(csp.value).to eq("default-src https://example.org")
       end
 

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "secure_headers/configuration"
 require "secure_headers/hash_helper"
 require "secure_headers/headers/cookie"

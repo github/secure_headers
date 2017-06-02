@@ -1,6 +1,7 @@
-require_relative 'policy_management'
-require_relative 'content_security_policy_config'
-require 'useragent'
+# frozen_string_literal: true
+require_relative "policy_management"
+require_relative "content_security_policy_config"
+require "useragent"
 
 module SecureHeaders
   class ContentSecurityPolicy
@@ -229,7 +230,7 @@ module SecureHeaders
     end
 
     def symbol_to_hyphen_case(sym)
-      sym.to_s.tr('_', '-')
+      sym.to_s.tr("_", "-")
     end
   end
 end

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   module DynamicConfig
     def self.included(base)

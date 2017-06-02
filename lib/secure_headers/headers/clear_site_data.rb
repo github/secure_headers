@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   class ClearSiteDataConfigError < StandardError; end
   class ClearSiteData
@@ -17,7 +18,7 @@ module SecureHeaders
       # Public: make an Clear-Site-Data header name, value pair
       #
       # Returns nil if not configured, returns header name and value if configured.
-      def make_header(config=nil)
+      def make_header(config = nil)
         case config
         when nil, OPT_OUT, []
           # noop

@@ -1,4 +1,5 @@
-require 'base64'
+# frozen_string_literal: true
+require "base64"
 
 module SecureHeaders
   module HashHelper

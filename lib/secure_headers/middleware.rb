@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   class Middleware
     HPKP_SAME_HOST_WARNING = "[WARNING] HPKP report host should not be the same as the request host. See https://github.com/twitter/secureheaders/issues/166"
@@ -25,11 +26,11 @@ module SecureHeaders
 
     # inspired by https://github.com/tobmatth/rack-ssl-enforcer/blob/6c014/lib/rack/ssl-enforcer.rb#L183-L194
     def flag_cookies!(headers, config)
-      if cookies = headers['Set-Cookie']
+      if cookies = headers["Set-Cookie"]
         # Support Rails 2.3 / Rack 1.1 arrays as headers
         cookies = cookies.split("\n") unless cookies.is_a?(Array)
 
-        headers['Set-Cookie'] = cookies.map do |cookie|
+        headers["Set-Cookie"] = cookies.map do |cookie|
           SecureHeaders::Cookie.new(cookie, config).to_s
         end.join("\n")
       end
@@ -37,8 +38,8 @@ module SecureHeaders
 
     # disable Secure cookies for non-https requests
     def override_secure(env, config = {})
-      if scheme(env) != 'https'
-        config.merge!(secure: false)
+      if scheme(env) != "https"
+        config[:secure] = false
       end
 
       config
@@ -46,12 +47,12 @@ module SecureHeaders
 
     # derived from https://github.com/tobmatth/rack-ssl-enforcer/blob/6c014/lib/rack/ssl-enforcer.rb#L119
     def scheme(env)
-      if env['HTTPS'] == 'on' || env['HTTP_X_SSL_REQUEST'] == 'on'
-        'https'
-      elsif env['HTTP_X_FORWARDED_PROTO']
-        env['HTTP_X_FORWARDED_PROTO'].split(',')[0]
+      if env["HTTPS"] == "on" || env["HTTP_X_SSL_REQUEST"] == "on"
+        "https"
+      elsif env["HTTP_X_FORWARDED_PROTO"]
+        env["HTTP_X_FORWARDED_PROTO"].split(",")[0]
       else
-        env['rack.url_scheme']
+        env["rack.url_scheme"]
       end
     end
   end
