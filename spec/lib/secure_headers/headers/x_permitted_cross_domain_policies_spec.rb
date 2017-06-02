@@ -1,9 +1,10 @@
-require 'spec_helper'
+# frozen_string_literal: true
+require "spec_helper"
 
 module SecureHeaders
   describe XPermittedCrossDomainPolicies do
     specify { expect(XPermittedCrossDomainPolicies.make_header).to eq([XPermittedCrossDomainPolicies::HEADER_NAME, "none"]) }
-    specify { expect(XPermittedCrossDomainPolicies.make_header('master-only')).to eq([XPermittedCrossDomainPolicies::HEADER_NAME, 'master-only']) }
+    specify { expect(XPermittedCrossDomainPolicies.make_header("master-only")).to eq([XPermittedCrossDomainPolicies::HEADER_NAME, "master-only"]) }
 
     context "valid configuration values" do
       it "accepts 'all'" do
@@ -36,7 +37,7 @@ module SecureHeaders
       end
     end
 
-    context 'invlaid configuration values' do
+    context "invlaid configuration values" do
       it "doesn't accept invalid values" do
         expect do
           XPermittedCrossDomainPolicies.validate_config!("open")

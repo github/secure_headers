@@ -1,4 +1,5 @@
-require 'spec_helper'
+# frozen_string_literal: true
+require "spec_helper"
 
 module SecureHeaders
   describe SecureHeaders do
@@ -37,9 +38,9 @@ module SecureHeaders
         SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY)
         SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
         hash = SecureHeaders.header_hash_for(request)
-        expect(hash['Content-Security-Policy-Report-Only']).to be_nil
-        expect(hash['Content-Security-Policy']).to be_nil
-        expect(hash['X-Content-Type-Options']).to be_nil
+        expect(hash["Content-Security-Policy-Report-Only"]).to be_nil
+        expect(hash["Content-Security-Policy"]).to be_nil
+        expect(hash["X-Content-Type-Options"]).to be_nil
       end
 
       it "Carries options over when using overrides" do
@@ -54,15 +55,15 @@ module SecureHeaders
 
         SecureHeaders.use_secure_headers_override(request, :api)
         hash = SecureHeaders.header_hash_for(request)
-        expect(hash['X-Download-Options']).to be_nil
-        expect(hash['X-Permitted-Cross-Domain-Policies']).to be_nil
-        expect(hash['X-Frame-Options']).to be_nil
+        expect(hash["X-Download-Options"]).to be_nil
+        expect(hash["X-Permitted-Cross-Domain-Policies"]).to be_nil
+        expect(hash["X-Frame-Options"]).to be_nil
       end
 
       it "allows you to opt out entirely" do
         # configure the disabled-by-default headers to ensure they also do not get set
         Configuration.default do |config|
-          config.csp = { :default_src => ["example.com"] }
+          config.csp = { default_src: ["example.com"] }
           config.csp_report_only = config.csp
           config.hpkp = {
             report_only: false,
@@ -144,10 +145,10 @@ module SecureHeaders
           config.hpkp = {
             max_age: 1_000_000,
             include_subdomains: true,
-            report_uri: '//example.com/uri-directive',
+            report_uri: "//example.com/uri-directive",
             pins: [
-              { sha256: 'abc' },
-              { sha256: '123' }
+              { sha256: "abc" },
+              { sha256: "123" }
             ]
           }
         end
@@ -301,7 +302,7 @@ module SecureHeaders
           SecureHeaders.content_security_policy_script_nonce(chrome_request)
 
           hash = SecureHeaders.header_hash_for(chrome_request)
-          expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'; style-src 'self'")
+          expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'; style-src 'self'")
         end
 
         it "uses a nonce for safari 10+" do
@@ -315,7 +316,7 @@ module SecureHeaders
           safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari10]))
           nonce = SecureHeaders.content_security_policy_script_nonce(safari_request)
           hash = SecureHeaders.header_hash_for(safari_request)
-          expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'")
+          expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'")
         end
 
         it "supports the deprecated `report_only: true` format" do
@@ -368,8 +369,8 @@ module SecureHeaders
             end
 
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
           end
 
           it "sets different headers when the configs are different" do
@@ -381,8 +382,8 @@ module SecureHeaders
             end
 
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self'")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self'")
           end
 
           it "allows you to opt-out of enforced CSP" do
@@ -394,8 +395,8 @@ module SecureHeaders
             end
 
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to be_nil
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy"]).to be_nil
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
           end
 
           it "opts-out of enforced CSP when only csp_report_only is set" do
@@ -407,8 +408,8 @@ module SecureHeaders
             end
 
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to be_nil
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy"]).to be_nil
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
           end
 
           it "allows you to set csp_report_only before csp" do
@@ -421,50 +422,50 @@ module SecureHeaders
             end
 
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src 'self' 'unsafe-inline'")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self' 'unsafe-inline'")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
           end
 
           it "allows appending to the enforced policy" do
             SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :enforced)
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
           end
 
           it "allows appending to the report only policy" do
             SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :report_only)
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self' anothercdn.com")
           end
 
           it "allows appending to both policies" do
             SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :both)
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self' anothercdn.com")
           end
 
           it "allows overriding the enforced policy" do
             SecureHeaders.override_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :enforced)
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src anothercdn.com")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src anothercdn.com")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
           end
 
           it "allows overriding the report only policy" do
             SecureHeaders.override_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :report_only)
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src anothercdn.com")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src anothercdn.com")
           end
 
           it "allows overriding both policies" do
             SecureHeaders.override_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :both)
             hash = SecureHeaders.header_hash_for(request)
-            expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src anothercdn.com")
-            expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src anothercdn.com")
+            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src anothercdn.com")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src anothercdn.com")
           end
 
           context "when inferring which config to modify" do
@@ -477,8 +478,8 @@ module SecureHeaders
               SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)})
 
               hash = SecureHeaders.header_hash_for(request)
-              expect(hash['Content-Security-Policy']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
-              expect(hash['Content-Security-Policy-Report-Only']).to be_nil
+              expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+              expect(hash["Content-Security-Policy-Report-Only"]).to be_nil
             end
 
             it "updates the report only header when configured" do
@@ -491,8 +492,8 @@ module SecureHeaders
               SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)})
 
               hash = SecureHeaders.header_hash_for(request)
-              expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src 'self'; script-src 'self' anothercdn.com")
-              expect(hash['Content-Security-Policy']).to be_nil
+              expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self' anothercdn.com")
+              expect(hash["Content-Security-Policy"]).to be_nil
             end
 
             it "updates both headers if both are configured" do
@@ -507,8 +508,8 @@ module SecureHeaders
               SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)})
 
               hash = SecureHeaders.header_hash_for(request)
-              expect(hash['Content-Security-Policy']).to eq("default-src enforced.com; script-src enforced.com anothercdn.com")
-              expect(hash['Content-Security-Policy-Report-Only']).to eq("default-src reportonly.com; script-src reportonly.com anothercdn.com")
+              expect(hash["Content-Security-Policy"]).to eq("default-src enforced.com; script-src enforced.com anothercdn.com")
+              expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src reportonly.com; script-src reportonly.com anothercdn.com")
             end
 
           end
@@ -520,7 +521,7 @@ module SecureHeaders
       it "validates your hsts config upon configuration" do
         expect do
           Configuration.default do |config|
-            config.hsts = 'lol'
+            config.hsts = "lol"
           end
         end.to raise_error(STSConfigError)
       end
@@ -528,7 +529,7 @@ module SecureHeaders
       it "validates your csp config upon configuration" do
         expect do
           Configuration.default do |config|
-            config.csp = { ContentSecurityPolicy::DEFAULT_SRC => '123456' }
+            config.csp = { ContentSecurityPolicy::DEFAULT_SRC => "123456" }
           end
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
@@ -536,7 +537,7 @@ module SecureHeaders
       it "raises errors for unknown directives" do
         expect do
           Configuration.default do |config|
-            config.csp = { made_up_directive: '123456' }
+            config.csp = { made_up_directive: "123456" }
           end
         end.to raise_error(ContentSecurityPolicyConfigError)
       end

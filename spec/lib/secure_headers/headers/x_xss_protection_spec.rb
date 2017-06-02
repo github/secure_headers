@@ -1,9 +1,10 @@
-require 'spec_helper'
+# frozen_string_literal: true
+require "spec_helper"
 
 module SecureHeaders
   describe XXssProtection do
     specify { expect(XXssProtection.make_header).to eq([XXssProtection::HEADER_NAME, XXssProtection::DEFAULT_VALUE]) }
-    specify { expect(XXssProtection.make_header("1; mode=block; report=https://www.secure.com/reports")).to eq([XXssProtection::HEADER_NAME, '1; mode=block; report=https://www.secure.com/reports']) }
+    specify { expect(XXssProtection.make_header("1; mode=block; report=https://www.secure.com/reports")).to eq([XXssProtection::HEADER_NAME, "1; mode=block; report=https://www.secure.com/reports"]) }
 
     context "with invalid configuration" do
       it "should raise an error when providing a string that is not valid" do
@@ -19,7 +20,7 @@ module SecureHeaders
       context "when using a hash value" do
         it "should allow string values ('1' or '0' are the only valid strings)" do
           expect do
-            XXssProtection.validate_config!('1')
+            XXssProtection.validate_config!("1")
           end.not_to raise_error
         end
 

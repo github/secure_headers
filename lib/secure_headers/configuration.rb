@@ -1,4 +1,5 @@
-require 'yaml'
+# frozen_string_literal: true
+require "yaml"
 
 module SecureHeaders
   class Configuration

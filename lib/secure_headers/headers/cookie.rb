@@ -1,5 +1,6 @@
-require 'cgi'
-require 'secure_headers/utils/cookies_config'
+# frozen_string_literal: true
+require "cgi"
+require "secure_headers/utils/cookies_config"
 
 module SecureHeaders
   class CookiesConfigError < StandardError; end
@@ -113,7 +114,7 @@ module SecureHeaders
       return unless cookie
 
       cookie.split(/[;,]\s?/).each do |pairs|
-        name, values = pairs.split('=',2)
+        name, values = pairs.split("=", 2)
         name = CGI.unescape(name)
 
         attribute = name.downcase.to_sym

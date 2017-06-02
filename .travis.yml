@@ -7,6 +7,12 @@ rvm:
   - 2.2
   - jruby-head
 
+env:
+  - SUITE=rspec spec
+  - SUITE=rubocop
+
+script: bundle exec $SUITE
+
 matrix:
   allow_failures:
     - rvm: jruby-head

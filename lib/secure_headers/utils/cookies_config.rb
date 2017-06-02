@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   class CookiesConfig
 
@@ -51,10 +52,10 @@ module SecureHeaders
     def validate_samesite_hash_config!
       # validate Hash-based samesite configuration
       if is_hash?(config[:samesite][:lax])
-        validate_exclusive_use_of_hash_constraints!(config[:samesite][:lax], 'samesite lax')
+        validate_exclusive_use_of_hash_constraints!(config[:samesite][:lax], "samesite lax")
 
         if is_hash?(config[:samesite][:strict])
-          validate_exclusive_use_of_hash_constraints!(config[:samesite][:strict], 'samesite strict')
+          validate_exclusive_use_of_hash_constraints!(config[:samesite][:strict], "samesite strict")
           validate_exclusive_use_of_samesite_enforcement!(:only)
           validate_exclusive_use_of_samesite_enforcement!(:except)
         end

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   module ViewHelpers
     include SecureHeaders::HashHelper
@@ -75,7 +76,7 @@ module SecureHeaders
       end
 
       content = capture(&block)
-      file_path = File.join('app', 'views', self.instance_variable_get(:@virtual_path) + '.html.erb')
+      file_path = File.join("app", "views", self.instance_variable_get(:@virtual_path) + ".html.erb")
 
       if raise_error_on_unrecognized_hash
         hash_value = hash_source(content)

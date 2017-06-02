@@ -1,7 +1,8 @@
+# frozen_string_literal: true
 module SecureHeaders
   class XXssProtectionConfigError < StandardError; end
   class XXssProtection
-    HEADER_NAME = 'X-XSS-Protection'.freeze
+    HEADER_NAME = "X-XSS-Protection".freeze
     DEFAULT_VALUE = "1; mode=block"
     VALID_X_XSS_HEADER = /\A[01](; mode=block)?(; report=.*)?\z/i
     CONFIG_KEY = :x_xss_protection
