@@ -1,1 +1,3 @@
-inherit_from: .rubocop_todo.yml
+inherit_gem:
+  rubocop-github:
+    - config/default.yml
