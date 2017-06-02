@@ -5,12 +5,7 @@ require "rspec/core/rake_task"
 require "net/http"
 require "net/https"
 
-desc "Run RSpec"
-# RSpec::Core::RakeTask.new(:spec)
-RSpec::Core::RakeTask.new do |t|
-  t.verbose = false
-  t.rspec_opts = "--format progress"
-end
+RSpec::Core::RakeTask.new
 
 begin
   require "rdoc/task"
