@@ -3,7 +3,6 @@ module SecureHeaders
   class ClearSiteDataConfigError < StandardError; end
   class ClearSiteData
     HEADER_NAME = "Clear-Site-Data".freeze
-    TYPES = "types".freeze
 
     # Valid `types`
     CACHE = "cache".freeze
