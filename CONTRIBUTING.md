@@ -30,7 +30,7 @@ Here are a few things you can do that will increase the likelihood of your pull 
 0. Ensure CI is green
 0. Pull the latest code
 0. Increment the version
-0. Run `gem build darrrr.gemspec`
+0. Run `gem build secure_headers.gemspec`
 0. Bump the Gemfile and Gemfile.lock versions for an app which relies on this gem
 0. Test behavior locally, branch deploy, whatever needs to happen
 0. Run `bundle exec rake release`
