@@ -1,3 +1,7 @@
+## 3.6.5
+
+Update clear-site-data header to use current format specified by the specification.
+
 ## 3.6.4
 
 Fix case where mixing frame-src/child-src dynamically would behave in unexpected ways: https://github.com/twitter/secureheaders/pull/325
