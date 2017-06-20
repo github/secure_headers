@@ -41,7 +41,7 @@ module SecureHeaders
         end
       end
 
-      # Public: Transform a Clear-Site-Data config (an Array of String) into a
+      # Public: Transform a Clear-Site-Data config (an Array of Strings) into a
       # String that can be used as the value for the Clear-Site-Data header.
       #
       # types - An Array of String of types of data to clear.

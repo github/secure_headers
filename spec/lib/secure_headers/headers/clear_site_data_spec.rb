@@ -21,7 +21,7 @@ module SecureHeaders
 
         expect(name).to eq(ClearSiteData::HEADER_NAME)
         expect(value).to eq(
-          ClearSiteData.make_header_value(ClearSiteData::ALL_TYPES)
+          %("cache", "cookies", "storage", "executionContexts")
         )
       end
 
@@ -29,7 +29,7 @@ module SecureHeaders
         name, value = described_class.make_header(["foo", "bar"])
 
         expect(name).to eq(ClearSiteData::HEADER_NAME)
-        expect(value).to eq(ClearSiteData.make_header_value(["foo", "bar"]))
+        expect(value).to eq(%("foo", "bar"))
       end
     end
 
@@ -78,10 +78,10 @@ module SecureHeaders
     end
 
     describe "make_header_value" do
-        it "returns a string of quoted values that are comma separated" do
-          value = described_class.make_header_value(["foo", "bar"])
-          expect(value).to eq(%("foo", "bar"))
-        end
+      it "returns a string of quoted values that are comma separated" do
+        value = described_class.make_header_value(["foo", "bar"])
+        expect(value).to eq(%("foo", "bar"))
+      end
     end
   end
 end
