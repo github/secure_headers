@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 Gem::Specification.new do |gem|
   gem.name          = "secure_headers"
-  gem.version       = "3.6.4"
+  gem.version       = "4.x.x"
   gem.authors       = ["Neil Matatall"]
   gem.email         = ["neil.matatall@gmail.com"]
   gem.description   = "Manages application of security headers with many safe defaults."
