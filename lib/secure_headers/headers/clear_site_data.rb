@@ -23,9 +23,9 @@ module SecureHeaders
         when nil, OPT_OUT, []
           # noop
         when Array
-          [HEADER_NAME, JSON.dump(TYPES => config)]
+          [HEADER_NAME, make_header_value(config)]
         when true
-          [HEADER_NAME, JSON.dump(TYPES => ALL_TYPES)]
+          [HEADER_NAME, make_header_value(ALL_TYPES)]
         end
       end
 
@@ -37,15 +37,19 @@ module SecureHeaders
           unless config.all? { |t| t.is_a?(String) }
             raise ClearSiteDataConfigError.new("types must be Strings")
           end
-
-          begin
-            JSON.dump(config)
-          rescue JSON::GeneratorError, Encoding::UndefinedConversionError
-            raise ClearSiteDataConfigError.new("types must serializable by JSON")
-          end
         else
           raise ClearSiteDataConfigError.new("config must be an Array of Strings or `true`")
         end
+      end
+
+      # Public: Transform a Clear-Site-Data config (an Array of String) into a
+      # String that can be used as the value for the Clear-Site-Data header.
+      #
+      # types - An Array of String of types of data to clear.
+      #
+      # Returns a String of quoted values that are comma separated.
+      def make_header_value(types)
+        types.map { |t| "\"#{t}\""}.join(", ")
       end
     end
   end
