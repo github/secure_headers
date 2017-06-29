@@ -1,3 +1,7 @@
+## 3.6.6
+
+Bump minimum version of useragent dependency to >= 0.15.0 (@anglinb) to address NameError and inconsistent output from older versions of the library
+
 ## 3.6.5
 
 Update clear-site-data header to use current format specified by the specification.
