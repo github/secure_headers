@@ -27,6 +27,7 @@ module SecureHeaders
           connect_src: %w(wss:),
           font_src: %w('self' data:),
           img_src: %w(mycdn.com data:),
+          manifest_src: %w(manifest.com),
           media_src: %w(utoob.com),
           object_src: %w('self'),
           script_src: %w('self'),
