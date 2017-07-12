@@ -64,11 +64,9 @@ module SecureHeaders
     # All the directives currently under consideration for CSP level 3.
     # https://w3c.github.io/webappsec/specs/CSP2/
     MANIFEST_SRC = :manifest_src
-    REFLECTED_XSS = :reflected_xss
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
       MANIFEST_SRC,
-      REFLECTED_XSS
     ].flatten.freeze
 
     # All the directives that are not currently in a formal spec, but have
@@ -157,7 +155,6 @@ module SecureHeaders
       MEDIA_SRC                 => :source_list,
       OBJECT_SRC                => :source_list,
       PLUGIN_TYPES              => :source_list,
-      REFLECTED_XSS             => :string,
       REPORT_URI                => :source_list,
       SANDBOX                   => :source_list,
       SCRIPT_SRC                => :source_list,
