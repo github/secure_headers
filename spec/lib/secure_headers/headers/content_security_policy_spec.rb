@@ -119,7 +119,6 @@ module SecureHeaders
           end.merge({
             block_all_mixed_content: true,
             upgrade_insecure_requests: true,
-            reflected_xss: "block",
             script_src: %w(script-src.com),
             script_nonce: 123456
           })
