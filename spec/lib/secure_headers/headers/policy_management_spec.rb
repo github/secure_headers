@@ -46,7 +46,13 @@ module SecureHeaders
 
       it "requires a :default_src value" do
         expect do
-          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(script_src: %('self')))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(script_src: %w('self')))
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "requires a :script_src value" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w('self')))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
@@ -95,7 +101,7 @@ module SecureHeaders
       # this is mostly to ensure people don't use the antiquated shorthands common in other configs
       it "performs light validation on source lists" do
         expect do
-          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w(self none inline eval)))
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w(self none inline eval), script_src: %w('self')))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
     end
@@ -104,19 +110,21 @@ module SecureHeaders
       it "combines the default-src value with the override if the directive was unconfigured" do
         Configuration.default do |config|
           config.csp = {
-            default_src: %w(https:)
+            default_src: %w(https:),
+            script_src: %w('self'),
           }
         end
-        combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, script_src: %w(anothercdn.com))
+        combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, style_src: %w(anothercdn.com))
         csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.name).to eq(ContentSecurityPolicyConfig::HEADER_NAME)
-        expect(csp.value).to eq("default-src https:; script-src https: anothercdn.com")
+        expect(csp.value).to eq("default-src https:; script-src 'self'; style-src https: anothercdn.com")
       end
 
       it "combines directives where the original value is nil and the hash is frozen" do
         Configuration.default do |config|
           config.csp = {
             default_src: %w('self'),
+            script_src: %w('self'),
             report_only: false
           }.freeze
         end
@@ -130,6 +138,7 @@ module SecureHeaders
         Configuration.default do |config|
           config.csp = {
             default_src: %w('self'),
+            script_src: %w('self'),
             report_only: false
           }.freeze
         end
@@ -141,14 +150,13 @@ module SecureHeaders
         ContentSecurityPolicy::NON_FETCH_SOURCES.each do |directive|
           expect(combined_config[directive]).to eq(%w("http://example.org))
         end
-
-         ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox]).value
       end
 
       it "overrides the report_only flag" do
         Configuration.default do |config|
           config.csp = {
             default_src: %w('self'),
+            script_src: %w('self'),
             report_only: false
           }
         end
@@ -161,12 +169,13 @@ module SecureHeaders
         Configuration.default do |config|
           config.csp = {
             default_src: %w(https:),
+            script_src: %w('self'),
             block_all_mixed_content: false
           }
         end
         combined_config = ContentSecurityPolicy.combine_policies(Configuration.get.csp.to_h, block_all_mixed_content: true)
         csp = ContentSecurityPolicy.new(combined_config)
-        expect(csp.value).to eq("default-src https:; block-all-mixed-content")
+        expect(csp.value).to eq("default-src https:; block-all-mixed-content; script-src 'self'")
       end
 
       it "raises an error if appending to a OPT_OUT policy" do
