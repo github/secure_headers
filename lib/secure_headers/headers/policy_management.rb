@@ -210,7 +210,7 @@ module SecureHeaders
       def validate_config!(config)
         return if config.nil? || config.opt_out?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
-        raise ContentSecurityPolicyConfigError.new(":script is required, falling back to default-src is too dangerous") unless config.directive_value(:script_src)
+        raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous") unless config.directive_value(:script_src)
         ContentSecurityPolicyConfig.attrs.each do |key|
           value = config.directive_value(key)
           next unless value
