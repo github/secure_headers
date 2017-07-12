@@ -62,20 +62,15 @@ module SecureHeaders
 
     # All the directives currently under consideration for CSP level 3.
     # https://w3c.github.io/webappsec/specs/CSP2/
+    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
     MANIFEST_SRC = :manifest_src
+    UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
-      MANIFEST_SRC,
-    ].flatten.freeze
-
-    # All the directives that are not currently in a formal spec, but have
-    # been implemented somewhere.
-    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
-    UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
-    DIRECTIVES_DRAFT = [
       BLOCK_ALL_MIXED_CONTENT,
+      MANIFEST_SRC,
       UPGRADE_INSECURE_REQUESTS
-    ].freeze
+    ].flatten.freeze
 
     EDGE_DIRECTIVES = DIRECTIVES_1_0
     SAFARI_DIRECTIVES = DIRECTIVES_1_0
@@ -97,18 +92,18 @@ module SecureHeaders
     ].freeze
 
     FIREFOX_DIRECTIVES = (
-      DIRECTIVES_3_0 + DIRECTIVES_DRAFT - FIREFOX_UNSUPPORTED_DIRECTIVES
+      DIRECTIVES_3_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
     ).freeze
 
     FIREFOX_46_DIRECTIVES = (
-      DIRECTIVES_3_0 + DIRECTIVES_DRAFT - FIREFOX_46_UNSUPPORTED_DIRECTIVES - FIREFOX_46_DEPRECATED_DIRECTIVES
+      DIRECTIVES_3_0 - FIREFOX_46_UNSUPPORTED_DIRECTIVES - FIREFOX_46_DEPRECATED_DIRECTIVES
     ).freeze
 
     CHROME_DIRECTIVES = (
-      DIRECTIVES_3_0 + DIRECTIVES_DRAFT
+      DIRECTIVES_3_0
     ).freeze
 
-    ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT).uniq.sort
+    ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0).uniq.sort
 
     # Think of default-src and report-uri as the beginning and end respectively,
     # everything else is in between.
