@@ -24,6 +24,10 @@ module SecureHeaders
     end
 
     describe "#value" do
+      it "uses a safe but non-breaking default value" do
+        expect(ContentSecurityPolicy.new.value).to eq("default-src https:; form-action 'self'; object-src 'none'; script-src https:; style-src 'self' 'unsafe-inline' https:")
+      end
+
       it "discards 'none' values if any other source expressions are present" do
         csp = ContentSecurityPolicy.new(default_opts.merge(child_src: %w('self' 'none')))
         expect(csp.value).not_to include("'none'")

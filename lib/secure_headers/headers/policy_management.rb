@@ -7,7 +7,13 @@ module SecureHeaders
 
     MODERN_BROWSERS = %w(Chrome Opera Firefox)
     DEFAULT_VALUE = "default-src https:".freeze
-    DEFAULT_CONFIG = { default_src: %w(https:) }.freeze
+    DEFAULT_CONFIG = {
+      default_src: %w(https:),
+      object_src: %w('none'),
+      script_src: %w(https:),
+      style_src: %w('self' 'unsafe-inline' https:),
+      form_action: %w('self')
+    }.freeze
     DATA_PROTOCOL = "data:".freeze
     BLOB_PROTOCOL = "blob:".freeze
     SELF = "'self'".freeze
