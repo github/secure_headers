@@ -91,6 +91,7 @@ SecureHeaders::Configuration.default do |config|
     form_action: %w('self' github.com),
     frame_ancestors: %w('none'),
     img_src: %w(mycdn.com data:),
+    manifest_src: %w('self'),
     media_src: %w(utoob.com),
     object_src: %w('self'),
     plugin_types: %w(application/x-shockwave-flash),
