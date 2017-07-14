@@ -16,12 +16,12 @@ module SecureHeaders
     end
 
     it "preserves existing attributes" do
-      cookie = Cookie.new("_session=thisisatest; secure", {secure: true, httponly: false})
+      cookie = Cookie.new("_session=thisisatest; secure", secure: true, httponly: false)
       expect(cookie.to_s).to eq("_session=thisisatest; secure")
     end
 
     it "prevents duplicate flagging of attributes" do
-      cookie = Cookie.new("_session=thisisatest; secure", {secure: true, httponly: false})
+      cookie = Cookie.new("_session=thisisatest; secure", secure: true, httponly: false)
       expect(cookie.to_s.scan(/secure/i).count).to eq(1)
     end
 
@@ -35,12 +35,12 @@ module SecureHeaders
 
       context "when configured with a Hash" do
         it "flags cookies as Secure when whitelisted" do
-          cookie = Cookie.new(raw_cookie, {secure: { only: ["_session"]}, httponly: false})
+          cookie = Cookie.new(raw_cookie, secure: { only: ["_session"]}, httponly: false)
           expect(cookie.to_s).to eq("_session=thisisatest; secure")
         end
 
         it "does not flag cookies as Secure when excluded" do
-          cookie = Cookie.new(raw_cookie, {secure: { except: ["_session"] }, httponly: false})
+          cookie = Cookie.new(raw_cookie, secure: { except: ["_session"] }, httponly: false)
           expect(cookie.to_s).to eq("_session=thisisatest")
         end
       end
@@ -100,13 +100,13 @@ module SecureHeaders
 
       it "flags properly when both lax and strict are configured" do
         raw_cookie = "_session=thisisatest"
-        cookie = Cookie.new(raw_cookie, {samesite: { strict: { only: ["_session"] }, lax: { only: ["_additional_session"] } }, secure: false, httponly: false})
+        cookie = Cookie.new(raw_cookie, samesite: { strict: { only: ["_session"] }, lax: { only: ["_additional_session"] } }, secure: false, httponly: false)
         expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Strict")
       end
 
       it "ignores configuration if the cookie is already flagged" do
         raw_cookie = "_session=thisisatest; SameSite=Strict"
-        cookie = Cookie.new(raw_cookie, {samesite: { lax: true }, secure: false, httponly: false})
+        cookie = Cookie.new(raw_cookie, samesite: { lax: true }, secure: false, httponly: false)
         expect(cookie.to_s).to eq(raw_cookie)
       end
     end
