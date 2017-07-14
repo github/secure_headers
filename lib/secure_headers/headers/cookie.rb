@@ -16,6 +16,11 @@ module SecureHeaders
 
     def initialize(cookie, config)
       @raw_cookie = cookie
+      unless config == SecureHeaders::OPT_OUT
+        config ||= {}
+        config[:secure] = true if config[:secure].nil?
+        config[:httponly] = true if config[:httponly].nil?
+      end
       @config = config
       @attributes = {
         httponly: nil,
@@ -57,6 +62,7 @@ module SecureHeaders
     end
 
     def flag_cookie?(attribute)
+      return false if config == SecureHeaders::OPT_OUT
       case config[attribute]
       when TrueClass
         true
@@ -86,6 +92,7 @@ module SecureHeaders
     end
 
     def flag_samesite?
+      return false if config == SecureHeaders::OPT_OUT
       flag_samesite_lax? || flag_samesite_strict?
     end
 

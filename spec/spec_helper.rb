@@ -48,15 +48,3 @@ end
 def reset_config
   SecureHeaders::Configuration.clear_configurations
 end
-
-def capture_warning
-  begin
-    old_stderr = $stderr
-    $stderr = StringIO.new
-    yield
-    result = $stderr.string
-  ensure
-    $stderr = old_stderr
-  end
-  result
-end

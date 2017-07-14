@@ -58,7 +58,7 @@ module SecureHeaders
     context "cookies" do
       context "cookies should be flagged" do
         it "flags cookies as secure" do
-          Configuration.default { |config| config.cookies = { secure: true } }
+          Configuration.default { |config| config.cookies = {secure: true, httponly: false} }
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
           expect(env["Set-Cookie"]).to eq("foo=bar; secure")
@@ -67,7 +67,7 @@ module SecureHeaders
 
       context "cookies should not be flagged" do
         it "does not flags cookies as secure" do
-          Configuration.default { |config| config.cookies = nil }
+          Configuration.default { |config| config.cookies = {secure: false, httponly: false}  }
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
           expect(env["Set-Cookie"]).to eq("foo=bar")
@@ -87,7 +87,7 @@ module SecureHeaders
       it "flags cookies with a combination of SameSite configurations" do
         cookie_middleware = Middleware.new(lambda { |env| [200, env.merge("Set-Cookie" => ["_session=foobar", "_guest=true"]), "app"] })
 
-        Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } } } }
+        Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } }, httponly: false, secure: false} }
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
 
@@ -96,7 +96,7 @@ module SecureHeaders
       end
 
       it "disables secure cookies for non-https requests" do
-        Configuration.default { |config| config.cookies = { secure: true } }
+        Configuration.default { |config| config.cookies = { secure: true, httponly: false} }
 
         request = Rack::Request.new("HTTPS" => "off")
         _, env = cookie_middleware.call request.env
@@ -104,7 +104,7 @@ module SecureHeaders
       end
 
       it "sets the secure cookie flag correctly on interleaved http/https requests" do
-        Configuration.default { |config| config.cookies = { secure: true } }
+        Configuration.default { |config| config.cookies = { secure: true, httponly: false } }
 
         request = Rack::Request.new("HTTPS" => "off")
         _, env = cookie_middleware.call request.env
