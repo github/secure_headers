@@ -31,7 +31,6 @@ module SecureHeaders
       @object_src = nil
       @plugin_types = nil
       @preserve_schemes = nil
-      @reflected_xss = nil
       @report_only = nil
       @report_uri = nil
       @sandbox = nil
