@@ -1,6 +1,10 @@
-## 3.6.6
+## 3.6.7
 
 Actually set manifest-src when configured. https://github.com/twitter/secureheaders/pull/339 Thanks @carlosantoniodasilva!
+
+## 3.6.6
+
+wat?
 
 ## 3.6.5
 
