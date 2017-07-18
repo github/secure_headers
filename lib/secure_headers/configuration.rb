@@ -215,10 +215,8 @@ module SecureHeaders
         @csp = new_csp.dup
       else
         if new_csp[:report_only]
-          # Deprecated configuration implies that CSPRO should be set, CSP should not - so opt out
-          Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
-          @csp = OPT_OUT
-          self.csp_report_only = new_csp
+          # invalid configuration implies that CSPRO should be set, CSP should not - so opt out
+          raise ArgumentError, "#{Kernel.caller.first}: `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
         else
           @csp = ContentSecurityPolicyConfig.new(new_csp)
         end
@@ -247,8 +245,7 @@ module SecureHeaders
       end
 
       if !@csp_report_only.opt_out? && @csp.to_h == ContentSecurityPolicyConfig::DEFAULT
-        Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was configured before `#csp=`. It is assumed you intended to opt out of `#csp=` so be sure to add `config.csp = SecureHeaders::OPT_OUT` to your config. Ensure that #csp_report_only is configured after #csp="
-        @csp = OPT_OUT
+        raise ArgumentError, "#{Kernel.caller.first}: `#csp_report_only=` was configured before `#csp=`. It is assumed you intended to opt out of `#csp=` so be sure to add `config.csp = SecureHeaders::OPT_OUT` to your config. Ensure that #csp_report_only is configured after #csp="
       end
     end
 

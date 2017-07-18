@@ -2,7 +2,6 @@
 require "rubygems"
 require "rspec"
 require "rack"
-require "pry-nav"
 
 require "coveralls"
 Coveralls.wear!

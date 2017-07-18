@@ -319,22 +319,15 @@ module SecureHeaders
           expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'")
         end
 
-        it "supports the deprecated `report_only: true` format" do
-          expect(Kernel).to receive(:warn).once
-
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self'),
-              report_only: true
-            }
-          end
-
-          expect(Configuration.get.csp).to eq(OPT_OUT)
-          expect(Configuration.get.csp_report_only).to be_a(ContentSecurityPolicyReportOnlyConfig)
-
-          hash = SecureHeaders.header_hash_for(request)
-          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
-          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'")
+        it "does not support the deprecated `report_only: true` format" do
+          expect {
+            Configuration.default do |config|
+              config.csp = {
+                default_src: %w('self'),
+                report_only: true
+              }
+            end
+          }.to raise_error(ArgumentError)
         end
 
         it "Raises an error if csp_report_only is used with `report_only: false`" do
@@ -399,31 +392,25 @@ module SecureHeaders
             expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
           end
 
-          it "opts-out of enforced CSP when only csp_report_only is set" do
-            expect(Kernel).to receive(:warn).once
-            Configuration.default do |config|
-              config.csp_report_only = {
-                default_src: %w('self')
-              }
-            end
-
-            hash = SecureHeaders.header_hash_for(request)
-            expect(hash["Content-Security-Policy"]).to be_nil
-            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
+          it "raises an error when only csp_report_only is set" do
+            expect {
+              Configuration.default do |config|
+                config.csp_report_only = {
+                  default_src: %w('self')
+                }
+              end
+            }.to raise_error(ArgumentError)
           end
 
-          it "allows you to set csp_report_only before csp" do
-            expect(Kernel).to receive(:warn).once
-            Configuration.default do |config|
-              config.csp_report_only = {
-                default_src: %w('self')
-              }
-              config.csp = config.csp_report_only.merge({script_src: %w('unsafe-inline')})
-            end
-
-            hash = SecureHeaders.header_hash_for(request)
-            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self' 'unsafe-inline'")
-            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'")
+          it "does not allow you to set csp_report_only before csp" do
+            expect {
+              Configuration.default do |config|
+                config.csp_report_only = {
+                  default_src: %w('self')
+                }
+                config.csp = config.csp_report_only.merge({script_src: %w('unsafe-inline')})
+              end
+            }.to raise_error(ArgumentError)
           end
 
           it "allows appending to the enforced policy" do
