@@ -175,7 +175,7 @@ module SecureHeaders
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
-        it "appends child-src to frame-src" do
+        it "child-src and frame-src must match" do
           Configuration.default do |config|
             config.csp = {
               default_src: %w('self'),
@@ -185,23 +185,10 @@ module SecureHeaders
           end
 
           SecureHeaders.append_content_security_policy_directives(chrome_request, child_src: %w(child_src.com))
-          hash = SecureHeaders.header_hash_for(chrome_request)
-          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; child-src frame_src.com child_src.com; script-src 'self'")
-        end
 
-        it "appends frame-src to child-src" do
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self'),
-              child_src: %w(child_src.com),
-              script_src: %w('self')
-            }
-          end
-
-          safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari6]))
-          SecureHeaders.append_content_security_policy_directives(safari_request, frame_src: %w(frame_src.com))
-          hash = SecureHeaders.header_hash_for(safari_request)
-          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; frame-src child_src.com frame_src.com; script-src 'self'")
+          expect {
+            SecureHeaders.header_hash_for(chrome_request)
+          }.to raise_error(ArgumentError)
         end
 
         it "supports named appends" do

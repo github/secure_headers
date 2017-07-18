@@ -20,6 +20,7 @@ The new default policy is:
 ## CSP configuration
 
 * Setting `report_only: true` in a CSP config will raise an error. Instead, set `csp_report_only`.
+* Setting `frame_src` and `child_src` when values don't match will raise an error. Just use `frame_src`.
 
 
 ## All cookies default to secure/httponly
