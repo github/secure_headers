@@ -85,11 +85,11 @@ module SecureHeaders
     end
 
     it "deprecates the secure_cookies configuration" do
-      expect(Kernel).to receive(:warn).with(/\[DEPRECATION\]/)
-
-      Configuration.default do |config|
-        config.secure_cookies = true
-      end
+      expect {
+        Configuration.default do |config|
+          config.secure_cookies = true
+        end
+      }.to raise_error(ArgumentError)
     end
   end
 end

@@ -206,8 +206,7 @@ module SecureHeaders
     end
 
     def secure_cookies=(secure_cookies)
-      Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#secure_cookies=` is deprecated. Please use `#cookies=` to configure secure cookies instead."
-      @cookies = (@cookies || {}).merge(secure: secure_cookies)
+      raise ArgumentError, "#{Kernel.caller.first}: `#secure_cookies=` is no longer supported. Please use `#cookies=` to configure secure cookies instead."
     end
 
     def csp=(new_csp)
