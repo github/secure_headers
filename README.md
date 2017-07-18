@@ -1,9 +1,10 @@
 # Secure Headers [![Build Status](https://travis-ci.org/twitter/secureheaders.svg?branch=master)](http://travis-ci.org/twitter/secureheaders) [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.svg)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.svg)](https://coveralls.io/r/twitter/secureheaders)
 
+**master represents the unreleased 4.x line**. See the [upgrading to 4.x doc](upgrading-to-4-0.md) for instructions on how to upgrade. Bug fixes should go in the 3.x branch for now.
 
-**The 3.x branch was recently merged**. See the [upgrading to 3.x doc](upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
+**The [3.x](https://github.com/twitter/secureheaders/tree/2.x) branch is moving into maintenance mode**. See the [upgrading to 3.x doc](upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
 
-**The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be maintained**. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
+**The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be not be maintained once 4.x is released. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
 
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
