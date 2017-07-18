@@ -9,6 +9,7 @@ module SecureHeaders
     DEFAULT_VALUE = "default-src https:".freeze
     DEFAULT_CONFIG = {
       default_src: %w(https:),
+      img_src: %w(https: data: 'self'),
       object_src: %w('none'),
       script_src: %w(https:),
       style_src: %w('self' 'unsafe-inline' https:),

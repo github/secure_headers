@@ -25,7 +25,7 @@ module SecureHeaders
 
     describe "#value" do
       it "uses a safe but non-breaking default value" do
-        expect(ContentSecurityPolicy.new.value).to eq("default-src https:; form-action 'self'; object-src 'none'; script-src https:; style-src 'self' 'unsafe-inline' https:")
+        expect(ContentSecurityPolicy.new.value).to eq("default-src https:; form-action 'self'; img-src https: data: 'self'; object-src 'none'; script-src https:; style-src 'self' 'unsafe-inline' https:")
       end
 
       it "discards 'none' values if any other source expressions are present" do
