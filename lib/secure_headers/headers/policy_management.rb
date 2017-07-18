@@ -7,7 +7,14 @@ module SecureHeaders
 
     MODERN_BROWSERS = %w(Chrome Opera Firefox)
     DEFAULT_VALUE = "default-src https:".freeze
-    DEFAULT_CONFIG = { default_src: %w(https:) }.freeze
+    DEFAULT_CONFIG = {
+      default_src: %w(https:),
+      img_src: %w(https: data: 'self'),
+      object_src: %w('none'),
+      script_src: %w(https:),
+      style_src: %w('self' 'unsafe-inline' https:),
+      form_action: %w('self')
+    }.freeze
     DATA_PROTOCOL = "data:".freeze
     BLOB_PROTOCOL = "blob:".freeze
     SELF = "'self'".freeze
@@ -196,6 +203,7 @@ module SecureHeaders
       def validate_config!(config)
         return if config.nil? || config.opt_out?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
+        raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous") unless config.directive_value(:script_src)
         ContentSecurityPolicyConfig.attrs.each do |key|
           value = config.directive_value(key)
           next unless value

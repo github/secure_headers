@@ -71,7 +71,7 @@ module SecureHeaders
 
     it "allows you to override an override" do
       Configuration.override(:override) do |config|
-        config.csp = { default_src: %w('self')}
+        config.csp = { default_src: %w('self'), script_src: %w('self')}
       end
 
       Configuration.override(:second_override, :override) do |config|
@@ -79,7 +79,7 @@ module SecureHeaders
       end
 
       original_override = Configuration.get(:override)
-      expect(original_override.csp.to_h).to eq(default_src: %w('self'))
+      expect(original_override.csp.to_h).to eq(default_src: %w('self'), script_src: %w('self'))
       override_config = Configuration.get(:second_override)
       expect(override_config.csp.to_h).to eq(default_src: %w('self'), script_src: %w('self' example.org))
     end
