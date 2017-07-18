@@ -34,6 +34,10 @@ config.cookies = {
 }
 ```
 
+## config.secure_cookies removed
+
+Use `config.cookies` instead.
+
 ## Supported ruby versions
 
 We've dropped support for ruby versions <= 2.2. Sorry.
