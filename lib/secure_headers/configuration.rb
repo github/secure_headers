@@ -243,10 +243,6 @@ module SecureHeaders
           end
         end
       end
-
-      if !@csp_report_only.opt_out? && @csp.to_h == ContentSecurityPolicyConfig::DEFAULT
-        raise ArgumentError, "#{Kernel.caller.first}: `#csp_report_only=` was configured before `#csp=`. It is assumed you intended to opt out of `#csp=` so be sure to add `config.csp = SecureHeaders::OPT_OUT` to your config. Ensure that #csp_report_only is configured after #csp="
-      end
     end
 
     protected

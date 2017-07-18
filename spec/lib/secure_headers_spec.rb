@@ -406,27 +406,6 @@ module SecureHeaders
             expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self'")
           end
 
-          it "raises an error when only csp_report_only is set" do
-            expect {
-              Configuration.default do |config|
-                config.csp_report_only = {
-                  default_src: %w('self')
-                }
-              end
-            }.to raise_error(ArgumentError)
-          end
-
-          it "does not allow you to set csp_report_only before csp" do
-            expect {
-              Configuration.default do |config|
-                config.csp_report_only = {
-                  default_src: %w('self')
-                }
-                config.csp = config.csp_report_only.merge({script_src: %w('unsafe-inline')})
-              end
-            }.to raise_error(ArgumentError)
-          end
-
           it "allows appending to the enforced policy" do
             SecureHeaders.append_content_security_policy_directives(request, {script_src: %w(anothercdn.com)}, :enforced)
             hash = SecureHeaders.header_hash_for(request)
