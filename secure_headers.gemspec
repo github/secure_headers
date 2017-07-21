@@ -19,11 +19,11 @@ Gem::Specification.new do |gem|
   gem.add_dependency "useragent", ">= 0.15.0"
 
   # TODO: delete this after 4.1 is cut or a number of 4.0.x releases have occurred
-  gem.post_install_message = <<~POST_INSTALL
+  gem.post_install_message = <<-POST_INSTALL
 
-  **********
-  :wave: secure_headers 4.0 introduces a lot of breaking changes (in the name of security!). It's highly likely you will need to update your secure_headers cookie configuration to avoid breaking things. See the upgrade guide for details: https://github.com/twitter/secureheaders/blob/master/upgrading-to-4-0.md
-  **********
+**********
+:wave: secure_headers 4.0 introduces a lot of breaking changes (in the name of security!). It's highly likely you will need to update your secure_headers cookie configuration to avoid breaking things. See the upgrade guide for details: https://github.com/twitter/secureheaders/blob/master/upgrading-to-4-0.md
+**********
 
   POST_INSTALL
 end
