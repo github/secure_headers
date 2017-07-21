@@ -48,6 +48,24 @@ For Rails 2 or non-rails applications, an explicit statement is required to use 
 use SecureHeaders::Middleware
 ```
 
+### hanami
+
+If you want to use secure_headers with [hanami](http://hanamirb.org) applications you need to take two steps:
+
+First, you need to use `SecureHeaders::Middleware` middleware:
+```ruby
+# config.ru
+use SecureHeaders::Middleware
+```
+
+And second, you need to create `config/initializers/secure_headers.rb` for configurations:
+```ruby
+# config/initializers/secure_headers.rb
+SecureHeaders::Configuration.default do |config|
+  # ...
+end
+```
+
 ## Configuration
 
 If you do not supply a `default` configuration, exceptions will be raised. If you would like to use a default configuration (which is fairly locked down), just call `SecureHeaders::Configuration.default` without any arguments or block.
