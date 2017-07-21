@@ -104,6 +104,12 @@ module SecureHeaders
         cookie = Cookie.new(raw_cookie, samesite: { lax: true })
         expect(cookie.to_s).to eq(raw_cookie)
       end
+
+      it "samesite: true sets all cookies to samesite=lax" do
+        raw_cookie = "_session=thisisatest"
+        cookie = Cookie.new(raw_cookie, samesite: true)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Lax")
+      end
     end
   end
 

@@ -100,6 +100,10 @@ module SecureHeaders
     def flag_samesite_enforcement?(mode)
       return unless config[:samesite]
 
+      if config[:samesite].is_a?(TrueClass) && mode == :lax
+        return true
+      end
+
       case config[:samesite][mode]
       when Hash
         conditionally_flag?(config[:samesite][mode])
