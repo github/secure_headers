@@ -1,5 +1,23 @@
 ### Breaking Changes
 
+The most likely change to break your app is the new cookie defaults. This is the first place to check. If you're using the default CSP, your policy will change but your app should not break.
+
+## All cookies default to secure/httponly
+
+By default, *all* cookies will be marked as `SameSite=lax`,`secure`, and `httponly`. To opt-out, supply `OPT_OUT` as the value for `SecureHeaders.cookies` or the individual configs:
+
+```ruby
+# specific opt outs
+config.cookies = {
+  secure: OPT_OUT,
+  httponly: OPT_OUT,
+  samesite: OPT_OUT,
+}
+
+# nuclear option, just make things work again
+config.cookies = OPT_OUT
+```
+
 ## Default Content Security Policy
 
 The default CSP has changed to be more universal without sacrificing too much security.
@@ -21,18 +39,6 @@ The new default policy is:
 
 * Setting `report_only: true` in a CSP config will raise an error. Instead, set `csp_report_only`.
 * Setting `frame_src` and `child_src` when values don't match will raise an error. Just use `frame_src`.
-
-
-## All cookies default to secure/httponly
-
-By default, all cookies will be marked as `secure` and `httponly`. To opt-out, supply `OPT_OUT` as the value for `SecureHeaders.cookies` or the individual configs:
-
-```ruby
-config.cookies = {
-  secure: OPT_OUT,
-  httponly: OPT_OUT,
-}
-```
 
 ## config.secure_cookies removed
 
