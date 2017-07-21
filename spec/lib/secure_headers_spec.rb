@@ -175,7 +175,7 @@ module SecureHeaders
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
         end
 
-        it "appends child-src to frame-src" do
+        it "child-src and frame-src must match" do
           Configuration.default do |config|
             config.csp = {
               default_src: %w('self'),
@@ -185,23 +185,10 @@ module SecureHeaders
           end
 
           SecureHeaders.append_content_security_policy_directives(chrome_request, child_src: %w(child_src.com))
-          hash = SecureHeaders.header_hash_for(chrome_request)
-          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; child-src frame_src.com child_src.com; script-src 'self'")
-        end
 
-        it "appends frame-src to child-src" do
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self'),
-              child_src: %w(child_src.com),
-              script_src: %w('self')
-            }
-          end
-
-          safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari6]))
-          SecureHeaders.append_content_security_policy_directives(safari_request, frame_src: %w(frame_src.com))
-          hash = SecureHeaders.header_hash_for(safari_request)
-          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; frame-src child_src.com frame_src.com; script-src 'self'")
+          expect {
+            SecureHeaders.header_hash_for(chrome_request)
+          }.to raise_error(ArgumentError)
         end
 
         it "supports named appends" do
@@ -327,23 +314,15 @@ module SecureHeaders
           expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'")
         end
 
-        it "supports the deprecated `report_only: true` format" do
-          expect(Kernel).to receive(:warn).once
-
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self'),
-              script_src: %w('self'),
-              report_only: true
-            }
-          end
-
-          expect(Configuration.get.csp).to eq(OPT_OUT)
-          expect(Configuration.get.csp_report_only).to be_a(ContentSecurityPolicyReportOnlyConfig)
-
-          hash = SecureHeaders.header_hash_for(request)
-          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
-          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'")
+        it "does not support the deprecated `report_only: true` format" do
+          expect {
+            Configuration.default do |config|
+              config.csp = {
+                default_src: %w('self'),
+                report_only: true
+              }
+            end
+          }.to raise_error(ArgumentError)
         end
 
         it "Raises an error if csp_report_only is used with `report_only: false`" do
@@ -411,35 +390,6 @@ module SecureHeaders
 
             hash = SecureHeaders.header_hash_for(request)
             expect(hash["Content-Security-Policy"]).to be_nil
-            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self'")
-          end
-
-          it "opts-out of enforced CSP when only csp_report_only is set" do
-            expect(Kernel).to receive(:warn).once
-            Configuration.default do |config|
-              config.csp_report_only = {
-                default_src: %w('self'),
-                script_src: %w('self')
-              }
-            end
-
-            hash = SecureHeaders.header_hash_for(request)
-            expect(hash["Content-Security-Policy"]).to be_nil
-            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self'")
-          end
-
-          it "allows you to set csp_report_only before csp" do
-            expect(Kernel).to receive(:warn).once
-            Configuration.default do |config|
-              config.csp_report_only = {
-                default_src: %w('self'),
-                script_src: %w('self')
-              }
-              config.csp = config.csp_report_only.merge({script_src: %w('unsafe-inline')})
-            end
-
-            hash = SecureHeaders.header_hash_for(request)
-            expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self' 'unsafe-inline'")
             expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self'")
           end
 

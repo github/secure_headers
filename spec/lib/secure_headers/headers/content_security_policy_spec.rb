@@ -96,20 +96,10 @@ module SecureHeaders
         ContentSecurityPolicy.new(default_src: %w('self'), frame_src: %w('self')).value
       end
 
-      it "emits a warning when child-src and frame-src are supplied but are not equal" do
-        expect(Kernel).to receive(:warn).with(/both :child_src and :frame_src supplied and do not match./)
-        ContentSecurityPolicy.new(default_src: %w('self'), child_src: %w(child-src.com), frame_src: %w(frame-src,com)).value
-      end
-
-      it "will still set inconsistent child/frame-src values to be less surprising" do
-        expect(Kernel).to receive(:warn).at_least(:once)
-        firefox = ContentSecurityPolicy.new({default_src: %w('self'), child_src: %w(child-src.com), frame_src: %w(frame-src,com)}, USER_AGENTS[:firefox]).value
-        firefox_transitional = ContentSecurityPolicy.new({default_src: %w('self'), child_src: %w(child-src.com), frame_src: %w(frame-src,com)}, USER_AGENTS[:firefox46]).value
-        expect(firefox).not_to eq(firefox_transitional)
-        expect(firefox).to match(/frame-src/)
-        expect(firefox).not_to match(/child-src/)
-        expect(firefox_transitional).to match(/child-src/)
-        expect(firefox_transitional).not_to match(/frame-src/)
+      it "raises an error when child-src and frame-src are supplied but are not equal" do
+        expect {
+          ContentSecurityPolicy.new(default_src: %w('self'), child_src: %w(child-src.com), frame_src: %w(frame-src,com)).value
+        }.to raise_error(ArgumentError)
       end
 
       it "supports strict-dynamic" do

@@ -55,12 +55,10 @@ module SecureHeaders
       expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match("example.org")
     end
 
-    context "secure_cookies" do
+    context "cookies" do
       context "cookies should be flagged" do
         it "flags cookies as secure" do
-          capture_warning do
-            Configuration.default { |config| config.secure_cookies = true }
-          end
+          Configuration.default { |config| config.cookies = { secure: true } }
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
           expect(env["Set-Cookie"]).to eq("foo=bar; secure")
@@ -69,9 +67,7 @@ module SecureHeaders
 
       context "cookies should not be flagged" do
         it "does not flags cookies as secure" do
-          capture_warning do
-            Configuration.default { |config| config.secure_cookies = false }
-          end
+          Configuration.default { |config| config.cookies = nil }
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
           expect(env["Set-Cookie"]).to eq("foo=bar")
