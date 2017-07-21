@@ -4,7 +4,7 @@
 
 **The [3.x](https://github.com/twitter/secureheaders/tree/2.x) branch is moving into maintenance mode**. See the [upgrading to 3.x doc](upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
 
-**The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be not be maintained once 4.x is released. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
+**The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be not be maintained once 4.x is released**. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
 
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
@@ -132,20 +132,6 @@ X-Frame-Options: sameorigin
 X-Permitted-Cross-Domain-Policies: none
 X-Xss-Protection: 1; mode=block
 ```
-
-### Default CSP
-
-By default, the above CSP will be applied to all requests. If you **only** want to set a Report-Only header, opt-out of the default enforced header for clarity. The configuration will assume that if you only supply `csp_report_only` that you intended to opt-out of `csp` but that's for the sake of backwards compatibility and it will be removed in the future.
-
-```ruby
-Configuration.default do |config|
-  config.csp = SecureHeaders::OPT_OUT # If this line is omitted, we will assume you meant to opt out.
-  config.csp_report_only = {
-    default_src: %w('self')
-  }
-end
-```
-
 
 ## Similar libraries
 
