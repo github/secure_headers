@@ -18,11 +18,12 @@ module SecureHeaders
     COOKIE_DEFAULTS = {
       httponly: true,
       secure: true,
+      samesite: { lax: true },
     }.freeze
 
     def initialize(cookie, config)
       @raw_cookie = cookie
-      unless config == SecureHeaders::OPT_OUT
+      unless config == OPT_OUT
         config ||= {}
         config = COOKIE_DEFAULTS.merge(config)
       end
@@ -67,7 +68,7 @@ module SecureHeaders
     end
 
     def flag_cookie?(attribute)
-      return false if config == SecureHeaders::OPT_OUT
+      return false if config == OPT_OUT
       case config[attribute]
       when TrueClass
         true
@@ -97,7 +98,7 @@ module SecureHeaders
     end
 
     def flag_samesite?
-      return false if config == SecureHeaders::OPT_OUT
+      return false if config == OPT_OUT or config[:samesite] == OPT_OUT
       flag_samesite_lax? || flag_samesite_strict?
     end
 

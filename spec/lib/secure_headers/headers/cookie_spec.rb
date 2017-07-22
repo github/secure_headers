@@ -10,13 +10,13 @@ module SecureHeaders
       expect(cookie.to_s).to eq(raw_cookie)
     end
 
-    it "applies httponly and secure by default" do
+    it "applies httponly, secure, and samesite by default" do
       cookie = Cookie.new(raw_cookie, nil)
-      expect(cookie.to_s).to eq("_session=thisisatest; secure; HttpOnly")
+      expect(cookie.to_s).to eq("_session=thisisatest; secure; HttpOnly; SameSite=Lax")
     end
 
     it "preserves existing attributes" do
-      cookie = Cookie.new("_session=thisisatest; secure", secure: true, httponly: OPT_OUT)
+      cookie = Cookie.new("_session=thisisatest; secure", secure: true, httponly: OPT_OUT, samesite: OPT_OUT)
       expect(cookie.to_s).to eq("_session=thisisatest; secure")
     end
 
@@ -28,19 +28,19 @@ module SecureHeaders
     context "Secure cookies" do
       context "when configured with a boolean" do
         it "flags cookies as Secure" do
-          cookie = Cookie.new(raw_cookie, secure: true, httponly: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, secure: true, httponly: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest; secure")
         end
       end
 
       context "when configured with a Hash" do
         it "flags cookies as Secure when whitelisted" do
-          cookie = Cookie.new(raw_cookie, secure: { only: ["_session"]}, httponly: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, secure: { only: ["_session"]}, httponly: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest; secure")
         end
 
         it "does not flag cookies as Secure when excluded" do
-          cookie = Cookie.new(raw_cookie, secure: { except: ["_session"] }, httponly: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, secure: { except: ["_session"] }, httponly: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest")
         end
       end
@@ -49,19 +49,19 @@ module SecureHeaders
     context "HttpOnly cookies" do
       context "when configured with a boolean" do
         it "flags cookies as HttpOnly" do
-          cookie = Cookie.new(raw_cookie, httponly: true, secure: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, httponly: true, secure: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest; HttpOnly")
         end
       end
 
       context "when configured with a Hash" do
         it "flags cookies as HttpOnly when whitelisted" do
-          cookie = Cookie.new(raw_cookie, httponly: { only: ["_session"]}, secure: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, httponly: { only: ["_session"]}, secure: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest; HttpOnly")
         end
 
         it "does not flag cookies as HttpOnly when excluded" do
-          cookie = Cookie.new(raw_cookie, httponly: { except: ["_session"] }, secure: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, httponly: { except: ["_session"] }, secure: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest")
         end
       end

@@ -34,6 +34,7 @@ module SecureHeaders
     end
 
     def validate_samesite_config!
+      return if config[:samesite] == OPT_OUT
       raise CookiesConfigError.new("samesite cookie config must be a hash") unless is_hash?(config[:samesite])
 
       validate_samesite_boolean_config!
