@@ -2,6 +2,7 @@
 require "cgi"
 require "secure_headers/utils/cookies_config"
 
+
 module SecureHeaders
   class CookiesConfigError < StandardError; end
   class Cookie
@@ -14,12 +15,16 @@ module SecureHeaders
 
     attr_reader :raw_cookie, :config
 
+    COOKIE_DEFAULTS = {
+      httponly: true,
+      secure: true,
+    }.freeze
+
     def initialize(cookie, config)
       @raw_cookie = cookie
       unless config == SecureHeaders::OPT_OUT
         config ||= {}
-        config[:secure] = true if config[:secure].nil?
-        config[:httponly] = true if config[:httponly].nil?
+        config = COOKIE_DEFAULTS.merge(config)
       end
       @config = config
       @attributes = {
