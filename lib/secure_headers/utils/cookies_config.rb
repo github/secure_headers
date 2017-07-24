@@ -12,9 +12,9 @@ module SecureHeaders
       return if config.nil? || config == SecureHeaders::OPT_OUT
 
       validate_config!
-      validate_secure_config! if config[:secure]
-      validate_httponly_config! if config[:httponly]
-      validate_samesite_config! if config[:samesite]
+      validate_secure_config! unless config[:secure].nil?
+      validate_httponly_config! unless config[:httponly].nil?
+      validate_samesite_config! unless config[:samesite].nil?
     end
 
     private
@@ -24,16 +24,17 @@ module SecureHeaders
     end
 
     def validate_secure_config!
-      validate_hash_or_boolean!(:secure)
+      validate_hash_or_true_or_opt_out!(:secure)
       validate_exclusive_use_of_hash_constraints!(config[:secure], :secure)
     end
 
     def validate_httponly_config!
-      validate_hash_or_boolean!(:httponly)
+      validate_hash_or_true_or_opt_out!(:httponly)
       validate_exclusive_use_of_hash_constraints!(config[:httponly], :httponly)
     end
 
     def validate_samesite_config!
+      return if config[:samesite] == OPT_OUT
       raise CookiesConfigError.new("samesite cookie config must be a hash") unless is_hash?(config[:samesite])
 
       validate_samesite_boolean_config!
@@ -62,8 +63,8 @@ module SecureHeaders
       end
     end
 
-    def validate_hash_or_boolean!(attribute)
-      if !(is_hash?(config[attribute]) || is_boolean?(config[attribute]))
+    def validate_hash_or_true_or_opt_out!(attribute)
+      if !(is_hash?(config[attribute]) || is_true_or_opt_out?(config[attribute]))
         raise CookiesConfigError.new("#{attribute} cookie config must be a hash or boolean")
       end
     end
@@ -71,7 +72,6 @@ module SecureHeaders
     # validate exclusive use of only or except but not both at the same time
     def validate_exclusive_use_of_hash_constraints!(conf, attribute)
       return unless is_hash?(conf)
-
       if conf.key?(:only) && conf.key?(:except)
         raise CookiesConfigError.new("#{attribute} cookie config is invalid, simultaneous use of conditional arguments `only` and `except` is not permitted.")
       end
@@ -88,8 +88,8 @@ module SecureHeaders
       obj && obj.is_a?(Hash)
     end
 
-    def is_boolean?(obj)
-      obj && (obj.is_a?(TrueClass) || obj.is_a?(FalseClass))
+    def is_true_or_opt_out?(obj)
+      obj && (obj.is_a?(TrueClass) || obj == OPT_OUT)
     end
   end
 end
