@@ -112,7 +112,7 @@ module SecureHeaders
 
       it "samesite: true sets all cookies to samesite=lax" do
         raw_cookie = "_session=thisisatest"
-        cookie = Cookie.new(raw_cookie, samesite: true)
+        cookie = Cookie.new(raw_cookie, samesite: true, secure: OPT_OUT, httponly: OPT_OUT)
         expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Lax")
       end
     end

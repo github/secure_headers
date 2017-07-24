@@ -2,9 +2,9 @@
 
 The most likely change to break your app is the new cookie defaults. This is the first place to check. If you're using the default CSP, your policy will change but your app should not break.
 
-## All cookies default to secure/httponly
+## All cookies default to secure/httponly/SameSite=Lax
 
-By default, *all* cookies will be marked as `SameSite=lax`,`secure`, and `httponly`. To opt-out, supply `OPT_OUT` as the value for `SecureHeaders.cookies` or the individual configs:
+By default, *all* cookies will be marked as `SameSite=lax`,`secure`, and `httponly`. To opt-out, supply `OPT_OUT` as the value for `SecureHeaders.cookies` or the individual configs. Setting these values to `false` will raise an error.
 
 ```ruby
 # specific opt outs
