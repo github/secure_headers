@@ -78,7 +78,7 @@ SecureHeaders::Configuration.default do |config|
     "executionContexts"
   ]
   config.csp = {
-    # "meta" values. these will shaped the header, but the values are not included in the header.
+    # "meta" values. these will shape the header, but the values are not included in the header.
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
 
     # directive values: these values will directly translate into source directives
