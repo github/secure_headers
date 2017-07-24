@@ -1,6 +1,6 @@
 ### Breaking Changes
 
-The most likely change to break your app is the new cookie defaults. This is the first place to check. If you're using the default CSP, your policy will change but your app should not break.
+The most likely change to break your app is the new cookie defaults. This is the first place to check. If you're using the default CSP, your policy will change but your app should not break. This should not break brand new projects using secure_headers either.
 
 ## All cookies default to secure/httponly/SameSite=Lax
 

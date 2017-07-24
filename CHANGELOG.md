@@ -1,7 +1,6 @@
 ## 4.x
 
-- `script_src` is required to be set in CSP configs. Falling back to *any* `default-src` can be bad. It's certainly possible for this to not cause a problem but better safe than sorry.
-- The default CSP has been changed: `default-src 'self', form-action 'self'; object-src 'none'; script-src https:; style-src 'self' 'unsafe-inline' https:` This policy is "more secure" and more reasonable.
+- See the [upgrading to 4.0](upgrading-to-4.0.md) guide. Lots of breaking changes.
 
 ## 3.6.5
 
