@@ -203,7 +203,7 @@ module SecureHeaders
         return if config.nil? || config.opt_out?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
         if config.directive_value(:script_src).nil?
-          raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous. Use OPT_OUT to override")
+          raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous. Use `script_src: OPT_OUT` to override")
         end
 
         ContentSecurityPolicyConfig.attrs.each do |key|
