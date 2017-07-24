@@ -101,9 +101,11 @@ module SecureHeaders
       else
         @config.directive_value(directive)
       end
-      return unless source_list && source_list.any?
-      normalized_source_list = minify_source_list(directive, source_list)
-      [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")
+
+      if source_list != OPT_OUT && source_list&.any?
+        normalized_source_list = minify_source_list(directive, source_list)
+        [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")
+      end
     end
 
     # If a directive contains *, all other values are omitted.
