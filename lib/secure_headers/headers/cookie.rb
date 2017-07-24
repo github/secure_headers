@@ -98,7 +98,7 @@ module SecureHeaders
     end
 
     def flag_samesite?
-      return false if config == OPT_OUT or config[:samesite] == OPT_OUT
+      return false if config == OPT_OUT || config[:samesite] == OPT_OUT
       flag_samesite_lax? || flag_samesite_strict?
     end
 
