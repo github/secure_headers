@@ -102,7 +102,7 @@ module SecureHeaders
         @config.directive_value(directive)
       end
 
-      if source_list != OPT_OUT && source_list&.any?
+      if source_list != OPT_OUT && source_list && source_list.any?
         normalized_source_list = minify_source_list(directive, source_list)
         [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")
       end
