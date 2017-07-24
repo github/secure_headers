@@ -6,7 +6,7 @@ __Note__: Regardless of the configuration specified, Secure cookies are only ena
 
 #### Defaults
 
-By default, all cookies will get both `Secure` and `HttpOnly`.
+By default, all cookies will get both `Secure`, `HttpOnly`, and `SameSite=Lax`.
 
 ```ruby
 config.cookies = {
