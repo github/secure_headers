@@ -51,6 +51,11 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org")
       end
 
+      it "does not build directives with a value of OPT_OUT (and bypasses directive requirements)" do
+        csp = ContentSecurityPolicy.new(default_src: %w(https://example.org), script_src: OPT_OUT)
+        expect(csp.value).to eq("default-src example.org")
+      end
+
       it "does not remove schemes from report-uri values" do
         csp = ContentSecurityPolicy.new(default_src: %w(https:), report_uri: %w(https://example.org))
         expect(csp.value).to eq("default-src https:; report-uri https://example.org")

@@ -57,6 +57,12 @@ module SecureHeaders
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
+      it "accepts OPT_OUT as a script-src value" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w('self'), script_src: OPT_OUT))
+        end.to_not raise_error
+      end
+
       it "requires :report_only to be a truthy value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_only: "steve")))

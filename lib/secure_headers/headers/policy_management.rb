@@ -202,7 +202,10 @@ module SecureHeaders
       def validate_config!(config)
         return if config.nil? || config.opt_out?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
-        raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous") unless config.directive_value(:script_src)
+        if config.directive_value(:script_src).nil?
+          raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous. Use `script_src: OPT_OUT` to override")
+        end
+
         ContentSecurityPolicyConfig.attrs.each do |key|
           value = config.directive_value(key)
           next unless value
@@ -342,12 +345,13 @@ module SecureHeaders
       end
 
       def ensure_array_of_strings!(directive, source_expression)
-        unless source_expression.is_a?(Array) && source_expression.compact.all? { |v| v.is_a?(String) }
+        if (!source_expression.is_a?(Array) || !source_expression.compact.all? { |v| v.is_a?(String) }) && source_expression != OPT_OUT
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of strings")
         end
       end
 
       def ensure_valid_sources!(directive, source_expression)
+        return if source_expression == OPT_OUT
         source_expression.each do |expression|
           if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(expression)
             raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{expression}). This value must be single quoted.")
