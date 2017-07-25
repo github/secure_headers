@@ -65,6 +65,13 @@ module SecureHeaders
         end
       end
 
+      it "allows opting out of cookie protection with OPT_OUT alone" do
+        Configuration.default { |config| config.cookies = OPT_OUT}
+        request = Rack::Request.new({})
+        _, env = cookie_middleware.call request.env
+        expect(env["Set-Cookie"]).to eq("foo=bar")
+      end
+
       context "cookies should not be flagged" do
         it "does not flags cookies as secure" do
           Configuration.default { |config| config.cookies = {secure: OPT_OUT, httponly: OPT_OUT, samesite: OPT_OUT}  }

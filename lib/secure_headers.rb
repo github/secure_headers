@@ -24,7 +24,7 @@ module SecureHeaders
   class NoOpHeaderConfig
     include Singleton
 
-    def boom(arg = nil)
+    def boom(*args)
       raise "Illegal State: attempted to modify NoOpHeaderConfig. Create a new config instead."
     end
 
