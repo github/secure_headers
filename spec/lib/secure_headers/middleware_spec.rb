@@ -67,6 +67,10 @@ module SecureHeaders
 
       it "allows opting out of cookie protection with OPT_OUT alone" do
         Configuration.default { |config| config.cookies = OPT_OUT}
+
+        # do NOT make this request https. non-https requests modify a config,
+        # causing an exception when operating on OPT_OUT. This ensures we don't
+        # try to modify the config.
         request = Rack::Request.new({})
         _, env = cookie_middleware.call request.env
         expect(env["Set-Cookie"]).to eq("foo=bar")
