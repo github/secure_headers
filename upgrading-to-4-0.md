@@ -18,6 +18,12 @@ config.cookies = {
 config.cookies = OPT_OUT
 ```
 
+## script_src must be set
+
+Not setting a `script_src` value means your policy falls back to whatever `default_src` (also required) is set to. This can be very dangerous and indicates the policy is too loose. 
+
+However, sometimes you really don't need a `script-src` e.g. API responses (`default-src 'none'`) so you can set `script_src: SecureHeaders::OPT_OUT` to work around this.
+
 ## Default Content Security Policy
 
 The default CSP has changed to be more universal without sacrificing too much security.
