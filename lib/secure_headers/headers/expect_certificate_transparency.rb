@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   class ExpectCertificateTransparencyConfigError < StandardError; end
 
