@@ -1,8 +1,9 @@
+# frozen_string_literal: true
 module SecureHeaders
   class XPCDPConfigError < StandardError; end
   class XPermittedCrossDomainPolicies
     HEADER_NAME = "X-Permitted-Cross-Domain-Policies".freeze
-    DEFAULT_VALUE = 'none'
+    DEFAULT_VALUE = "none"
     VALID_POLICIES = %w(all none master-only by-content-type by-ftp-filename)
     CONFIG_KEY = :x_permitted_cross_domain_policies
 

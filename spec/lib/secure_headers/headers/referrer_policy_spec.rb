@@ -1,9 +1,10 @@
-require 'spec_helper'
+# frozen_string_literal: true
+require "spec_helper"
 
 module SecureHeaders
   describe ReferrerPolicy do
     specify { expect(ReferrerPolicy.make_header).to eq([ReferrerPolicy::HEADER_NAME, "origin-when-cross-origin"]) }
-    specify { expect(ReferrerPolicy.make_header('no-referrer')).to eq([ReferrerPolicy::HEADER_NAME, "no-referrer"]) }
+    specify { expect(ReferrerPolicy.make_header("no-referrer")).to eq([ReferrerPolicy::HEADER_NAME, "no-referrer"]) }
 
     context "valid configuration values" do
       it "accepts 'no-referrer'" do
@@ -61,7 +62,7 @@ module SecureHeaders
       end
     end
 
-    context 'invlaid configuration values' do
+    context "invlaid configuration values" do
       it "doesn't accept invalid values" do
         expect do
           ReferrerPolicy.validate_config!("open")

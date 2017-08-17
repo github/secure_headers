@@ -1,4 +1,5 @@
-require 'spec_helper'
+# frozen_string_literal: true
+require "spec_helper"
 
 module SecureHeaders
   describe ClearSiteData do
@@ -19,30 +20,16 @@ module SecureHeaders
         name, value = described_class.make_header(true)
 
         expect(name).to eq(ClearSiteData::HEADER_NAME)
-        expect(value).to eq(normalize_json(<<-HERE))
-          {
-            "types": [
-              "cache",
-              "cookies",
-              "storage",
-              "executionContexts"
-            ]
-          }
-        HERE
+        expect(value).to eq(
+          %("cache", "cookies", "storage", "executionContexts")
+        )
       end
 
       it "returns specified types" do
         name, value = described_class.make_header(["foo", "bar"])
 
         expect(name).to eq(ClearSiteData::HEADER_NAME)
-        expect(value).to eq(normalize_json(<<-HERE))
-          {
-            "types": [
-              "foo",
-              "bar"
-            ]
-          }
-        HERE
+        expect(value).to eq(%("foo", "bar"))
       end
     end
 
@@ -83,12 +70,6 @@ module SecureHeaders
         end.to raise_error(ClearSiteDataConfigError)
       end
 
-      it "fails for non-serializable config" do
-        expect do
-          described_class.validate_config!(["hi \255"])
-        end.to raise_error(ClearSiteDataConfigError)
-      end
-
       it "fails for other types of config" do
         expect do
           described_class.validate_config!(:cookies)
@@ -96,8 +77,11 @@ module SecureHeaders
       end
     end
 
-    def normalize_json(json)
-      JSON.dump(JSON.parse(json))
+    describe "make_header_value" do
+      it "returns a string of quoted values that are comma separated" do
+        value = described_class.make_header_value(["foo", "bar"])
+        expect(value).to eq(%("foo", "bar"))
+      end
     end
   end
 end

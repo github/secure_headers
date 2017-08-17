@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "secure_headers/configuration"
 require "secure_headers/hash_helper"
 require "secure_headers/headers/cookie"
@@ -24,7 +25,7 @@ module SecureHeaders
   class NoOpHeaderConfig
     include Singleton
 
-    def boom(arg = nil)
+    def boom(*args)
       raise "Illegal State: attempted to modify NoOpHeaderConfig. Create a new config instead."
     end
 
@@ -165,7 +166,8 @@ module SecureHeaders
     # returned is meant to be merged into the header value from `@app.call(env)`
     # in Rack middleware.
     def header_hash_for(request)
-      config = config_for(request, prevent_dup = true)
+      prevent_dup = true
+      config = config_for(request, prevent_dup)
       headers = config.cached_headers
       user_agent = UserAgent.parse(request.user_agent)
 

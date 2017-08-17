@@ -1,6 +1,7 @@
-require_relative 'policy_management'
-require_relative 'content_security_policy_config'
-require 'useragent'
+# frozen_string_literal: true
+require_relative "policy_management"
+require_relative "content_security_policy_config"
+require "useragent"
 
 module SecureHeaders
   class ContentSecurityPolicy
@@ -54,20 +55,12 @@ module SecureHeaders
 
     private
 
-    # frame-src is deprecated, child-src is being implemented. They are
-    # very similar and in most cases, the same value can be used for both.
     def normalize_child_frame_src
       if @config.frame_src && @config.child_src && @config.frame_src != @config.child_src
-        Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] both :child_src and :frame_src supplied and do not match. This can lead to inconsistent behavior across browsers.")
-      elsif @config.frame_src
-        Kernel.warn("#{Kernel.caller.first}: [DEPRECATION] :frame_src is deprecated, use :child_src instead. Provided: #{@config.frame_src}.")
+        raise ArgumentError, "#{Kernel.caller.first}: both :child_src and :frame_src supplied and do not match. This can lead to inconsistent behavior across browsers."
       end
 
-      if supported_directives.include?(:child_src)
-        @config.child_src || @config.frame_src
-      else
-        @config.frame_src || @config.child_src
-      end
+      @config.frame_src || @config.child_src
     end
 
     # Private: converts the config object into a string representing a policy.
@@ -108,9 +101,11 @@ module SecureHeaders
       else
         @config.directive_value(directive)
       end
-      return unless source_list && source_list.any?
-      normalized_source_list = minify_source_list(directive, source_list)
-      [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")
+
+      if source_list != OPT_OUT && source_list && source_list.any?
+        normalized_source_list = minify_source_list(directive, source_list)
+        [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")
+      end
     end
 
     # If a directive contains *, all other values are omitted.
@@ -231,7 +226,7 @@ module SecureHeaders
     end
 
     def symbol_to_hyphen_case(sym)
-      sym.to_s.tr('_', '-')
+      sym.to_s.tr("_", "-")
     end
   end
 end

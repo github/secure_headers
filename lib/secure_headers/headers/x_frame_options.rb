@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   class XFOConfigError < StandardError; end
   class XFrameOptions

@@ -1,4 +1,5 @@
-require 'yaml'
+# frozen_string_literal: true
+require "yaml"
 
 module SecureHeaders
   class Configuration
@@ -31,7 +32,7 @@ module SecureHeaders
           raise NotYetConfiguredError, "#{base} policy not yet supplied"
         end
         override = @configurations[base].dup
-        override.instance_eval &block if block_given?
+        override.instance_eval(&block) if block_given?
         add_configuration(name, override)
       end
 
@@ -120,19 +121,36 @@ module SecureHeaders
 
     attr_reader :cached_headers, :csp, :cookies, :csp_report_only, :hpkp, :hpkp_report_host
 
+    @script_hashes = nil
+    @style_hashes = nil
+
     HASH_CONFIG_FILE = ENV["secure_headers_generated_hashes_file"] || "config/secure_headers_generated_hashes.yml"
-    if File.exists?(HASH_CONFIG_FILE)
+    if File.exist?(HASH_CONFIG_FILE)
       config = YAML.safe_load(File.open(HASH_CONFIG_FILE))
       @script_hashes = config["scripts"]
       @style_hashes = config["styles"]
     end
 
     def initialize(&block)
+      @cookies = nil
+      @clear_site_data = nil
+      @csp = nil
+      @csp_report_only = nil
+      @hpkp_report_host = nil
+      @hpkp = nil
+      @hsts = nil
+      @x_content_type_options = nil
+      @x_download_options = nil
+      @x_frame_options = nil
+      @x_permitted_cross_domain_policies = nil
+      @x_xss_protection = nil
+
       self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
       self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
       self.csp_report_only = OPT_OUT
-      instance_eval &block if block_given?
+
+      instance_eval(&block) if block_given?
     end
 
     # Public: copy everything but the cached headers
@@ -190,8 +208,7 @@ module SecureHeaders
     end
 
     def secure_cookies=(secure_cookies)
-      Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#secure_cookies=` is deprecated. Please use `#cookies=` to configure secure cookies instead."
-      @cookies = (@cookies || {}).merge(secure: secure_cookies)
+      raise ArgumentError, "#{Kernel.caller.first}: `#secure_cookies=` is no longer supported. Please use `#cookies=` to configure secure cookies instead."
     end
 
     def csp=(new_csp)
@@ -199,10 +216,8 @@ module SecureHeaders
         @csp = new_csp.dup
       else
         if new_csp[:report_only]
-          # Deprecated configuration implies that CSPRO should be set, CSP should not - so opt out
-          Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
-          @csp = OPT_OUT
-          self.csp_report_only = new_csp
+          # invalid configuration implies that CSPRO should be set, CSP should not - so opt out
+          raise ArgumentError, "#{Kernel.caller.first}: `#csp=` was supplied a config with report_only: true. Use #csp_report_only="
         else
           @csp = ContentSecurityPolicyConfig.new(new_csp)
         end
@@ -228,11 +243,6 @@ module SecureHeaders
             ContentSecurityPolicyReportOnlyConfig.new(new_csp)
           end
         end
-      end
-
-      if !@csp_report_only.opt_out? && @csp.to_h == ContentSecurityPolicyConfig::DEFAULT
-        Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#csp_report_only=` was configured before `#csp=`. It is assumed you intended to opt out of `#csp=` so be sure to add `config.csp = SecureHeaders::OPT_OUT` to your config. Ensure that #csp_report_only is configured after #csp="
-        @csp = OPT_OUT
       end
     end
 

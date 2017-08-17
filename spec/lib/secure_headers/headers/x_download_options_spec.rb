@@ -1,9 +1,10 @@
-require 'spec_helper'
+# frozen_string_literal: true
+require "spec_helper"
 
 module SecureHeaders
   describe XDownloadOptions do
     specify { expect(XDownloadOptions.make_header).to eq([XDownloadOptions::HEADER_NAME, XDownloadOptions::DEFAULT_VALUE]) }
-    specify { expect(XDownloadOptions.make_header('noopen')).to eq([XDownloadOptions::HEADER_NAME, 'noopen']) }
+    specify { expect(XDownloadOptions.make_header("noopen")).to eq([XDownloadOptions::HEADER_NAME, "noopen"]) }
 
     context "invalid configuration values" do
       it "accepts noopen" do

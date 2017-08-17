@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 INLINE_SCRIPT_REGEX = /(<script(\s*(?!src)([\w\-])+=([\"\'])[^\"\']+\4)*\s*>)(.*?)<\/script>/mx unless defined? INLINE_SCRIPT_REGEX
 INLINE_STYLE_REGEX = /(<style[^>]*>)(.*?)<\/style>/mx unless defined? INLINE_STYLE_REGEX
 INLINE_HASH_SCRIPT_HELPER_REGEX = /<%=\s?hashed_javascript_tag(.*?)\s+do\s?%>(.*?)<%\s*end\s*%>/mx unless defined? INLINE_HASH_SCRIPT_HELPER_REGEX
@@ -73,7 +74,7 @@ namespace :secure_headers do
       end
     end
 
-    File.open(SecureHeaders::Configuration::HASH_CONFIG_FILE, 'w') do |file|
+    File.open(SecureHeaders::Configuration::HASH_CONFIG_FILE, "w") do |file|
       file.write(script_hashes.to_yaml)
     end
 

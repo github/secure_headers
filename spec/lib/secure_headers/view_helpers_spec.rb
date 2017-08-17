@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "spec_helper"
 require "erb"
 
@@ -37,7 +38,6 @@ class Message < ERB
     background-color: black;
   }
 </style>
-<%= @name %>
 
 TEMPLATE
   end
@@ -59,7 +59,7 @@ TEMPLATE
     end
 
     if options.is_a?(Hash)
-      options = options.map {|k,v| " #{k}=#{v}"}
+      options = options.map {|k, v| " #{k}=#{v}"}
     end
     "<#{type}#{options}>#{content}</#{type}>"
   end
@@ -83,9 +83,9 @@ module SecureHeaders
     before(:all) do
       Configuration.default do |config|
         config.csp = {
-          :default_src => %w('self'),
-          :script_src => %w('self'),
-          :style_src => %w('self')
+          default_src: %w('self'),
+          script_src: %w('self'),
+          style_src: %w('self')
         }
       end
     end

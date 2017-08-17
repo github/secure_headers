@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   module DynamicConfig
     def self.included(base)
@@ -15,6 +16,30 @@ module SecureHeaders
     end
 
     def initialize(hash)
+      @base_uri = nil
+      @block_all_mixed_content = nil
+      @child_src = nil
+      @connect_src = nil
+      @default_src = nil
+      @font_src = nil
+      @form_action = nil
+      @frame_ancestors = nil
+      @frame_src = nil
+      @img_src = nil
+      @manifest_src = nil
+      @media_src = nil
+      @object_src = nil
+      @plugin_types = nil
+      @preserve_schemes = nil
+      @report_only = nil
+      @report_uri = nil
+      @sandbox = nil
+      @script_nonce = nil
+      @script_src = nil
+      @style_nonce = nil
+      @style_src = nil
+      @upgrade_insecure_requests = nil
+
       from_hash(hash)
       @modified = false
     end

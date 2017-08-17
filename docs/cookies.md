@@ -4,14 +4,28 @@ SecureHeaders supports `Secure`, `HttpOnly` and [`SameSite`](https://tools.ietf.
 
 __Note__: Regardless of the configuration specified, Secure cookies are only enabled for HTTPS requests.
 
+#### Defaults
+
+By default, all cookies will get both `Secure`, `HttpOnly`, and `SameSite=Lax`.
+
+```ruby
+config.cookies = {
+  secure: true, # defaults to true but will be a no op on non-HTTPS requests
+  httponly: true, # defaults to true
+  samesite: {  # defaults to set `SameSite=Lax`
+    lax: true
+  }
+}
+```
+
 #### Boolean-based configuration
 
-Boolean-based configuration is intended to globally enable or disable a specific cookie attribute.
+Boolean-based configuration is intended to globally enable or disable a specific cookie attribute. *Note: As of 4.0, you must use OPT_OUT rather than false to opt out of the defaults.*
 
 ```ruby
 config.cookies = {
   secure: true, # mark all cookies as Secure
-  httponly: false, # do not mark any cookies as HttpOnly
+  httponly: OPT_OUT, # do not mark any cookies as HttpOnly
 }
 ```
 

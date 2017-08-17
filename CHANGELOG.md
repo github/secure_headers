@@ -1,3 +1,19 @@
+## 4.x
+
+- See the [upgrading to 4.0](upgrading-to-4.0.md) guide. Lots of breaking changes.
+
+## 3.6.5
+
+Update clear-site-data header to use current format specified by the specification.
+
+## 3.6.4
+
+Fix case where mixing frame-src/child-src dynamically would behave in unexpected ways: https://github.com/twitter/secureheaders/pull/325
+
+## 3.6.3
+
+Remove deprecation warning when setting `frame-src`. It is no longer deprecated.
+
 ## 3.6.2
 
 Now that Safari 10 supports nonces and it appears to work, enable the nonce feature for safari.
@@ -188,7 +204,7 @@ You can add hash sources directly to your policy :
  rake secure_headers:generate_hashes
  ```
 
- This will generate a file (`config/config/secure_headers_generated_hashes.yml` by default, you can override by setting `ENV["secure_headers_generated_hashes_file"]`) containing a mapping of file names with the array of hash values found on that page. When ActionView renders a given file, we check if there are any known hashes for that given file. If so, they are added as values to the header.
+ This will generate a file (`config/secure_headers_generated_hashes.yml` by default, you can override by setting `ENV["secure_headers_generated_hashes_file"]`) containing a mapping of file names with the array of hash values found on that page. When ActionView renders a given file, we check if there are any known hashes for that given file. If so, they are added as values to the header.
 
 ```yaml
 ---

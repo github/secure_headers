@@ -2,14 +2,16 @@ language: ruby
 
 rvm:
   - ruby-head
-  - 2.4.0
-  - 2.3.3
+  - 2.4.1
+  - 2.3.4
   - 2.2
-  - 2.1
-  - 2.0.0
-  - 1.9.3
-  - jruby-19mode
   - jruby-head
+
+env:
+  - SUITE=rspec spec
+  - SUITE=rubocop
+
+script: bundle exec $SUITE
 
 matrix:
   allow_failures:

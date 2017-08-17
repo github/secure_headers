@@ -1,9 +1,10 @@
 # Secure Headers [![Build Status](https://travis-ci.org/twitter/secureheaders.svg?branch=master)](http://travis-ci.org/twitter/secureheaders) [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.svg)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.svg)](https://coveralls.io/r/twitter/secureheaders)
 
+**master represents the unreleased 4.x line**. See the [upgrading to 4.x doc](upgrading-to-4-0.md) for instructions on how to upgrade. Bug fixes should go in the 3.x branch for now.
 
-**The 3.x branch was recently merged**. See the [upgrading to 3.x doc](upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
+**The [3.x](https://github.com/twitter/secureheaders/tree/2.x) branch is moving into maintenance mode**. See the [upgrading to 3.x doc](upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
 
-**The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be maintained**. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
+**The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be not be maintained once 4.x is released**. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
 
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
@@ -18,8 +19,8 @@ The gem will automatically apply several headers that are related to security.  
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 - Referrer-Policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
 - Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
-- Clear-Site-Data - Clearing browser data for origin. [Clear-Site-Data specification](https://www.w3.org/TR/clear-site-data/).
 - Expect-CT - Only use certificates that are present in the certificate transparency logs. [Expect-CT draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
+- Clear-Site-Data - Clearing browser data for origin. [Clear-Site-Data specification](https://w3c.github.io/webappsec-clear-site-data/).
 
 It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes (when configured to do so).
 
@@ -83,8 +84,7 @@ SecureHeaders::Configuration.default do |config|
     report_uri: "https://report-uri.io/example-ct"
   }
   config.csp = {
-    # "meta" values. these will shaped the header, but the values are not included in the header.
-    # report_only: true,      # default: false [DEPRECATED from 3.5.0: instead, configure csp_report_only]
+    # "meta" values. these will shape the header, but the values are not included in the header.
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
 
     # directive values: these values will directly translate into source directives
@@ -97,6 +97,7 @@ SecureHeaders::Configuration.default do |config|
     form_action: %w('self' github.com),
     frame_ancestors: %w('none'),
     img_src: %w(mycdn.com data:),
+    manifest_src: %w('self'),
     media_src: %w(utoob.com),
     object_src: %w('self'),
     plugin_types: %w(application/x-shockwave-flash),
@@ -136,20 +137,6 @@ X-Frame-Options: sameorigin
 X-Permitted-Cross-Domain-Policies: none
 X-Xss-Protection: 1; mode=block
 ```
-
-### Default CSP
-
-By default, the above CSP will be applied to all requests. If you **only** want to set a Report-Only header, opt-out of the default enforced header for clarity. The configuration will assume that if you only supply `csp_report_only` that you intended to opt-out of `csp` but that's for the sake of backwards compatibility and it will be removed in the future.
-
-```ruby
-Configuration.default do |config|
-  config.csp = SecureHeaders::OPT_OUT # If this line is omitted, we will assume you meant to opt out.
-  config.csp_report_only = {
-    default_src: %w('self')
-  }
-end
-```
-
 
 ## Similar libraries
 

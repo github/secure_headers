@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module SecureHeaders
   module PolicyManagement
     def self.included(base)
@@ -5,8 +6,14 @@ module SecureHeaders
     end
 
     MODERN_BROWSERS = %w(Chrome Opera Firefox)
-    DEFAULT_VALUE = "default-src https:".freeze
-    DEFAULT_CONFIG = { default_src: %w(https:) }.freeze
+    DEFAULT_CONFIG = {
+      default_src: %w(https:),
+      img_src: %w(https: data: 'self'),
+      object_src: %w('none'),
+      script_src: %w(https:),
+      style_src: %w('self' 'unsafe-inline' https:),
+      form_action: %w('self')
+    }.freeze
     DATA_PROTOCOL = "data:".freeze
     BLOB_PROTOCOL = "blob:".freeze
     SELF = "'self'".freeze
@@ -62,22 +69,15 @@ module SecureHeaders
 
     # All the directives currently under consideration for CSP level 3.
     # https://w3c.github.io/webappsec/specs/CSP2/
+    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
     MANIFEST_SRC = :manifest_src
-    REFLECTED_XSS = :reflected_xss
+    UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
-      MANIFEST_SRC,
-      REFLECTED_XSS
-    ].flatten.freeze
-
-    # All the directives that are not currently in a formal spec, but have
-    # been implemented somewhere.
-    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
-    UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
-    DIRECTIVES_DRAFT = [
       BLOCK_ALL_MIXED_CONTENT,
+      MANIFEST_SRC,
       UPGRADE_INSECURE_REQUESTS
-    ].freeze
+    ].flatten.freeze
 
     EDGE_DIRECTIVES = DIRECTIVES_1_0
     SAFARI_DIRECTIVES = DIRECTIVES_1_0
@@ -99,18 +99,18 @@ module SecureHeaders
     ].freeze
 
     FIREFOX_DIRECTIVES = (
-      DIRECTIVES_2_0 + DIRECTIVES_DRAFT - FIREFOX_UNSUPPORTED_DIRECTIVES
+      DIRECTIVES_3_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
     ).freeze
 
     FIREFOX_46_DIRECTIVES = (
-      DIRECTIVES_2_0 + DIRECTIVES_DRAFT - FIREFOX_46_UNSUPPORTED_DIRECTIVES - FIREFOX_46_DEPRECATED_DIRECTIVES
+      DIRECTIVES_3_0 - FIREFOX_46_UNSUPPORTED_DIRECTIVES - FIREFOX_46_DEPRECATED_DIRECTIVES
     ).freeze
 
     CHROME_DIRECTIVES = (
-      DIRECTIVES_2_0 + DIRECTIVES_DRAFT
+      DIRECTIVES_3_0
     ).freeze
 
-    ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_DRAFT).uniq.sort
+    ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0).uniq.sort
 
     # Think of default-src and report-uri as the beginning and end respectively,
     # everything else is in between.
@@ -156,7 +156,6 @@ module SecureHeaders
       MEDIA_SRC                 => :source_list,
       OBJECT_SRC                => :source_list,
       PLUGIN_TYPES              => :source_list,
-      REFLECTED_XSS             => :string,
       REPORT_URI                => :source_list,
       SANDBOX                   => :source_list,
       SCRIPT_SRC                => :source_list,
@@ -203,6 +202,10 @@ module SecureHeaders
       def validate_config!(config)
         return if config.nil? || config.opt_out?
         raise ContentSecurityPolicyConfigError.new(":default_src is required") unless config.directive_value(:default_src)
+        if config.directive_value(:script_src).nil?
+          raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous. Use `script_src: OPT_OUT` to override")
+        end
+
         ContentSecurityPolicyConfig.attrs.each do |key|
           value = config.directive_value(key)
           next unless value
@@ -278,13 +281,19 @@ module SecureHeaders
             if nonce_added?(original, additions)
               inferred_directive = directive.to_s.gsub(/_nonce/, "_src").to_sym
               unless original[inferred_directive] || NON_FETCH_SOURCES.include?(inferred_directive)
-                original[inferred_directive] = original[:default_src]
+                original[inferred_directive] = default_for(directive, original)
               end
             else
-              original[directive] = original[:default_src]
+              original[directive] = default_for(directive, original)
             end
           end
         end
+      end
+
+      def default_for(directive, original)
+        return original[FRAME_SRC] if directive == CHILD_SRC && original[FRAME_SRC]
+        return original[CHILD_SRC] if directive == FRAME_SRC && original[CHILD_SRC]
+        original[DEFAULT_SRC]
       end
 
       def nonce_added?(original, additions)
@@ -336,15 +345,16 @@ module SecureHeaders
       end
 
       def ensure_array_of_strings!(directive, source_expression)
-        unless source_expression.is_a?(Array) && source_expression.compact.all? { |v| v.is_a?(String) }
+        if (!source_expression.is_a?(Array) || !source_expression.compact.all? { |v| v.is_a?(String) }) && source_expression != OPT_OUT
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of strings")
         end
       end
 
       def ensure_valid_sources!(directive, source_expression)
-        source_expression.each do |source_expression|
-          if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(source_expression)
-            raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{source_expression}). This value must be single quoted.")
+        return if source_expression == OPT_OUT
+        source_expression.each do |expression|
+          if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(expression)
+            raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{expression}). This value must be single quoted.")
           end
         end
       end

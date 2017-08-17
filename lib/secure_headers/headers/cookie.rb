@@ -1,5 +1,7 @@
-require 'cgi'
-require 'secure_headers/utils/cookies_config'
+# frozen_string_literal: true
+require "cgi"
+require "secure_headers/utils/cookies_config"
+
 
 module SecureHeaders
   class CookiesConfigError < StandardError; end
@@ -13,8 +15,18 @@ module SecureHeaders
 
     attr_reader :raw_cookie, :config
 
+    COOKIE_DEFAULTS = {
+      httponly: true,
+      secure: true,
+      samesite: { lax: true },
+    }.freeze
+
     def initialize(cookie, config)
       @raw_cookie = cookie
+      unless config == OPT_OUT
+        config ||= {}
+        config = COOKIE_DEFAULTS.merge(config)
+      end
       @config = config
       @attributes = {
         httponly: nil,
@@ -56,6 +68,7 @@ module SecureHeaders
     end
 
     def flag_cookie?(attribute)
+      return false if config == OPT_OUT
       case config[attribute]
       when TrueClass
         true
@@ -85,6 +98,7 @@ module SecureHeaders
     end
 
     def flag_samesite?
+      return false if config == OPT_OUT || config[:samesite] == OPT_OUT
       flag_samesite_lax? || flag_samesite_strict?
     end
 
@@ -98,6 +112,10 @@ module SecureHeaders
 
     def flag_samesite_enforcement?(mode)
       return unless config[:samesite]
+
+      if config[:samesite].is_a?(TrueClass) && mode == :lax
+        return true
+      end
 
       case config[:samesite][mode]
       when Hash
@@ -113,7 +131,7 @@ module SecureHeaders
       return unless cookie
 
       cookie.split(/[;,]\s?/).each do |pairs|
-        name, values = pairs.split('=',2)
+        name, values = pairs.split("=", 2)
         name = CGI.unescape(name)
 
         attribute = name.downcase.to_sym

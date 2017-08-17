@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
+# frozen_string_literal: true
 Gem::Specification.new do |gem|
   gem.name          = "secure_headers"
-  gem.version       = "3.6.2"
+  gem.version       = "4.0.0.alpha03"
   gem.authors       = ["Neil Matatall"]
   gem.email         = ["neil.matatall@gmail.com"]
-  gem.description   = 'Security related headers all in one gem.'
+  gem.description   = "Manages application of security headers with many safe defaults."
   gem.summary       = 'Add easily configured security headers to responses
     including content-security-policy, x-frame-options,
     strict-transport-security, etc.'
@@ -15,5 +16,14 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
   gem.add_development_dependency "rake"
-  gem.add_dependency "useragent"
+  gem.add_dependency "useragent", ">= 0.15.0"
+
+  # TODO: delete this after 4.1 is cut or a number of 4.0.x releases have occurred
+  gem.post_install_message = <<-POST_INSTALL
+
+**********
+:wave: secure_headers 4.0 introduces a lot of breaking changes (in the name of security!). It's highly likely you will need to update your secure_headers cookie configuration to avoid breaking things. See the upgrade guide for details: https://github.com/twitter/secureheaders/blob/master/upgrading-to-4-0.md
+**********
+
+  POST_INSTALL
 end
