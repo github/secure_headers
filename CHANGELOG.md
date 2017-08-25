@@ -1,3 +1,7 @@
+## 3.7.0
+
+Adds support for the `Expect-CT` header (@jacobbednarz: https://github.com/twitter/secureheaders/pull/322)
+
 ## 3.6.7
 
 Actually set manifest-src when configured. https://github.com/twitter/secureheaders/pull/339 Thanks @carlosantoniodasilva!
