@@ -143,6 +143,7 @@ module SecureHeaders
       @x_frame_options = nil
       @x_permitted_cross_domain_policies = nil
       @x_xss_protection = nil
+      @expect_certificate_transparency = nil
 
       self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
