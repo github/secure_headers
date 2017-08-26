@@ -45,7 +45,7 @@ module SecureHeaders
     end
 
     def value
-      header_value = [
+      [
         enforced_directive,
         max_age_directive,
         report_uri_directive
