@@ -1,6 +1,6 @@
 ## 4.x
 
-- See the [upgrading to 4.0](upgrading-to-4.0.md) guide. Lots of breaking changes.
+- See the [upgrading to 4.0](upgrading-to-4-0.md) guide. Lots of breaking changes.
 
 ## 3.6.5
 
