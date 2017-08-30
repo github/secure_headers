@@ -111,6 +111,30 @@ module SecureHeaders
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w(self none inline eval), script_src: %w('self')))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
+
+      it "rejects anything not of the form allow-* as a sandbox value" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: ["steve"])))
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "accepts anything of the form allow-* as a sandbox value " do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: ["allow-foo"])))
+        end.to_not raise_error
+      end
+
+      it "rejects anything not of the form type/subtype as a plugin-type value" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["steve"])))
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "accepts anything of the form type/subtype as a plugin-type value " do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["application/pdf"])))
+        end.to_not raise_error
+      end
     end
 
     describe "#combine_policies" do
