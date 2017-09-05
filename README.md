@@ -100,6 +100,7 @@ SecureHeaders::Configuration.default do |config|
     manifest_src: %w('self'),
     media_src: %w(utoob.com),
     object_src: %w('self'),
+    sandbox: true, # true and [] will set a maximally restrictive setting
     plugin_types: %w(application/x-shockwave-flash),
     script_src: %w('self'),
     style_src: %w('unsafe-inline'),
