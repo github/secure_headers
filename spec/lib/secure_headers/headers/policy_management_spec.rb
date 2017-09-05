@@ -124,6 +124,12 @@ module SecureHeaders
         end.to_not raise_error
       end
 
+      it "accepts true as a sandbox policy" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: true)))
+        end.to_not raise_error
+      end
+
       it "rejects anything not of the form type/subtype as a plugin-type value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["steve"])))

@@ -75,8 +75,8 @@ module SecureHeaders
         case DIRECTIVE_VALUE_TYPES[directive_name]
         when :boolean
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
-        when :sandbox_token_list
-          build_sandbox_token_directive(directive_name)
+        when :sandbox_list
+          build_sandbox_list_directive(directive_name)
         when :media_type_list
           build_media_type_list_directive(directive_name)
         when :source_list
@@ -85,36 +85,36 @@ module SecureHeaders
       end.compact.join("; ")
     end
 
-    def build_sandbox_token_directive(directive)
-      if value = @config.directive_value(directive)
-        max_strict_policy = case value
-        when Array
-          value.empty?
-        when true
-          true
-        else
-          false
-        end
+    def build_sandbox_list_directive(directive)
+      return unless sandbox_list = @config.directive_value(directive)
+      max_strict_policy = case sandbox_list
+      when Array
+        sandbox_list.empty?
+      when true
+        true
+      else
+        false
+      end
 
-        # A maximally strict sandbox policy is just the `sandbox` directive,
-        # whith no configuraiton values.
-        if max_strict_policy
-          symbol_to_hyphen_case(directive)
-        else
-          [
-            symbol_to_hyphen_case(directive),
-            @config.directive_value(directive)
-          ].uniq.join(" ")
-        end
+      # A maximally strict sandbox policy is just the `sandbox` directive,
+      # whith no configuraiton values.
+      if max_strict_policy
+        symbol_to_hyphen_case(directive)
+      elsif sandbox_list && sandbox_list.any?
+        [
+          symbol_to_hyphen_case(directive),
+          sandbox_list.uniq
+        ].join(" ")
       end
     end
 
     def build_media_type_list_directive(directive)
-      if value = @config.directive_value(directive)
+      return unless media_type_list = @config.directive_value(directive)
+      if media_type_list && media_type_list.any?
         [
           symbol_to_hyphen_case(directive),
-          @config.directive_value(directive)
-        ].uniq.join(" ")
+          media_type_list.uniq
+        ].join(" ")
       end
     end
 
