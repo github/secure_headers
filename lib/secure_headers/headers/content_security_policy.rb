@@ -75,12 +75,47 @@ module SecureHeaders
         case DIRECTIVE_VALUE_TYPES[directive_name]
         when :boolean
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
-        when :string
-          [symbol_to_hyphen_case(directive_name), @config.directive_value(directive_name)].join(" ")
-        else
-          build_directive(directive_name)
+        when :sandbox_list
+          build_sandbox_list_directive(directive_name)
+        when :media_type_list
+          build_media_type_list_directive(directive_name)
+        when :source_list
+          build_source_list_directive(directive_name)
         end
       end.compact.join("; ")
+    end
+
+    def build_sandbox_list_directive(directive)
+      return unless sandbox_list = @config.directive_value(directive)
+      max_strict_policy = case sandbox_list
+      when Array
+        sandbox_list.empty?
+      when true
+        true
+      else
+        false
+      end
+
+      # A maximally strict sandbox policy is just the `sandbox` directive,
+      # whith no configuraiton values.
+      if max_strict_policy
+        symbol_to_hyphen_case(directive)
+      elsif sandbox_list && sandbox_list.any?
+        [
+          symbol_to_hyphen_case(directive),
+          sandbox_list.uniq
+        ].join(" ")
+      end
+    end
+
+    def build_media_type_list_directive(directive)
+      return unless media_type_list = @config.directive_value(directive)
+      if media_type_list && media_type_list.any?
+        [
+          symbol_to_hyphen_case(directive),
+          media_type_list.uniq
+        ].join(" ")
+      end
     end
 
     # Private: builds a string that represents one directive in a minified form.
@@ -88,7 +123,7 @@ module SecureHeaders
     # directive_name - a symbol representing the various ALL_DIRECTIVES
     #
     # Returns a string representing a directive.
-    def build_directive(directive)
+    def build_source_list_directive(directive)
       source_list = case directive
       when :child_src
         if supported_directives.include?(:child_src)
