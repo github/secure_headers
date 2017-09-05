@@ -288,7 +288,7 @@ module SecureHeaders
       def populate_fetch_source_with_default!(original, additions)
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.each_key do |directive|
-          directive = if nonce_added?(original, additions)
+          directive = if directive.to_s.end_with?("_nonce")
             directive.to_s.gsub(/_nonce/, "_src").to_sym
           else
             directive
@@ -305,15 +305,6 @@ module SecureHeaders
         return original[FRAME_SRC] if directive == CHILD_SRC && original[FRAME_SRC]
         return original[CHILD_SRC] if directive == FRAME_SRC && original[CHILD_SRC]
         original[DEFAULT_SRC]
-      end
-
-      def nonce_added?(original, additions)
-        [:script_nonce, :style_nonce].each do |nonce|
-          if additions[nonce] && !original[nonce]
-            return true
-          end
-        end
-        return false
       end
 
       def source_list?(directive)
@@ -384,7 +375,9 @@ module SecureHeaders
       # Does not validate the invididual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
       def validate_source_expression!(directive, source_expression)
-        ensure_array_of_strings!(directive, source_expression)
+        if source_expression != OPT_OUT
+          ensure_array_of_strings!(directive, source_expression)
+        end
         ensure_valid_sources!(directive, source_expression)
       end
 
@@ -395,7 +388,7 @@ module SecureHeaders
       end
 
       def ensure_array_of_strings!(directive, value)
-        if (!value.is_a?(Array) || !value.compact.all? { |v| v.is_a?(String) }) && value != OPT_OUT
+        if (!value.is_a?(Array) || !value.compact.all? { |v| v.is_a?(String) })
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of strings")
         end
       end
