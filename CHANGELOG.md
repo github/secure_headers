@@ -1,3 +1,7 @@
+## 3.7.1
+
+Fix support for the sandbox attribute of CSP. `true` and `[]` represent the maximally restricted policy (`sandbox;`) and validate other values.
+
 ## 3.7.0
 
 Adds support for the `Expect-CT` header (@jacobbednarz: https://github.com/twitter/secureheaders/pull/322)
