@@ -113,7 +113,7 @@ class ApplicationController < ActionController::Base
   # Configuration override to send the Clear-Site-Data header.
   SecureHeaders::Configuration.override(:clear_browser_cache) do |config|
     config.clear_site_data = [
-      SecureHeaders::ClearSiteData::ALL
+      SecureHeaders::ClearSiteData::ALL_TYPES
     ]
   end
 
@@ -128,7 +128,6 @@ class ApplicationController < ActionController::Base
 end
 
 class SessionsController < ApplicationController
-  after_filter  :clear_browser_cache, only: :destroy
+  after_action  :clear_browser_cache, only: :destroy
 end
-
 ```

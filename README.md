@@ -55,7 +55,7 @@ If you do not supply a `default` configuration, exceptions will be raised. If yo
 
 All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT` will disable the header entirely.
 
-**Word of caution:**  The following is not a default configuration per se. It serves as a reference to all the available options. You should read more about these headers and determine what is appropriate for your requirements. 
+**Word of caution:**  The following is not a default configuration per se. It serves as a sample implementation of the configuration. You should read more about these headers and determine what is appropriate for your requirements. 
 
 ```ruby
 SecureHeaders::Configuration.default do |config|
