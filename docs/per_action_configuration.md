@@ -103,3 +103,31 @@ Content-Security-Policy: ...
   console.log("won't execute, not whitelisted")
 </script>
 ```
+
+## Clearing browser cache
+
+You can clear the browser cache after the logout request by using the following.
+
+``` ruby
+class ApplicationController < ActionController::Base
+  # Configuration override to send the Clear-Site-Data header.
+  SecureHeaders::Configuration.override(:clear_browser_cache) do |config|
+    config.clear_site_data = [
+      SecureHeaders::ClearSiteData::ALL_TYPES
+    ]
+  end
+
+
+  # Clears the browser's cache for browsers supporting the Clear-Site-Data
+  # header.
+  #
+  # Returns nothing.
+  def clear_browser_cache
+    SecureHeaders.use_secure_headers_override(request, :clear_browser_cache)
+  end
+end
+
+class SessionsController < ApplicationController
+  after_action  :clear_browser_cache, only: :destroy
+end
+```

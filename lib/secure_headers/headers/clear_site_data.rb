@@ -8,8 +8,8 @@ module SecureHeaders
     CACHE = "cache".freeze
     COOKIES = "cookies".freeze
     STORAGE = "storage".freeze
-    EXECTION_CONTEXTS = "executionContexts".freeze
-    ALL_TYPES = [CACHE, COOKIES, STORAGE, EXECTION_CONTEXTS]
+    EXECUTION_CONTEXTS = "executionContexts".freeze
+    ALL_TYPES = [CACHE, COOKIES, STORAGE, EXECUTION_CONTEXTS]
 
     CONFIG_KEY = :clear_site_data
 
