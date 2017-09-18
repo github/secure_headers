@@ -2,6 +2,18 @@
 
 - See the [upgrading to 4.0](upgrading-to-4-0.md) guide. Lots of breaking changes.
 
+## 3.7.1
+
+Fix support for the sandbox attribute of CSP. `true` and `[]` represent the maximally restricted policy (`sandbox;`) and validate other values.
+
+## 3.7.0
+
+Adds support for the `Expect-CT` header (@jacobbednarz: https://github.com/twitter/secureheaders/pull/322)
+
+## 3.6.7
+
+Actually set manifest-src when configured. https://github.com/twitter/secureheaders/pull/339 Thanks @carlosantoniodasilva!
+
 ## 3.6.5
 
 Update clear-site-data header to use current format specified by the specification.
