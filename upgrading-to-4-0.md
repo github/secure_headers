@@ -15,7 +15,7 @@ config.cookies = {
 }
 
 # nuclear option, just make things work again
-config.cookies = OPT_OUT
+config.cookies = SecureHeaders::OPT_OUT
 ```
 
 ## script_src must be set
