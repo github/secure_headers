@@ -4,14 +4,14 @@ The most likely change to break your app is the new cookie defaults. This is the
 
 ## All cookies default to secure/httponly/SameSite=Lax
 
-By default, *all* cookies will be marked as `SameSite=lax`,`secure`, and `httponly`. To opt-out, supply `OPT_OUT` as the value for `SecureHeaders.cookies` or the individual configs. Setting these values to `false` will raise an error.
+By default, *all* cookies will be marked as `SameSite=lax`,`secure`, and `httponly`. To opt-out, supply `SecureHeaders::OPT_OUT` as the value for `SecureHeaders.cookies` or the individual configs. Setting these values to `false` will raise an error.
 
 ```ruby
 # specific opt outs
 config.cookies = {
-  secure: OPT_OUT,
-  httponly: OPT_OUT,
-  samesite: OPT_OUT,
+  secure: SecureHeaders::OPT_OUT,
+  httponly: SecureHeaders::OPT_OUT,
+  samesite: SecureHeaders::OPT_OUT,
 }
 
 # nuclear option, just make things work again
