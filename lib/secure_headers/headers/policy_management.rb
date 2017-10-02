@@ -73,6 +73,7 @@ module SecureHeaders
     MANIFEST_SRC = :manifest_src
     UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
     WORKER_SRC = :worker_src
+    
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
       BLOCK_ALL_MIXED_CONTENT,
