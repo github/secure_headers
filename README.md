@@ -95,6 +95,7 @@ SecureHeaders::Configuration.default do |config|
     plugin_types: %w(application/x-shockwave-flash),
     script_src: %w('self'),
     style_src: %w('unsafe-inline'),
+    worker_src: %w('self'),
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
     report_uri: %w(https://report-uri.io/example-csp)
   }
