@@ -65,10 +65,13 @@ module SecureHeaders
     BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
     MANIFEST_SRC = :manifest_src
     UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
+    WORKER_SRC = :worker_src
+
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
       BLOCK_ALL_MIXED_CONTENT,
       MANIFEST_SRC,
+      WORKER_SRC,
       UPGRADE_INSECURE_REQUESTS
     ].flatten.freeze
 
@@ -79,6 +82,7 @@ module SecureHeaders
     FIREFOX_UNSUPPORTED_DIRECTIVES = [
       BLOCK_ALL_MIXED_CONTENT,
       CHILD_SRC,
+      WORKER_SRC,
       PLUGIN_TYPES
     ].freeze
 
@@ -88,6 +92,7 @@ module SecureHeaders
 
     FIREFOX_46_UNSUPPORTED_DIRECTIVES = [
       BLOCK_ALL_MIXED_CONTENT,
+      WORKER_SRC,
       PLUGIN_TYPES
     ].freeze
 
@@ -141,6 +146,7 @@ module SecureHeaders
       SANDBOX                   => :sandbox_list,
       SCRIPT_SRC                => :source_list,
       STYLE_SRC                 => :source_list,
+      WORKER_SRC                => :source_list,
       UPGRADE_INSECURE_REQUESTS => :boolean
     }.freeze
 

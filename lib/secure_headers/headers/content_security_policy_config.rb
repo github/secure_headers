@@ -37,6 +37,7 @@ module SecureHeaders
       @script_src = nil
       @style_nonce = nil
       @style_src = nil
+      @worker_src = nil
       @upgrade_insecure_requests = nil
 
       from_hash(hash)

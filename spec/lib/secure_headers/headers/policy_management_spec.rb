@@ -32,6 +32,7 @@ module SecureHeaders
           object_src: %w('self'),
           script_src: %w('self'),
           style_src: %w('unsafe-inline'),
+          worker_src: %w(worker.com),
           base_uri: %w('self'),
           form_action: %w('self' github.com),
           frame_ancestors: %w('none'),
