@@ -143,12 +143,12 @@ module SecureHeaders
 
         it "does not filter any directives for Chrome" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:chrome])
-          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; manifest-src manifest-src.com; media-src media-src.com; object-src object-src.com; plugin-types application/pdf; sandbox allow-forms; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; manifest-src manifest-src.com; media-src media-src.com; object-src object-src.com; plugin-types application/pdf; sandbox allow-forms; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; worker-src worker-src.com; report-uri report-uri.com")
         end
 
         it "does not filter any directives for Opera" do
           policy = ContentSecurityPolicy.new(complex_opts, USER_AGENTS[:opera])
-          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; manifest-src manifest-src.com; media-src media-src.com; object-src object-src.com; plugin-types application/pdf; sandbox allow-forms; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; report-uri report-uri.com")
+          expect(policy.value).to eq("default-src default-src.com; base-uri base-uri.com; block-all-mixed-content; child-src child-src.com; connect-src connect-src.com; font-src font-src.com; form-action form-action.com; frame-ancestors frame-ancestors.com; img-src img-src.com; manifest-src manifest-src.com; media-src media-src.com; object-src object-src.com; plugin-types application/pdf; sandbox allow-forms; script-src script-src.com 'nonce-123456'; style-src style-src.com; upgrade-insecure-requests; worker-src worker-src.com; report-uri report-uri.com")
         end
 
         it "filters blocked-all-mixed-content, child-src, and plugin-types for firefox" do
