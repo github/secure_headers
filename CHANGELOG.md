@@ -1,3 +1,7 @@
+## 3.7.2
+
+- Adds support for `worker-src` CSP directive to 3.x line (https://github.com/twitter/secureheaders/pull/364)
+
 ## 3.7.1
 
 Fix support for the sandbox attribute of CSP. `true` and `[]` represent the maximally restricted policy (`sandbox;`) and validate other values.
