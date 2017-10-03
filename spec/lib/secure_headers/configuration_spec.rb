@@ -91,5 +91,9 @@ module SecureHeaders
         end
       }.to raise_error(ArgumentError)
     end
+
+    it "gives cookies a default config" do
+      expect(Configuration.default.cookies).to eq({httponly: true, secure: true, samesite: {lax: true}})
+    end
   end
 end

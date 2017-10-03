@@ -132,7 +132,7 @@ module SecureHeaders
     end
 
     def initialize(&block)
-      @cookies = nil
+      @cookies = self.class.send(:deep_copy_if_hash, Cookie::COOKIE_DEFAULTS)
       @clear_site_data = nil
       @csp = nil
       @csp_report_only = nil
