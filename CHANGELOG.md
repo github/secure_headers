@@ -1,6 +1,14 @@
-## 4.x
+## 4.0.1
+
+- Adds support for `worker-src` CSP directive to 4.x line (https://github.com/twitter/secureheaders/pull/364)
+
+## 4.0
 
 - See the [upgrading to 4.0](upgrading-to-4-0.md) guide. Lots of breaking changes.
+
+## 3.7.2
+
+- Adds support for `worker-src` CSP directive to 3.x line (https://github.com/twitter/secureheaders/pull/364)
 
 ## 3.7.1
 
