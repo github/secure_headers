@@ -95,5 +95,15 @@ module SecureHeaders
     it "gives cookies a default config" do
       expect(Configuration.default.cookies).to eq({httponly: true, secure: true, samesite: {lax: true}})
     end
+
+    it "allows OPT_OUT" do
+      Configuration.default do |config|
+        config.cookies = OPT_OUT
+      end
+
+      config = Configuration.get
+
+      expect(config.cookies).to eq(OPT_OUT)
+    end
   end
 end
