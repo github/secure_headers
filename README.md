@@ -1,8 +1,8 @@
 # Secure Headers [![Build Status](https://travis-ci.org/twitter/secureheaders.svg?branch=master)](http://travis-ci.org/twitter/secureheaders) [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.svg)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.svg)](https://coveralls.io/r/twitter/secureheaders)
 
-**master represents the unreleased 4.x line**. See the [upgrading to 4.x doc](upgrading-to-4-0.md) for instructions on how to upgrade. Bug fixes should go in the 3.x branch for now.
+**master represents 5.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md) and [upgrading to 5.x doc](docs/upgrading-to-5-0.md) for instructions on how to upgrade. Bug fixes should go in the 3.x branch for now.
 
-**The [3.x](https://github.com/twitter/secureheaders/tree/2.x) branch is moving into maintenance mode**. See the [upgrading to 3.x doc](upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
+**The [3.x](https://github.com/twitter/secureheaders/tree/2.x) branch is moving into maintenance mode**. See the [upgrading to 3.x doc](docs/upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
 
 **The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be not be maintained once 4.x is released**. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
 
@@ -55,7 +55,7 @@ If you do not supply a `default` configuration, exceptions will be raised. If yo
 
 All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT` will disable the header entirely.
 
-**Word of caution:**  The following is not a default configuration per se. It serves as a sample implementation of the configuration. You should read more about these headers and determine what is appropriate for your requirements. 
+**Word of caution:**  The following is not a default configuration per se. It serves as a sample implementation of the configuration. You should read more about these headers and determine what is appropriate for your requirements.
 
 ```ruby
 SecureHeaders::Configuration.default do |config|

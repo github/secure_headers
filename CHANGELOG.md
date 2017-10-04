@@ -1,10 +1,14 @@
+## 5.0.0
+
+Well this is a little embarassing. 4.0 was supposed to set the secure/httponly/samesite=lax attributes on cookies by default but it didn't. Now it does. - See the [upgrading to 5.0](docs/upgrading-to-5-0.md) guide.
+
 ## 4.0.1
 
 - Adds support for `worker-src` CSP directive to 4.x line (https://github.com/twitter/secureheaders/pull/364)
 
 ## 4.0
 
-- See the [upgrading to 4.0](upgrading-to-4-0.md) guide. Lots of breaking changes.
+- See the [upgrading to 4.0](docs/upgrading-to-4-0.md) guide. Lots of breaking changes.
 
 ## 3.7.2
 
@@ -322,7 +326,7 @@ Adds `upgrade-insecure-requests` support for requests from Firefox and Chrome (a
 
 ## 3.0.0
 
-secure_headers 3.0.0 is a near-complete, not-entirely-backward-compatible rewrite. Please see the [upgrade guide](https://github.com/twitter/secureheaders/blob/master/upgrading-to-3-0.md) for an in-depth explanation of the changes and the suggested upgrade path.
+secure_headers 3.0.0 is a near-complete, not-entirely-backward-compatible rewrite. Please see the [upgrade guide](https://github.com/twitter/secureheaders/blob/master/docs/upgrading-to-3-0.md) for an in-depth explanation of the changes and the suggested upgrade path.
 
 ## 2.5.1 - 2016-02-16 18:11:11 UTC - Remove noisy deprecation warning
 

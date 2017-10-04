@@ -1,26 +1,6 @@
-### Breaking Changes
-
-The most likely change to break your app is the new cookie defaults. This is the first place to check. If you're using the default CSP, your policy will change but your app should not break. This should not break brand new projects using secure_headers either.
-
-## All cookies default to secure/httponly/SameSite=Lax
-
-By default, *all* cookies will be marked as `SameSite=lax`,`secure`, and `httponly`. To opt-out, supply `SecureHeaders::OPT_OUT` as the value for `SecureHeaders.cookies` or the individual configs. Setting these values to `false` will raise an error.
-
-```ruby
-# specific opt outs
-config.cookies = {
-  secure: SecureHeaders::OPT_OUT,
-  httponly: SecureHeaders::OPT_OUT,
-  samesite: SecureHeaders::OPT_OUT,
-}
-
-# nuclear option, just make things work again
-config.cookies = SecureHeaders::OPT_OUT
-```
-
 ## script_src must be set
 
-Not setting a `script_src` value means your policy falls back to whatever `default_src` (also required) is set to. This can be very dangerous and indicates the policy is too loose. 
+Not setting a `script_src` value means your policy falls back to whatever `default_src` (also required) is set to. This can be very dangerous and indicates the policy is too loose.
 
 However, sometimes you really don't need a `script-src` e.g. API responses (`default-src 'none'`) so you can set `script_src: SecureHeaders::OPT_OUT` to work around this.
 
