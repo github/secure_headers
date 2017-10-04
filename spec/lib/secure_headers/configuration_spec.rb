@@ -102,8 +102,16 @@ module SecureHeaders
       end
 
       config = Configuration.get
-
       expect(config.cookies).to eq(OPT_OUT)
+    end
+
+    it "allows me to be explicit too" do
+      Configuration.default do |config|
+        config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
+      end
+
+      config = Configuration.get
+      expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
     end
   end
 end
