@@ -91,5 +91,27 @@ module SecureHeaders
         end
       }.to raise_error(ArgumentError)
     end
+
+    it "gives cookies a default config" do
+      expect(Configuration.default.cookies).to eq({httponly: true, secure: true, samesite: {lax: true}})
+    end
+
+    it "allows OPT_OUT" do
+      Configuration.default do |config|
+        config.cookies = OPT_OUT
+      end
+
+      config = Configuration.get
+      expect(config.cookies).to eq(OPT_OUT)
+    end
+
+    it "allows me to be explicit too" do
+      Configuration.default do |config|
+        config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
+      end
+
+      config = Configuration.get
+      expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
+    end
   end
 end

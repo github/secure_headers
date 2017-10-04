@@ -17,7 +17,7 @@ module SecureHeaders
         Kernel.warn(HPKP_SAME_HOST_WARNING)
       end
 
-      flag_cookies!(headers, override_secure(env, config.cookies)) if config.cookies
+      flag_cookies!(headers, override_secure(env, config.cookies)) unless config.cookies == OPT_OUT
       headers.merge!(SecureHeaders.header_hash_for(req))
       [status, headers, response]
     end

@@ -22,7 +22,7 @@ The gem will automatically apply several headers that are related to security.  
 - Expect-CT - Only use certificates that are present in the certificate transparency logs. [Expect-CT draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
 - Clear-Site-Data - Clearing browser data for origin. [Clear-Site-Data specification](https://w3c.github.io/webappsec-clear-site-data/).
 
-It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes (when configured to do so).
+It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes. This is on default but can be turned off by using `config.cookies = SecureHeaders::OPT_OUT`.
 
 `secure_headers` is a library with a global config, per request overrides, and rack middleware that enables you customize your application settings.
 
