@@ -1,3 +1,7 @@
+## 5.0.1
+
+- Updates `Expect-CT` header to use a comma separator between directives, as specified in the most current spec.
+
 ## 5.0.0
 
 Well this is a little embarassing. 4.0 was supposed to set the secure/httponly/samesite=lax attributes on cookies by default but it didn't. Now it does. - See the [upgrading to 5.0](docs/upgrading-to-5-0.md) guide.
