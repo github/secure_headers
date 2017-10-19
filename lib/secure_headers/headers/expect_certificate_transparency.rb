@@ -49,7 +49,7 @@ module SecureHeaders
         enforced_directive,
         max_age_directive,
         report_uri_directive
-      ].compact.join("; ").strip
+      ].compact.join(", ").strip
     end
 
     def enforced_directive
