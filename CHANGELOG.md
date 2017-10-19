@@ -1,3 +1,7 @@
+## 4.0.2
+
+- Updates `Expect-CT` header to use a comma separator between directives, as specified in the most current spec.
+
 ## 4.0.1
 
 - Adds support for `worker-src` CSP directive to 4.x line (https://github.com/twitter/secureheaders/pull/364)
