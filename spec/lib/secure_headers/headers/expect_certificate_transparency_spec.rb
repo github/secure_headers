@@ -3,13 +3,13 @@ require "spec_helper"
 
 module SecureHeaders
   describe ExpectCertificateTransparency do
-    specify { expect(ExpectCertificateTransparency.new(max_age: 1234, enforce: true).value).to eq("enforce; max-age=1234") }
+    specify { expect(ExpectCertificateTransparency.new(max_age: 1234, enforce: true).value).to eq("enforce, max-age=1234") }
     specify { expect(ExpectCertificateTransparency.new(max_age: 1234, enforce: false).value).to eq("max-age=1234") }
     specify { expect(ExpectCertificateTransparency.new(max_age: 1234, enforce: "yolocopter").value).to eq("max-age=1234") }
-    specify { expect(ExpectCertificateTransparency.new(max_age: 1234, report_uri: "https://report-uri.io/expect-ct").value).to eq("max-age=1234; report-uri=\"https://report-uri.io/expect-ct\"") }
+    specify { expect(ExpectCertificateTransparency.new(max_age: 1234, report_uri: "https://report-uri.io/expect-ct").value).to eq("max-age=1234, report-uri=\"https://report-uri.io/expect-ct\"") }
     specify do
       config = { enforce: true, max_age: 1234, report_uri: "https://report-uri.io/expect-ct" }
-      header_value = "enforce; max-age=1234; report-uri=\"https://report-uri.io/expect-ct\""
+      header_value = "enforce, max-age=1234, report-uri=\"https://report-uri.io/expect-ct\""
       expect(ExpectCertificateTransparency.new(config).value).to eq(header_value)
     end
 
