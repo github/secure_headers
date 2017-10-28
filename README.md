@@ -18,7 +18,6 @@ The gem will automatically apply several headers that are related to security.  
 - X-Download-Options - [Prevent file downloads opening](https://msdn.microsoft.com/library/jj542450(v=vs.85).aspx)
 - X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
 - Referrer-Policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
-- Public Key Pinning - Pin certificate fingerprints in the browser to prevent man-in-the-middle attacks due to compromised Certificate Authorities. [Public Key Pinning Specification](https://tools.ietf.org/html/rfc7469)
 - Expect-CT - Only use certificates that are present in the certificate transparency logs. [Expect-CT draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
 - Clear-Site-Data - Clearing browser data for origin. [Clear-Site-Data specification](https://w3c.github.io/webappsec-clear-site-data/).
 
@@ -31,7 +30,6 @@ It can also mark all http cookies with the Secure, HttpOnly and SameSite attribu
 - [Named overrides and appends](docs/named_overrides_and_appends.md)
 - [Per action configuration](docs/per_action_configuration.md)
 - [Cookies](docs/cookies.md)
-- [HPKP](docs/HPKP.md)
 - [Hashes](docs/hashes.md)
 - [Sinatra Config](docs/sinatra.md)
 
