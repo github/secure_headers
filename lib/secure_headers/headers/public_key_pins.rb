@@ -28,7 +28,7 @@ module SecureHeaders
           raise PublicKeyPinsConfigError.new("max-age must be a number.
                                             #{config[:max_age]} was supplied.")
         elsif config[:pins] && config[:pins].length < 2
-          raise PublicKeyPinsConfigError.new("A minimum of 2 pins are required.")
+          raise PublicKeyPinsConfigError.new("A minimum of 2 pins is required.")
         end
       end
     end
