@@ -71,7 +71,7 @@ SecureHeaders::Configuration.default do |config|
   config.x_xss_protection = "1; mode=block"
   config.x_download_options = "noopen"
   config.x_permitted_cross_domain_policies = "none"
-  config.referrer_policy = "origin-when-cross-origin"
+  config.referrer_policy = %w(origin-when-cross-origin strict-origin-when-cross-origin)
   config.csp = {
     # "meta" values. these will shape the header, but the values are not included in the header.
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
