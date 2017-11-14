@@ -66,6 +66,12 @@ body {
   background-color: black;
 }
 <% end %>
+
+<%= nonced_javascript_include_tag "include.js" %>
+
+<%= nonced_javascript_pack_tag "pack.js" %>
+
+<%= nonced_stylesheet_link_tag "link.css" %>
 ```
 
 becomes:
