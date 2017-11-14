@@ -1,3 +1,7 @@
+## 5.0.2
+
+- Updates `Referrer-Policy` header to support multiple policy values
+
 ## 5.0.1
 
 - Updates `Expect-CT` header to use a comma separator between directives, as specified in the most current spec.

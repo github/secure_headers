@@ -5,6 +5,7 @@ module SecureHeaders
   describe ReferrerPolicy do
     specify { expect(ReferrerPolicy.make_header).to eq([ReferrerPolicy::HEADER_NAME, "origin-when-cross-origin"]) }
     specify { expect(ReferrerPolicy.make_header("no-referrer")).to eq([ReferrerPolicy::HEADER_NAME, "no-referrer"]) }
+    specify { expect(ReferrerPolicy.make_header(%w(origin-when-cross-origin strict-origin-when-cross-origin))).to eq([ReferrerPolicy::HEADER_NAME, "origin-when-cross-origin, strict-origin-when-cross-origin"]) }
 
     context "valid configuration values" do
       it "accepts 'no-referrer'" do
@@ -60,13 +61,30 @@ module SecureHeaders
           ReferrerPolicy.validate_config!(nil)
         end.not_to raise_error
       end
+
+      it "accepts array of policy values" do
+        expect do
+          ReferrerPolicy.validate_config!(
+            %w(
+              origin-when-cross-origin
+              strict-origin-when-cross-origin
+            )
+          )
+        end.not_to raise_error
+      end
     end
 
-    context "invlaid configuration values" do
+    context "invalid configuration values" do
       it "doesn't accept invalid values" do
         expect do
           ReferrerPolicy.validate_config!("open")
         end.to raise_error(ReferrerPolicyConfigError)
+      end
+
+      it "doesn't accept invalid types" do
+        expect do
+          ReferrerPolicy.validate_config!({})
+        end.to raise_error(TypeError)
       end
     end
   end

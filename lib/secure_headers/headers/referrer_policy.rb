@@ -22,14 +22,21 @@ module SecureHeaders
       # Returns a default header if no configuration is provided, or a
       # header name and value based on the config.
       def make_header(config = nil)
-        [HEADER_NAME, config || DEFAULT_VALUE]
+        config ||= DEFAULT_VALUE
+        [HEADER_NAME, Array(config).join(", ")]
       end
 
       def validate_config!(config)
-        return if config.nil? || config == OPT_OUT
-        raise TypeError.new("Must be a string. Found #{config.class}: #{config}") unless config.is_a?(String)
-        unless VALID_POLICIES.include?(config.downcase)
-          raise ReferrerPolicyConfigError.new("Value can only be one of #{VALID_POLICIES.join(', ')}")
+        case config
+        when nil, OPT_OUT
+          # valid
+        when String, Array
+          config = Array(config)
+          unless config.all? { |t| t.is_a?(String) && VALID_POLICIES.include?(t.downcase) }
+            raise ReferrerPolicyConfigError.new("Value can only be one or more of #{VALID_POLICIES.join(", ")}")
+          end
+        else
+          raise TypeError.new("Must be a string or array of strings. Found #{config.class}: #{config}")
         end
       end
     end
