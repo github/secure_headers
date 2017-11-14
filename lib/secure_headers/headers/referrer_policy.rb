@@ -33,7 +33,7 @@ module SecureHeaders
         when String, Array
           config = Array(config)
           unless config.all? { |t| t.is_a?(String) && VALID_POLICIES.include?(t.downcase) }
-            raise ReferrerPolicyConfigError.new("Value can only be one or more of #{VALID_POLICIES.join(', ')}")
+            raise ReferrerPolicyConfigError.new("Value can only be one or more of #{VALID_POLICIES.join(", ")}")
           end
         else
           raise TypeError.new("Must be a string or array of strings. Found #{config.class}: #{config}")
