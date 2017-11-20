@@ -1,3 +1,7 @@
+## 5.0.3
+
+- Add nonced versions of Rails link/include tags #372 (@steveh)
+
 ## 5.0.2
 
 - Updates `Referrer-Policy` header to support multiple policy values
