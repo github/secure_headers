@@ -7,19 +7,43 @@ module SecureHeaders
     class UnexpectedHashedScriptException < StandardError; end
 
     # Public: create a style tag using the content security policy nonce.
-    # Instructs secure_headers to append a nonce to style/script-src directives.
+    # Instructs secure_headers to append a nonce to style-src directive.
     #
     # Returns an html-safe style tag with the nonce attribute.
     def nonced_style_tag(content_or_options = {}, &block)
       nonced_tag(:style, content_or_options, block)
     end
 
+    # Public: create a stylesheet link tag using the content security policy nonce.
+    # Instructs secure_headers to append a nonce to style-src directive.
+    #
+    # Returns an html-safe link tag with the nonce attribute.
+    def nonced_stylesheet_link_tag(*args, &block)
+      stylesheet_link_tag(*args, nonce: content_security_policy_nonce(:style), &block)
+    end
+
     # Public: create a script tag using the content security policy nonce.
-    # Instructs secure_headers to append a nonce to style/script-src directives.
+    # Instructs secure_headers to append a nonce to script-src directive.
     #
     # Returns an html-safe script tag with the nonce attribute.
     def nonced_javascript_tag(content_or_options = {}, &block)
       nonced_tag(:script, content_or_options, block)
+    end
+
+    # Public: create a script src tag using the content security policy nonce.
+    # Instructs secure_headers to append a nonce to script-src directive.
+    #
+    # Returns an html-safe script tag with the nonce attribute.
+    def nonced_javascript_include_tag(*args, &block)
+      javascript_include_tag(*args, nonce: content_security_policy_nonce(:script), &block)
+    end
+
+    # Public: create a script Webpacker pack tag using the content security policy nonce.
+    # Instructs secure_headers to append a nonce to script-src directive.
+    #
+    # Returns an html-safe script tag with the nonce attribute.
+    def nonced_javascript_pack_tag(*args, &block)
+      javascript_pack_tag(*args, nonce: content_security_policy_nonce(:script), &block)
     end
 
     # Public: use the content security policy nonce for this request directly.

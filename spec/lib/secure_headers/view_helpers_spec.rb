@@ -39,6 +39,12 @@ class Message < ERB
   }
 </style>
 
+<%= nonced_javascript_include_tag "include.js" %>
+
+<%= nonced_javascript_pack_tag "pack.js" %>
+
+<%= nonced_stylesheet_link_tag "link.css" %>
+
 TEMPLATE
   end
 
@@ -62,6 +68,16 @@ TEMPLATE
       options = options.map {|k, v| " #{k}=#{v}"}
     end
     "<#{type}#{options}>#{content}</#{type}>"
+  end
+
+  def javascript_include_tag(source, options = {})
+    content_tag(:script, nil, options.merge(src: source))
+  end
+
+  alias_method :javascript_pack_tag, :javascript_include_tag
+
+  def stylesheet_link_tag(source, options = {})
+    content_tag(:link, nil, options.merge(href: source, rel: "stylesheet", media: "screen"))
   end
 
   def result
