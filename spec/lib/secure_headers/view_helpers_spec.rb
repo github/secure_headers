@@ -41,9 +41,11 @@ class Message < ERB
 
 <%= nonced_javascript_include_tag "include.js" %>
 
-<%= nonced_javascript_pack_tag "pack.js" %>
+<%= nonced_javascript_pack_tag "pack.js", defer: true %>
 
 <%= nonced_stylesheet_link_tag "link.css" %>
+
+<%= nonced_stylesheet_pack_tag "pack.css", media: :all %>
 
 TEMPLATE
   end
@@ -79,6 +81,8 @@ TEMPLATE
   def stylesheet_link_tag(source, options = {})
     content_tag(:link, nil, options.merge(href: source, rel: "stylesheet", media: "screen"))
   end
+
+  alias_method :stylesheet_pack_tag, :stylesheet_link_tag
 
   def result
     super(binding)
