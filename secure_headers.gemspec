@@ -22,7 +22,7 @@ Gem::Specification.new do |gem|
   gem.post_install_message = <<-POST_INSTALL
 
 **********
-:wave: secure_headers 5.0 introduces a lot of breaking changes (in the name of security!). It's highly likely you will need to update your secure_headers cookie configuration to avoid breaking things. See the upgrade guide for details: https://github.com/twitter/secureheaders/blob/master/docs/upgrading-to-4-0.md https://github.com/twitter/secureheaders/blob/master/docs/upgrading-to-4-0.md
+:wave: secure_headers 5.0 introduces a lot of breaking changes (in the name of security!). It's highly likely you will need to update your secure_headers cookie configuration to avoid breaking things. See the upgrade guide for details: https://github.com/twitter/secureheaders/blob/master/docs/upgrading-to-4-0.md
 **********
 
   POST_INSTALL
