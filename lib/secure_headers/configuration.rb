@@ -308,7 +308,7 @@ module SecureHeaders
     def generate_csp_headers_for_config(headers, header_key, csp_config)
       unless csp_config.opt_out?
         headers[header_key] = {}
-        ContentSecurityPolicy::VARIATIONS.each do |name, _|
+        ContentSecurityPolicy::VARIATIONS.each_key do |name|
           csp = ContentSecurityPolicy.make_header(csp_config, UserAgent.parse(name))
           headers[header_key][name] = csp.freeze
         end
