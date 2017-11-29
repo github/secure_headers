@@ -39,13 +39,13 @@ class Message < ERB
   }
 </style>
 
-<%= nonced_javascript_include_tag "include.js" %>
+<%= nonced_javascript_include_tag "include.js", defer: true %>
 
-<%= nonced_javascript_pack_tag "pack.js", defer: true %>
+<%= nonced_javascript_pack_tag "pack.js", "otherpack.js", defer: true %>
 
-<%= nonced_stylesheet_link_tag "link.css" %>
+<%= nonced_stylesheet_link_tag "link.css", media: :all %>
 
-<%= nonced_stylesheet_pack_tag "pack.css", media: :all %>
+<%= nonced_stylesheet_pack_tag "pack.css", "otherpack.css", media: :all %>
 
 TEMPLATE
   end
@@ -72,14 +72,18 @@ TEMPLATE
     "<#{type}#{options}>#{content}</#{type}>"
   end
 
-  def javascript_include_tag(source, options = {})
-    content_tag(:script, nil, options.merge(src: source))
+  def javascript_include_tag(*sources, **options)
+    sources.map do |source|
+      content_tag(:script, nil, options.merge(src: source))
+    end
   end
 
   alias_method :javascript_pack_tag, :javascript_include_tag
 
-  def stylesheet_link_tag(source, options = {})
-    content_tag(:link, nil, options.merge(href: source, rel: "stylesheet", media: "screen"))
+  def stylesheet_link_tag(*sources, **options)
+    sources.map do |source|
+      content_tag(:link, nil, options.merge(href: source, rel: "stylesheet", media: "screen"))
+    end
   end
 
   alias_method :stylesheet_pack_tag, :stylesheet_link_tag
