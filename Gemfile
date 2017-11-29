@@ -5,14 +5,14 @@ gemspec
 
 group :test do
   gem "coveralls"
-  gem "json", "~> 1"
+  gem "json"
   gem "pry-nav"
-  gem "rack", "~> 1"
+  gem "rack"
   gem "rspec"
-  gem "rubocop", "~> 0.47.0"
+  gem "rubocop"
   gem "rubocop-github"
-  gem "term-ansicolor", "< 1.4"
-  gem "tins", "~> 1.6.0" # 1.7 requires ruby 2.0
+  gem "term-ansicolor"
+  gem "tins"
 end
 
 group :guard do
