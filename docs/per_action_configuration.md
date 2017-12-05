@@ -72,6 +72,8 @@ body {
 <%= nonced_javascript_pack_tag "pack.js" %>
 
 <%= nonced_stylesheet_link_tag "link.css" %>
+
+<%= nonced_stylesheet_pack_tag "pack.css" %>
 ```
 
 becomes:

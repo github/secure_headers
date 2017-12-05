@@ -19,7 +19,9 @@ module SecureHeaders
     #
     # Returns an html-safe link tag with the nonce attribute.
     def nonced_stylesheet_link_tag(*args, &block)
-      stylesheet_link_tag(*args, nonce: content_security_policy_nonce(:style), &block)
+      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:style))
+
+      stylesheet_link_tag(*args, opts, &block)
     end
 
     # Public: create a script tag using the content security policy nonce.
@@ -35,7 +37,9 @@ module SecureHeaders
     #
     # Returns an html-safe script tag with the nonce attribute.
     def nonced_javascript_include_tag(*args, &block)
-      javascript_include_tag(*args, nonce: content_security_policy_nonce(:script), &block)
+      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:script))
+
+      javascript_include_tag(*args, opts, &block)
     end
 
     # Public: create a script Webpacker pack tag using the content security policy nonce.
@@ -43,7 +47,19 @@ module SecureHeaders
     #
     # Returns an html-safe script tag with the nonce attribute.
     def nonced_javascript_pack_tag(*args, &block)
-      javascript_pack_tag(*args, nonce: content_security_policy_nonce(:script), &block)
+      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:script))
+
+      javascript_pack_tag(*args, opts, &block)
+    end
+
+    # Public: create a stylesheet Webpacker link tag using the content security policy nonce.
+    # Instructs secure_headers to append a nonce to style-src directive.
+    #
+    # Returns an html-safe link tag with the nonce attribute.
+    def nonced_stylesheet_pack_tag(*args, &block)
+      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:style))
+
+      stylesheet_pack_tag(*args, opts, &block)
     end
 
     # Public: use the content security policy nonce for this request directly.
@@ -137,6 +153,14 @@ module SecureHeaders
         content_or_options.html_safe # :'(
       end
       content_tag type, content, options.merge(nonce: content_security_policy_nonce(type))
+    end
+
+    def extract_options(args)
+      if args.last.is_a? Hash
+        args.pop
+      else
+        {}
+      end
     end
   end
 end
