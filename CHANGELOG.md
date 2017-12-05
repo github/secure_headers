@@ -1,3 +1,7 @@
+## 5.0.4
+
+- Adds support for `nonced_stylesheet_pack_tag` #373 (@paulfri)
+
 ## 5.0.3
 
 - Add nonced versions of Rails link/include tags #372 (@steveh)
