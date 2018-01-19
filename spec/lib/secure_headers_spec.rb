@@ -60,6 +60,24 @@ module SecureHeaders
         expect(hash["X-Frame-Options"]).to be_nil
       end
 
+      it "Overrides the current default config if default config changes during request" do
+        Configuration.default do |config|
+          config.x_frame_options = OPT_OUT
+        end
+
+        # Dynamically update the default config for this request
+        SecureHeaders.override_x_frame_options(request, "DENY")
+
+        Configuration.override(:dynamic_override) do |config|
+          config.x_content_type_options = "nosniff"
+        end
+
+        SecureHeaders.use_secure_headers_override(request, :dynamic_override)
+        hash = SecureHeaders.header_hash_for(request)
+        expect(hash["X-Content-Type-Options"]).to eq("nosniff")
+        expect(hash["X-Frame-Options"]).to eq("DENY")
+      end
+
       it "allows you to opt out entirely" do
         # configure the disabled-by-default headers to ensure they also do not get set
         Configuration.default do |config|
@@ -78,9 +96,6 @@ module SecureHeaders
         end
         SecureHeaders.opt_out_of_all_protection(request)
         hash = SecureHeaders.header_hash_for(request)
-        ALL_HEADER_CLASSES.each do |klass|
-          expect(hash[klass::CONFIG_KEY]).to be_nil
-        end
         expect(hash.count).to eq(0)
       end
 

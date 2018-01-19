@@ -15,8 +15,8 @@ module SecureHeaders
       #
       # Returns nil if not configured, returns header name and value if
       # configured.
-      def make_header(config)
-        return if config.nil?
+      def make_header(config, use_agent = nil)
+        return if config.nil? || config == OPT_OUT
 
         header = new(config)
         [HEADER_NAME, header.value]

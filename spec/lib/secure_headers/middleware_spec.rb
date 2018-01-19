@@ -50,7 +50,6 @@ module SecureHeaders
       end
       request = Rack::Request.new({})
       SecureHeaders.use_secure_headers_override(request, "my_custom_config")
-      expect(request.env[SECURE_HEADERS_CONFIG]).to be(Configuration.get("my_custom_config"))
       _, env = middleware.call request.env
       expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match("example.org")
     end
@@ -66,7 +65,7 @@ module SecureHeaders
       end
 
       it "allows opting out of cookie protection with OPT_OUT alone" do
-        Configuration.default { |config| config.cookies = OPT_OUT}
+        Configuration.default { |config| config.cookies = OPT_OUT }
 
         # do NOT make this request https. non-https requests modify a config,
         # causing an exception when operating on OPT_OUT. This ensures we don't

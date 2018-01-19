@@ -4,7 +4,7 @@ require "yaml"
 module SecureHeaders
   class Configuration
     DEFAULT_CONFIG = :default
-    NOOP_CONFIGURATION = "secure_headers_noop_config"
+    NOOP_OVERRIDE = "secure_headers_noop_override"
     class NotYetConfiguredError < StandardError; end
     class IllegalPolicyModificationError < StandardError; end
     class << self
@@ -15,8 +15,13 @@ module SecureHeaders
       # Returns the newly created config.
       def default(&block)
         config = new(&block)
-        add_noop_configuration
         add_configuration(DEFAULT_CONFIG, config)
+        override(NOOP_OVERRIDE) do |config|
+          CONFIG_ATTRIBUTES.each do |attr|
+            config.instance_variable_set("@#{attr}", OPT_OUT)
+          end
+        end
+        config
       end
       alias_method :configure, :default
 
@@ -27,13 +32,14 @@ module SecureHeaders
       # if no value is supplied.
       #
       # Returns: the newly created config
-      def override(name, base = DEFAULT_CONFIG, &block)
-        unless get(base)
-          raise NotYetConfiguredError, "#{base} policy not yet supplied"
-        end
-        override = @configurations[base].dup
-        override.instance_eval(&block) if block_given?
-        add_configuration(name, override)
+      def override(name, &block)
+        @overrides ||= {}
+        @overrides[name] = block
+      end
+
+      def overrides(name)
+        @overrides ||= {}
+        @overrides[name]
       end
 
       # Public: retrieve a global configuration object
@@ -72,23 +78,8 @@ module SecureHeaders
       def add_configuration(name, config)
         config.validate_config!
         @configurations ||= {}
-        config.send(:cache_headers!)
-        config.send(:cache_hpkp_report_host)
         config.freeze
         @configurations[name] = config
-      end
-
-      # Private: Automatically add an "opt-out of everything" override.
-      #
-      # Returns the noop config
-      def add_noop_configuration
-        noop_config = new do |config|
-          ALL_HEADER_CLASSES.each do |klass|
-            config.send("#{klass::CONFIG_KEY}=", OPT_OUT)
-          end
-        end
-
-        add_configuration(NOOP_CONFIGURATION, noop_config)
       end
 
       # Public: perform a basic deep dup. The shallow copy provided by dup/clone
@@ -115,11 +106,28 @@ module SecureHeaders
       end
     end
 
-    attr_writer :hsts, :x_frame_options, :x_content_type_options,
-      :x_xss_protection, :x_download_options, :x_permitted_cross_domain_policies,
-      :referrer_policy, :clear_site_data, :expect_certificate_transparency
+    NON_HEADER_ATTRIBUTES = [
+      :cookies, :hpkp_report_host
+    ].freeze
 
-    attr_reader :cached_headers, :csp, :cookies, :csp_report_only, :hpkp, :hpkp_report_host
+    HEADER_ATTRIBUTES_TO_HEADER_CLASSES = {
+      hsts: StrictTransportSecurity,
+      x_frame_options: XFrameOptions,
+      x_content_type_options: XContentTypeOptions,
+      x_xss_protection: XXssProtection,
+      x_download_options: XDownloadOptions,
+      x_permitted_cross_domain_policies: XPermittedCrossDomainPolicies,
+      referrer_policy: ReferrerPolicy,
+      clear_site_data: ClearSiteData,
+      expect_certificate_transparency: ExpectCertificateTransparency,
+      csp: ContentSecurityPolicy,
+      csp_report_only: ContentSecurityPolicy,
+      hpkp: PublicKeyPins,
+    }.freeze
+
+    CONFIG_ATTRIBUTES = (HEADER_ATTRIBUTES_TO_HEADER_CLASSES.keys + NON_HEADER_ATTRIBUTES).freeze
+
+    attr_accessor(*CONFIG_ATTRIBUTES)
 
     @script_hashes = nil
     @style_hashes = nil
@@ -154,7 +162,7 @@ module SecureHeaders
       instance_eval(&block) if block_given?
     end
 
-    # Public: copy everything but the cached headers
+    # Public: copy everything
     #
     # Returns a deep-dup'd copy of this configuration.
     def dup
@@ -162,7 +170,6 @@ module SecureHeaders
       copy.cookies = self.class.send(:deep_copy_if_hash, @cookies)
       copy.csp = @csp.dup if @csp
       copy.csp_report_only = @csp_report_only.dup if @csp_report_only
-      copy.cached_headers = self.class.send(:deep_copy_if_hash, @cached_headers)
       copy.x_content_type_options = @x_content_type_options
       copy.hsts = @hsts
       copy.x_frame_options = @x_frame_options
@@ -173,18 +180,26 @@ module SecureHeaders
       copy.expect_certificate_transparency = @expect_certificate_transparency
       copy.referrer_policy = @referrer_policy
       copy.hpkp = @hpkp
-      copy.hpkp_report_host = @hpkp_report_host
       copy
+    end
+
+    def generate_headers(user_agent)
+      headers = {}
+      HEADER_ATTRIBUTES_TO_HEADER_CLASSES.each do |attr, klass|
+        header_name, value = klass.make_header(instance_variable_get("@#{attr}"), user_agent)
+        if header_name && value
+          headers[header_name] = value
+        end
+      end
+      headers
     end
 
     def opt_out(header)
       send("#{header}=", OPT_OUT)
-      self.cached_headers.delete(header)
     end
 
     def update_x_frame_options(value)
       @x_frame_options = value
-      self.cached_headers[XFrameOptions::CONFIG_KEY] = XFrameOptions.make_header(value)
     end
 
     # Public: validates all configurations values.
@@ -193,18 +208,9 @@ module SecureHeaders
     #
     # Returns nothing
     def validate_config!
-      StrictTransportSecurity.validate_config!(@hsts)
-      ContentSecurityPolicy.validate_config!(@csp)
-      ContentSecurityPolicy.validate_config!(@csp_report_only)
-      ReferrerPolicy.validate_config!(@referrer_policy)
-      XFrameOptions.validate_config!(@x_frame_options)
-      XContentTypeOptions.validate_config!(@x_content_type_options)
-      XXssProtection.validate_config!(@x_xss_protection)
-      XDownloadOptions.validate_config!(@x_download_options)
-      XPermittedCrossDomainPolicies.validate_config!(@x_permitted_cross_domain_policies)
-      ClearSiteData.validate_config!(@clear_site_data)
-      ExpectCertificateTransparency.validate_config!(@expect_certificate_transparency)
-      PublicKeyPins.validate_config!(@hpkp)
+      HEADER_ATTRIBUTES_TO_HEADER_CLASSES.each do |attr, klass|
+        klass.validate_config!(instance_variable_get("@#{attr}"))
+      end
       Cookie.validate_config!(@cookies)
     end
 
@@ -247,72 +253,19 @@ module SecureHeaders
       end
     end
 
+    def hpkp_report_host
+      return nil unless @hpkp && hpkp != OPT_OUT && @hpkp[:report_uri]
+      URI.parse(@hpkp[:report_uri]).host
+    end
+
     protected
 
     def cookies=(cookies)
       @cookies = cookies
     end
 
-    def cached_headers=(headers)
-      @cached_headers = headers
-    end
-
     def hpkp=(hpkp)
       @hpkp = self.class.send(:deep_copy_if_hash, hpkp)
-    end
-
-    def hpkp_report_host=(hpkp_report_host)
-      @hpkp_report_host = hpkp_report_host
-    end
-
-    private
-
-    def cache_hpkp_report_host
-      has_report_uri = @hpkp && @hpkp != OPT_OUT && @hpkp[:report_uri]
-      self.hpkp_report_host = if has_report_uri
-        parsed_report_uri = URI.parse(@hpkp[:report_uri])
-        parsed_report_uri.host
-      end
-    end
-
-    # Public: Precompute the header names and values for this configuration.
-    # Ensures that headers generated at configure time, not on demand.
-    #
-    # Returns the cached headers
-    def cache_headers!
-      # generate defaults for the "easy" headers
-      headers = (ALL_HEADERS_BESIDES_CSP).each_with_object({}) do |klass, hash|
-        config = instance_variable_get("@#{klass::CONFIG_KEY}")
-        unless config == OPT_OUT
-          hash[klass::CONFIG_KEY] = klass.make_header(config).freeze
-        end
-      end
-
-      generate_csp_headers(headers)
-
-      headers.freeze
-      self.cached_headers = headers
-    end
-
-    # Private: adds CSP headers for each variation of CSP support.
-    #
-    # headers - generated headers are added to this hash namespaced by The
-    #   different variations
-    #
-    # Returns nothing
-    def generate_csp_headers(headers)
-      generate_csp_headers_for_config(headers, ContentSecurityPolicyConfig::CONFIG_KEY, self.csp)
-      generate_csp_headers_for_config(headers, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY, self.csp_report_only)
-    end
-
-    def generate_csp_headers_for_config(headers, header_key, csp_config)
-      unless csp_config.opt_out?
-        headers[header_key] = {}
-        ContentSecurityPolicy::VARIATIONS.each_key do |name|
-          csp = ContentSecurityPolicy.make_header(csp_config, UserAgent.parse(name))
-          headers[header_key][name] = csp.freeze
-        end
-      end
     end
   end
 end

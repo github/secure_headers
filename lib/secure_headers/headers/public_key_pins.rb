@@ -12,8 +12,8 @@ module SecureHeaders
       # Public: make an hpkp header name, value pair
       #
       # Returns nil if not configured, returns header name and value if configured.
-      def make_header(config)
-        return if config.nil?
+      def make_header(config, user_agent = nil)
+        return if config.nil? || config == OPT_OUT
         header = new(config)
         [header.name, header.value]
       end

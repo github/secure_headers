@@ -201,6 +201,7 @@ module SecureHeaders
       # Returns a default policy if no configuration is provided, or a
       # header name and value based on the config.
       def make_header(config, user_agent)
+        return if config.nil? || config == OPT_OUT
         header = new(config, user_agent)
         [header.name, header.value]
       end

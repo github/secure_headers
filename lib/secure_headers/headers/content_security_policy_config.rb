@@ -2,7 +2,6 @@
 module SecureHeaders
   module DynamicConfig
     def self.included(base)
-      base.send(:attr_writer, :modified)
       base.send(:attr_reader, *base.attrs)
       base.attrs.each do |attr|
         base.send(:define_method, "#{attr}=") do |value|
@@ -42,7 +41,6 @@ module SecureHeaders
       @upgrade_insecure_requests = nil
 
       from_hash(hash)
-      @modified = false
     end
 
     def update_directive(directive, value)
@@ -53,10 +51,6 @@ module SecureHeaders
       if self.class.attrs.include?(directive)
         self.send(directive)
       end
-    end
-
-    def modified?
-      @modified
     end
 
     def merge(new_hash)
@@ -109,11 +103,7 @@ module SecureHeaders
     def write_attribute(attr, value)
       value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
       attr_variable = "@#{attr}"
-      prev_value = self.instance_variable_get(attr_variable)
       self.instance_variable_set(attr_variable, value)
-      if prev_value != value
-        @modified = true
-      end
     end
   end
 
