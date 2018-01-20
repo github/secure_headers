@@ -112,7 +112,6 @@ module SecureHeaders
 
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicyConfig
-    CONFIG_KEY = :csp
     HEADER_NAME = "Content-Security-Policy".freeze
 
     ATTRS = PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES

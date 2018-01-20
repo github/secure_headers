@@ -3,7 +3,6 @@ module SecureHeaders
   class XFOConfigError < StandardError; end
   class XFrameOptions
     HEADER_NAME = "X-Frame-Options".freeze
-    CONFIG_KEY = :x_frame_options
     SAMEORIGIN = "sameorigin"
     DENY = "deny"
     ALLOW_FROM = "allow-from"

@@ -4,8 +4,7 @@ module SecureHeaders
   class XXssProtection
     HEADER_NAME = "X-XSS-Protection".freeze
     DEFAULT_VALUE = "1; mode=block"
-    VALID_X_XSS_HEADER = /\A[01](; mode=block)?(; report=.*)?\z/i
-    CONFIG_KEY = :x_xss_protection
+    VALID_X_XSS_HEADER = /\A[01](; mode=block)?(; report=.*)?\z/
 
     class << self
       # Public: generate an X-Xss-Protection header.

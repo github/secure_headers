@@ -5,7 +5,6 @@ module SecureHeaders
     HEADER_NAME = "Public-Key-Pins".freeze
     REPORT_ONLY = "Public-Key-Pins-Report-Only".freeze
     HASH_ALGORITHMS = [:sha256].freeze
-    CONFIG_KEY = :hpkp
 
 
     class << self

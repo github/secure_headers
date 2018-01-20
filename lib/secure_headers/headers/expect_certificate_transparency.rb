@@ -4,7 +4,6 @@ module SecureHeaders
 
   class ExpectCertificateTransparency
     HEADER_NAME = "Expect-CT".freeze
-    CONFIG_KEY  = :expect_certificate_transparency
     INVALID_CONFIGURATION_ERROR = "config must be a hash.".freeze
     INVALID_ENFORCE_VALUE_ERROR = "enforce must be a boolean".freeze
     REQUIRED_MAX_AGE_ERROR      = "max-age is a required directive.".freeze

@@ -14,7 +14,6 @@ module SecureHeaders
       origin-when-cross-origin
       unsafe-url
     )
-    CONFIG_KEY = :referrer_policy
 
     class << self
       # Public: generate an Referrer Policy header.

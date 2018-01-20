@@ -11,8 +11,6 @@ module SecureHeaders
     EXECUTION_CONTEXTS = "executionContexts".freeze
     ALL_TYPES = [CACHE, COOKIES, STORAGE, EXECUTION_CONTEXTS]
 
-    CONFIG_KEY = :clear_site_data
-
     class << self
       # Public: make an Clear-Site-Data header name, value pair
       #

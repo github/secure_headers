@@ -4,7 +4,6 @@ module SecureHeaders
   class XDownloadOptions
     HEADER_NAME = "X-Download-Options".freeze
     DEFAULT_VALUE = "noopen"
-    CONFIG_KEY = :x_download_options
 
     class << self
       # Public: generate an X-Download-Options header.

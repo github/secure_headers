@@ -17,7 +17,7 @@ module SecureHeaders
 
     it "raises a NotYetConfiguredError if trying to opt-out of unconfigured headers" do
       expect do
-        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyConfig::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, :csp)
       end.to raise_error(Configuration::NotYetConfiguredError)
     end
 
@@ -34,9 +34,9 @@ module SecureHeaders
           config.csp = { default_src: %w('self'), script_src: %w('self')}
           config.csp_report_only = config.csp
         end
-        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyConfig::CONFIG_KEY)
-        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY)
-        SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, :csp)
+        SecureHeaders.opt_out_of_header(request, :csp_report_only)
+        SecureHeaders.opt_out_of_header(request, :x_content_type_options)
         hash = SecureHeaders.header_hash_for(request)
         expect(hash["Content-Security-Policy-Report-Only"]).to be_nil
         expect(hash["Content-Security-Policy"]).to be_nil
