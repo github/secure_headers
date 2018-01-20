@@ -265,21 +265,6 @@ module SecureHeaders
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src https:; img-src data:; script-src 'self'")
         end
 
-        it "does not append a nonce when the browser does not support it" do
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self'),
-              script_src: %w(mycdn.com 'unsafe-inline'),
-              style_src: %w('self')
-            }
-          end
-
-          safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari5]))
-          SecureHeaders.content_security_policy_script_nonce(safari_request)
-          hash = SecureHeaders.header_hash_for(safari_request)
-          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline'; style-src 'self'")
-        end
-
         it "appends a nonce to the script-src when used" do
           Configuration.default do |config|
             config.csp = {
@@ -297,21 +282,7 @@ module SecureHeaders
           SecureHeaders.content_security_policy_script_nonce(chrome_request)
 
           hash = SecureHeaders.header_hash_for(chrome_request)
-          expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'; style-src 'self'")
-        end
-
-        it "uses a nonce for safari 10+" do
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self'),
-              script_src: %w(mycdn.com)
-            }
-          end
-
-          safari_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:safari10]))
-          nonce = SecureHeaders.content_security_policy_script_nonce(safari_request)
-          hash = SecureHeaders.header_hash_for(safari_request)
-          expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}'")
+          expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src mycdn.com 'nonce-#{nonce}' 'unsafe-inline'; style-src 'self'")
         end
 
         it "does not support the deprecated `report_only: true` format" do

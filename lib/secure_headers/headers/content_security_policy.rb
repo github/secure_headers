@@ -212,11 +212,7 @@ module SecureHeaders
     # unsafe-inline, this is more concise.
     def append_nonce(source_list, nonce)
       if nonce
-        if nonces_supported?
-          source_list << "'nonce-#{nonce}'"
-        else
-          source_list << UNSAFE_INLINE
-        end
+        source_list.push(*["'nonce-#{nonce}'", UNSAFE_INLINE])
       end
 
       source_list
@@ -254,10 +250,6 @@ module SecureHeaders
       else
         VARIATIONS[OTHER]
       end
-    end
-
-    def nonces_supported?
-      @nonces_supported ||= self.class.nonces_supported?(@parsed_ua)
     end
 
     def symbol_to_hyphen_case(sym)
