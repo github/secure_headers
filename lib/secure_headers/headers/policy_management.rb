@@ -5,7 +5,6 @@ module SecureHeaders
       base.extend(ClassMethods)
     end
 
-    MODERN_BROWSERS = %w(Chrome Opera Firefox)
     DEFAULT_CONFIG = {
       default_src: %w(https:),
       img_src: %w(https: data: 'self'),
