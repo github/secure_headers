@@ -26,6 +26,7 @@ USER_AGENTS = {
 
 def expect_default_values(hash)
   expect(hash[SecureHeaders::ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'")
+  expect(hash[SecureHeaders::ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to be_nil
   expect(hash[SecureHeaders::XFrameOptions::HEADER_NAME]).to eq(SecureHeaders::XFrameOptions::DEFAULT_VALUE)
   expect(hash[SecureHeaders::XDownloadOptions::HEADER_NAME]).to eq(SecureHeaders::XDownloadOptions::DEFAULT_VALUE)
   expect(hash[SecureHeaders::StrictTransportSecurity::HEADER_NAME]).to eq(SecureHeaders::StrictTransportSecurity::DEFAULT_VALUE)
@@ -34,6 +35,9 @@ def expect_default_values(hash)
   expect(hash[SecureHeaders::XPermittedCrossDomainPolicies::HEADER_NAME]).to eq(SecureHeaders::XPermittedCrossDomainPolicies::DEFAULT_VALUE)
   expect(hash[SecureHeaders::ReferrerPolicy::HEADER_NAME]).to be_nil
   expect(hash[SecureHeaders::ExpectCertificateTransparency::HEADER_NAME]).to be_nil
+  expect(hash[SecureHeaders::ClearSiteData::HEADER_NAME]).to be_nil
+  expect(hash[SecureHeaders::ExpectCertificateTransparency::HEADER_NAME]).to be_nil
+  expect(hash[SecureHeaders::PublicKeyPins::HEADER_NAME]).to be_nil
 end
 
 module SecureHeaders
