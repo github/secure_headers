@@ -391,7 +391,7 @@ module SecureHeaders
 
             hash = SecureHeaders.header_hash_for(request)
             expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self'")
-            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self' foo.com")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src foo.com")
           end
 
           it "allows you to opt-out of enforced CSP" do

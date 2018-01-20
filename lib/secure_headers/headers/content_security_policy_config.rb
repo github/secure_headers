@@ -54,7 +54,10 @@ module SecureHeaders
     end
 
     def merge(new_hash)
-      ContentSecurityPolicy.combine_policies(self.to_h, new_hash)
+      new_config = self.dup
+      puts new_config.inspect
+      new_config.send(:from_hash, new_hash)
+      new_config
     end
 
     def merge!(new_hash)
