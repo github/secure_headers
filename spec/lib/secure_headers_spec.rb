@@ -131,7 +131,7 @@ module SecureHeaders
         firefox_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:firefox]))
 
         # append an unsupported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(flash)})
+        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(application/pdf)})
         # append a supported directive
         SecureHeaders.override_content_security_policy_directives(firefox_request, {script_src: %w('self')})
 
@@ -337,7 +337,7 @@ module SecureHeaders
                 report_only: true
               }
             end
-          }.to raise_error(ArgumentError)
+          }.to raise_error(ContentSecurityPolicyConfigError)
         end
 
         it "Raises an error if csp_report_only is used with `report_only: false`" do

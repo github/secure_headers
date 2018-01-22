@@ -9,7 +9,7 @@ module SecureHeaders
     end
 
     it "has a default config" do
-      expect(Configuration.get(Configuration::DEFAULT_CONFIG)).to_not be_nil
+      expect(Configuration.default).to_not be_nil
     end
 
     it "has an 'noop' override" do

@@ -216,12 +216,22 @@ module SecureHeaders
         if config.directive_value(:script_src).nil?
           raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous. Use `script_src: OPT_OUT` to override")
         end
+        if !config.report_only? && config.directive_value(:report_only)
+          raise ContentSecurityPolicyConfigError.new("Only the csp_report_only config should  sset :report_only to true")
+        end
+
+        if config.report_only? && config.directive_value(:report_only) == false
+          raise ContentSecurityPolicyConfigError.new("csp_report_only config must have :report_only set to true")
+        end
 
         ContentSecurityPolicyConfig.attrs.each do |key|
           value = config.directive_value(key)
           next unless value
+
           if META_CONFIGS.include?(key)
             raise ContentSecurityPolicyConfigError.new("#{key} must be a boolean value") unless boolean?(value) || value.nil?
+          elsif NONCES.include?(key)
+            raise ContentSecurityPolicyConfigError.new("#{key} must be a non-nil value") if value.nil?
           else
             validate_directive!(key, value)
           end

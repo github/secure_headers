@@ -18,7 +18,7 @@ module SecureHeaders
         # (pulled from README)
         config = {
           # "meta" values. these will shape the header, but the values are not included in the header.
-          report_only:  true,     # default: false
+          report_only:  false,
           preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
 
           # directive values: these values will directly translate into source directives
@@ -140,6 +140,18 @@ module SecureHeaders
       it "accepts anything of the form type/subtype as a plugin-type value " do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["application/pdf"])))
+        end.to_not raise_error
+      end
+
+      it "doesn't allow report_only to be set in a non-report-only config" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_only: true)))
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "allows report_only to be set in a report-only config" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyReportOnlyConfig.new(default_opts.merge(report_only: true)))
         end.to_not raise_error
       end
     end

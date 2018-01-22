@@ -148,6 +148,7 @@ module SecureHeaders
     def header_hash_for(request)
       prevent_dup = true
       config = config_for(request, prevent_dup)
+      config.validate_config!
       user_agent = UserAgent.parse(request.user_agent)
       headers = config.generate_headers(user_agent)
 
@@ -198,7 +199,7 @@ module SecureHeaders
     # Falls back to the global config
     def config_for(request, prevent_dup = false)
       config = request.env[SECURE_HEADERS_CONFIG] ||
-        Configuration.get(Configuration::DEFAULT_CONFIG)
+        Configuration.get
 
 
       # Global configs are frozen, per-request configs are not. When we're not

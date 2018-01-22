@@ -43,13 +43,13 @@ end
 module SecureHeaders
   class Configuration
     class << self
-      def clear_configurations
-        @configurations = nil
+      def clear_default_config
+        @default_config = nil
       end
     end
   end
 end
 
 def reset_config
-  SecureHeaders::Configuration.clear_configurations
+  SecureHeaders::Configuration.clear_default_config
 end

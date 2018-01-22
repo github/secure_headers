@@ -55,7 +55,6 @@ module SecureHeaders
 
     def merge(new_hash)
       new_config = self.dup
-      puts new_config.inspect
       new_config.send(:from_hash, new_hash)
       new_config
     end
@@ -141,7 +140,6 @@ module SecureHeaders
   end
 
   class ContentSecurityPolicyReportOnlyConfig < ContentSecurityPolicyConfig
-    CONFIG_KEY = :csp_report_only
     HEADER_NAME = "Content-Security-Policy-Report-Only".freeze
 
     def report_only?
