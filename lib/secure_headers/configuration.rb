@@ -167,6 +167,18 @@ module SecureHeaders
       copy
     end
 
+    # Public: Apply a named override to the current config
+    #
+    # Returns self
+    def apply_override(name)
+      if override = self.class.overrides(name)
+        instance_eval(&override)
+      else
+        raise ArgumentError.new("no override by the name of #{name} has been configured")
+      end
+      self
+    end
+
     def generate_headers(user_agent)
       headers = {}
       HEADERABLE_ATTRIBUTES.each do |attr|

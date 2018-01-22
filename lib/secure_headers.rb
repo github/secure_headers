@@ -165,13 +165,9 @@ module SecureHeaders
     #
     # name - the name of the previously configured override.
     def use_secure_headers_override(request, name)
-      if override = Configuration.overrides(name)
-        config = config_for(request)
-        config.instance_eval(&override)
-        override_secure_headers_request_config(request, config)
-      else
-        raise ArgumentError.new("no override by the name of #{name} has been configured")
-      end
+      config = config_for(request)
+      config.apply_override(name)
+      override_secure_headers_request_config(request, config)
     end
 
     # Public: gets or creates a nonce for CSP.
