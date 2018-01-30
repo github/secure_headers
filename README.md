@@ -49,7 +49,7 @@ use SecureHeaders::Middleware
 
 ## Configuration
 
-If you do not supply a configuration, a default (which is fairly locked down) will be used.
+If you do not supply a `default` configuration, exceptions will be raised. If you would like to use a default configuration (which is fairly locked down), just call `SecureHeaders::Configuration.default` without any arguments or block.
 
 All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT` will disable the header entirely.
 
