@@ -13,6 +13,7 @@ module SecureHeaders
     FALLBACK_VERSION = ::UserAgent::Version.new("0")
 
     def initialize(config = nil, user_agent = OTHER)
+      user_agent ||= OTHER
       @config = if config.is_a?(Hash)
         if config[:report_only]
           ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
