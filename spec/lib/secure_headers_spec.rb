@@ -21,6 +21,13 @@ module SecureHeaders
       end.to raise_error(Configuration::NotYetConfiguredError)
     end
 
+    it "raises a AlreadyConfiguredError if trying to configure and default has already been set " do
+      Configuration.default
+      expect do
+        Configuration.default
+      end.to raise_error(Configuration::AlreadyConfiguredError)
+    end
+
     it "raises and ArgumentError when referencing an override that has not been set" do
       expect do
         Configuration.default
