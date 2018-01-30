@@ -56,7 +56,7 @@ All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT`
 **Word of caution:**  The following is not a default configuration per se. It serves as a sample implementation of the configuration. You should read more about these headers and determine what is appropriate for your requirements.
 
 ```ruby
-SecureHeaders::Configuration.configure do |config|
+SecureHeaders::Configuration.default do |config|
   config.cookies = {
     secure: true, # mark all cookies as "Secure"
     httponly: true, # mark all cookies as "HttpOnly"
