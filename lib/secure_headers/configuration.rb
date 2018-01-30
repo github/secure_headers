@@ -6,6 +6,7 @@ module SecureHeaders
     DEFAULT_CONFIG = :default
     NOOP_OVERRIDE = "secure_headers_noop_override"
     class AlreadyConfiguredError < StandardError; end
+    class NotYetConfiguredError < StandardError; end
     class IllegalPolicyModificationError < StandardError; end
     class << self
       # Public: Set the global default configuration.
@@ -14,14 +15,6 @@ module SecureHeaders
       #
       # Returns the newly created config.
       def default(&block)
-        if defined?(@default_config) && !block_given?
-          return @default_config
-        else
-          configure(&block)
-        end
-      end
-
-      def configure(&block)
         if defined?(@default_config)
           raise AlreadyConfiguredError, "Policy already configured"
         end
@@ -38,6 +31,7 @@ module SecureHeaders
         new_config.validate_config!
         @default_config = new_config
       end
+      alias_method :configure, :default
 
       # Public: create a named configuration that overrides the default config.
       #
@@ -81,6 +75,17 @@ module SecureHeaders
             value
           end
         end
+      end
+
+      # Private: Returns the internal default configuration. This should only
+      # ever be called by internal callers (or tests) that know the semantics
+      # of ensuring that the default config is never mutated and is dup(ed)
+      # before it is used in a request.
+      def default_config
+        unless defined?(@default_config)
+          raise NotYetConfiguredError, "Default policy not yet configured"
+        end
+        @default_config
       end
 
       # Private: convenience method purely DRY things up. The value may not be a

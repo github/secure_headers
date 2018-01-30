@@ -41,7 +41,7 @@ module SecureHeaders
         config.cookies = OPT_OUT
       end
 
-      config = Configuration.default
+      config = Configuration.send(:default_config)
       expect(config.cookies).to eq(OPT_OUT)
     end
 
@@ -50,7 +50,7 @@ module SecureHeaders
         config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
       end
 
-      config = Configuration.default
+      config = Configuration.send(:default_config)
       expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
     end
   end

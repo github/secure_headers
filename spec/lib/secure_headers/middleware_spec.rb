@@ -11,10 +11,12 @@ module SecureHeaders
 
     before(:each) do
       reset_config
+      Configuration.default
     end
 
     it "warns if the hpkp report-uri host is the same as the current host" do
       report_host = "report-uri.io"
+      reset_config
       Configuration.default do |config|
         config.hpkp = {
           max_age: 10000000,
@@ -54,6 +56,9 @@ module SecureHeaders
     end
 
     context "cookies" do
+      before(:each) do
+        reset_config
+      end
       context "cookies should be flagged" do
         it "flags cookies as secure" do
           Configuration.default { |config| config.cookies = {secure: true, httponly: OPT_OUT, samesite: OPT_OUT} }
@@ -85,6 +90,9 @@ module SecureHeaders
     end
 
     context "cookies" do
+      before(:each) do
+        reset_config
+      end
       it "flags cookies from configuration" do
         Configuration.default { |config| config.cookies = { secure: true, httponly: true, samesite: { lax: true} } }
         request = Rack::Request.new("HTTPS" => "on")

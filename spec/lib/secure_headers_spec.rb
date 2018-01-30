@@ -9,6 +9,18 @@ module SecureHeaders
 
     let(:request) { Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on") }
 
+    it "raises a NotYetConfiguredError if default has not been set" do
+      expect do
+        SecureHeaders.header_hash_for(request)
+      end.to raise_error(Configuration::NotYetConfiguredError)
+    end
+
+    it "raises a NotYetConfiguredError if trying to opt-out of unconfigured headers" do
+      expect do
+        SecureHeaders.opt_out_of_header(request, :csp)
+      end.to raise_error(Configuration::NotYetConfiguredError)
+    end
+
     it "raises and ArgumentError when referencing an override that has not been set" do
       expect do
         Configuration.default

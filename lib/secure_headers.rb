@@ -195,7 +195,7 @@ module SecureHeaders
     # Falls back to the global config
     def config_for(request, prevent_dup = false)
       config = request.env[SECURE_HEADERS_CONFIG] ||
-        Configuration.default
+        Configuration.send(:default_config)
 
 
       # Global configs are frozen, per-request configs are not. When we're not
