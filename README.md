@@ -49,14 +49,14 @@ use SecureHeaders::Middleware
 
 ## Configuration
 
-If you do not supply a `default` configuration, exceptions will be raised. If you would like to use a default configuration (which is fairly locked down), just call `SecureHeaders::Configuration.default` without any arguments or block.
+If you do not supply a configuration, a default (which is fairly locked down) will be used.
 
 All `nil` values will fallback to their default values. `SecureHeaders::OPT_OUT` will disable the header entirely.
 
 **Word of caution:**  The following is not a default configuration per se. It serves as a sample implementation of the configuration. You should read more about these headers and determine what is appropriate for your requirements.
 
 ```ruby
-SecureHeaders::Configuration.default do |config|
+SecureHeaders::Configuration.configure do |config|
   config.cookies = {
     secure: true, # mark all cookies as "Secure"
     httponly: true, # mark all cookies as "HttpOnly"
