@@ -9,18 +9,6 @@ module SecureHeaders
 
     let(:request) { Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on") }
 
-    it "raises a NotYetConfiguredError if default has not been set" do
-      expect do
-        SecureHeaders.header_hash_for(request)
-      end.to raise_error(Configuration::NotYetConfiguredError)
-    end
-
-    it "raises a NotYetConfiguredError if trying to opt-out of unconfigured headers" do
-      expect do
-        SecureHeaders.opt_out_of_header(request, :csp)
-      end.to raise_error(Configuration::NotYetConfiguredError)
-    end
-
     it "raises and ArgumentError when referencing an override that has not been set" do
       expect do
         Configuration.default
@@ -364,6 +352,7 @@ module SecureHeaders
           end
 
           it "sets identical values when the configs are the same" do
+            reset_config
             Configuration.default do |config|
               config.csp = {
                 default_src: %w('self'),
@@ -381,6 +370,7 @@ module SecureHeaders
           end
 
           it "sets different headers when the configs are different" do
+            reset_config
             Configuration.default do |config|
               config.csp = {
                 default_src: %w('self'),
@@ -395,6 +385,7 @@ module SecureHeaders
           end
 
           it "allows you to opt-out of enforced CSP" do
+            reset_config
             Configuration.default do |config|
               config.csp = SecureHeaders::OPT_OUT
               config.csp_report_only = {
@@ -452,6 +443,7 @@ module SecureHeaders
 
           context "when inferring which config to modify" do
             it "updates the enforced header when configured" do
+              reset_config
               Configuration.default do |config|
                 config.csp = {
                   default_src: %w('self'),
@@ -466,6 +458,7 @@ module SecureHeaders
             end
 
             it "updates the report only header when configured" do
+              reset_config
               Configuration.default do |config|
                 config.csp = OPT_OUT
                 config.csp_report_only = {
@@ -481,6 +474,7 @@ module SecureHeaders
             end
 
             it "updates both headers if both are configured" do
+              reset_config
               Configuration.default do |config|
                 config.csp = {
                   default_src: %w(enforced.com),

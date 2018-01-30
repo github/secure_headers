@@ -105,6 +105,7 @@ module SecureHeaders
     let(:filename) { "app/views/asdfs/index.html.erb" }
 
     before(:all) do
+      reset_config
       Configuration.default do |config|
         config.csp = {
           default_src: %w('self'),

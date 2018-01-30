@@ -44,7 +44,7 @@ module SecureHeaders
   class Configuration
     class << self
       def clear_default_config
-        @default_config = nil
+        remove_instance_variable(:@default_config) if defined?(@default_config)
       end
     end
   end

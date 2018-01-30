@@ -11,7 +11,6 @@ module SecureHeaders
 
     before(:each) do
       reset_config
-      Configuration.default
     end
 
     it "warns if the hpkp report-uri host is the same as the current host" do

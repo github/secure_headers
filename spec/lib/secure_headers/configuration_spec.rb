@@ -5,7 +5,6 @@ module SecureHeaders
   describe Configuration do
     before(:each) do
       reset_config
-      Configuration.default
     end
 
     it "has a default config" do
@@ -13,6 +12,7 @@ module SecureHeaders
     end
 
     it "has an 'noop' override" do
+      Configuration.default
       expect(Configuration.overrides(Configuration::NOOP_OVERRIDE)).to_not be_nil
     end
 
@@ -41,7 +41,7 @@ module SecureHeaders
         config.cookies = OPT_OUT
       end
 
-      config = Configuration.get
+      config = Configuration.default
       expect(config.cookies).to eq(OPT_OUT)
     end
 
@@ -50,7 +50,7 @@ module SecureHeaders
         config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
       end
 
-      config = Configuration.get
+      config = Configuration.default
       expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
     end
   end
