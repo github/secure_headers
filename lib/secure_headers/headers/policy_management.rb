@@ -217,7 +217,7 @@ module SecureHeaders
           raise ContentSecurityPolicyConfigError.new(":script_src is required, falling back to default-src is too dangerous. Use `script_src: OPT_OUT` to override")
         end
         if !config.report_only? && config.directive_value(:report_only)
-          raise ContentSecurityPolicyConfigError.new("Only the csp_report_only config should  sset :report_only to true")
+          raise ContentSecurityPolicyConfigError.new("Only the csp_report_only config should set :report_only to true")
         end
 
         if config.report_only? && config.directive_value(:report_only) == false
