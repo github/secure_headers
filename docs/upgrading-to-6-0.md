@@ -34,4 +34,4 @@ Prior to 6.0.0 SecureHeaders pre-built and cached the headers that corresponded 
 
 ## Configuration the default configuration more than once will result in an Exception
 
-Prior to 6.0.0 you could conceivably, though unlikely, have `Configure#default` called more than once. Because configurations are dynamic, configuring more than once could result in unexpected behavior. So, as of 6.0.0 we raise a `AlreadyConfiguredError` if the default configuration is setup more than once.
+Prior to 6.0.0 you could conceivably, though unlikely, have `Configure#default` called more than once. Because configurations are dynamic, configuring more than once could result in unexpected behavior. So, as of 6.0.0 we raise `AlreadyConfiguredError` if the default configuration is setup more than once.
