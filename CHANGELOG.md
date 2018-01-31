@@ -1,6 +1,6 @@
-## 6.0.0
+## 6.0
 
-- See the [upgrading to 5.0](docs/upgrading-to-5-0.md) guide for the breaking changes.
+- See the [upgrading to 6.0](docs/upgrading-to-6-0.md) guide for the breaking changes.
 
 ## 5.0.4
 
