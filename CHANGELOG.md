@@ -1,3 +1,7 @@
+## 6.0.0
+
+- See the [upgrading to 5.0](docs/upgrading-to-5-0.md) guide for the breaking changes.
+
 ## 5.0.4
 
 - Adds support for `nonced_stylesheet_pack_tag` #373 (@paulfri)
