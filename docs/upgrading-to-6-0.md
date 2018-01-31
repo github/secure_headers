@@ -18,7 +18,7 @@ end
 SecureHeaders.use_secure_headers_override(request, :dynamic_override)
 ```
 
-Prior to 6.0.0, the response would NOT include an `X-Frame-Options` header since the named override would be a copy of the default configuration, but with `X-Content-Type-Options` set to `nosniff`. As of 6.0.0, the above code results in both `X-Frame-Options` set to `DENY` AND `X-Content-Type-Options` to `nosniff`.
+Prior to 6.0.0, the response would NOT include a `X-Frame-Options` header since the named override would be a copy of the default configuration, but with `X-Content-Type-Options` set to `nosniff`. As of 6.0.0, the above code results in both `X-Frame-Options` set to `DENY` AND `X-Content-Type-Options` to `nosniff`.
 
 ## `ContentSecurityPolicyConfig#merge` and `ContentSecurityPolicyReportOnlyConfig#merge` work more like `Hash#merge`
 
@@ -30,4 +30,8 @@ This method is not typically directly called by users of SecureHeaders. Given th
 
 ## Configuration headers are no longer cached
 
-Prior to 6.0.0 SecureHeaders prebuilt and cached the headers that corresponded to the default configuration. The same was also done for named overrides. However, now that named overrides are applied dynamically, those can no longer be cached. As a result, caching has been removed in the name of simplicity. Some micro-benchmarks indicate this shouldn't be a performmance problem and will help to elimiate a class of bugs entirely.
+Prior to 6.0.0 SecureHeaders pre-built and cached the headers that corresponded to the default configuration. The same was also done for named overrides. However, now that named overrides are applied dynamically, those can no longer be cached. As a result, caching has been removed in the name of simplicity. Some micro-benchmarks indicate this shouldn't be a performance problem and will help to eliminate a class of bugs entirely.
+
+## Configuration the default configuration more than once will result in an Exception
+
+Prior to 6.0.0 you could conceivably, though unlikely, have `Configure#default` called more than once. Because configurations are dynamic, configuring more than once could result in unexpected behavior. So, as of 6.0.0 we raise a `AlreadyConfiguredError` if the default configuration is setup more than once.
