@@ -18,7 +18,7 @@ end
 SecureHeaders.use_secure_headers_override(request, :dynamic_override)
 ```
 
-Prior to 6.0.0, the response would NOT include a `X-Frame-Options` header since the named override would be a copy of the default configuration, but with `X-Content-Type-Options` set to `nosniff`. As of 6.0.0, the above code results in both `X-Frame-Options` set to `DENY` AND `X-Content-Type-Options` to `nosniff`.
+Prior to 6.0.0, the response would NOT include a `X-Frame-Options` header since the named override would be a copy of the default configuration, but with `X-Content-Type-Options` set to `nosniff`. As of 6.0.0, the above code results in both `X-Frame-Options` set to `DENY` AND `X-Content-Type-Options` set to `nosniff`.
 
 ## `ContentSecurityPolicyConfig#merge` and `ContentSecurityPolicyReportOnlyConfig#merge` work more like `Hash#merge`
 
