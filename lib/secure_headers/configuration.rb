@@ -62,6 +62,10 @@ module SecureHeaders
         @appends[name] = block
       end
 
+      def dup
+        default_config.dup
+      end
+
       private
 
       # Public: perform a basic deep dup. The shallow copy provided by dup/clone

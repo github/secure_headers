@@ -172,7 +172,7 @@ module SecureHeaders
             script_src: %w('self'),
           }
         end
-        default_policy = Configuration.send(:default_config)
+        default_policy = Configuration.dup
         combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, style_src: %w(anothercdn.com))
         csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.name).to eq(ContentSecurityPolicyConfig::HEADER_NAME)
@@ -188,7 +188,7 @@ module SecureHeaders
           }.freeze
         end
         report_uri = "https://report-uri.io/asdf"
-        default_policy = Configuration.send(:default_config)
+        default_policy = Configuration.dup
         combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, report_uri: [report_uri])
         csp = ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox])
         expect(csp.value).to include("report-uri #{report_uri}")
@@ -205,7 +205,7 @@ module SecureHeaders
         non_default_source_additions = ContentSecurityPolicy::NON_FETCH_SOURCES.each_with_object({}) do |directive, hash|
           hash[directive] = %w("http://example.org)
         end
-        default_policy = Configuration.send(:default_config)
+        default_policy = Configuration.dup
         combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, non_default_source_additions)
 
         ContentSecurityPolicy::NON_FETCH_SOURCES.each do |directive|
@@ -221,7 +221,7 @@ module SecureHeaders
             report_only: false
           }
         end
-        default_policy = Configuration.send(:default_config)
+        default_policy = Configuration.dup
         combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, report_only: true)
         csp = ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox])
         expect(csp.name).to eq(ContentSecurityPolicyReportOnlyConfig::HEADER_NAME)
@@ -235,7 +235,7 @@ module SecureHeaders
             block_all_mixed_content: false
           }
         end
-        default_policy = Configuration.send(:default_config)
+        default_policy = Configuration.dup
         combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, block_all_mixed_content: true)
         csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.value).to eq("default-src https:; block-all-mixed-content; script-src 'self'")
@@ -245,7 +245,7 @@ module SecureHeaders
         Configuration.default do |config|
           config.csp = OPT_OUT
         end
-        default_policy = Configuration.send(:default_config)
+        default_policy = Configuration.dup
         expect do
           ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, script_src: %w(anothercdn.com))
         end.to raise_error(ContentSecurityPolicyConfigError)

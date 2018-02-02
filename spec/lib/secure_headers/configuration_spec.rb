@@ -16,6 +16,16 @@ module SecureHeaders
       expect(Configuration.overrides(Configuration::NOOP_OVERRIDE)).to_not be_nil
     end
 
+    it "dup results in a copy of the default config" do
+      Configuration.default
+      original_configuration = Configuration.send(:default_config)
+      configuration = Configuration.dup
+      expect(original_configuration).not_to be(configuration)
+      Configuration::CONFIG_ATTRIBUTES.each do |attr|
+        expect(original_configuration.send(attr)).to eq(configuration.send(attr))
+      end
+    end
+
     it "stores an override" do
       Configuration.override(:test_override) do |config|
         config.x_frame_options = "DENY"
@@ -41,7 +51,7 @@ module SecureHeaders
         config.cookies = OPT_OUT
       end
 
-      config = Configuration.send(:default_config)
+      config = Configuration.dup
       expect(config.cookies).to eq(OPT_OUT)
     end
 
@@ -50,7 +60,7 @@ module SecureHeaders
         config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
       end
 
-      config = Configuration.send(:default_config)
+      config = Configuration.dup
       expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
     end
   end
