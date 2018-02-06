@@ -3,19 +3,26 @@
 The original implementation of name overrides worked by making a copy of the default policy, applying the overrides, and storing the result for later use. But, this lead to unexpected results if named overrides were combined with a dynamic policy change. If a change was made to the default configuration during a request, followed by a named override, the dynamic changes would be lost. To keep things consistent named overrides have been rewritten to work the same as named appends in that they always operate on the configuration for the current request. As an example:
 
 ```ruby
-# specific opt outs
-Configuration.default do |config|
-  config.x_frame_options = OPT_OUT
+class ApplicationController < ActionController::Base
+  Configuration.default do |config|
+    config.x_frame_options = OPT_OUT
+  end
+
+  SecureHeaders::Configuration.override(:dynamic_override) do |config|
+    config.x_content_type_options = "nosniff"
+  end
 end
 
-# Dynamically update the default config for this request
-SecureHeaders.override_x_frame_options(request, "DENY")
+class FooController < ApplicationController
+  def bar
+    # Dynamically update the default config for this request
+    override_x_frame_options("DENY")
+    append_content_security_policy_directives(frame_src: "3rdpartyprovider.com")
 
-SecureHeaders::Configuration.override(:dynamic_override) do |config|
-  config.x_content_type_options = "nosniff"
+    # Override everything, discard modifications above
+    use_secure_headers_override(:dynamic_override)
+  end
 end
-
-SecureHeaders.use_secure_headers_override(request, :dynamic_override)
 ```
 
 Prior to 6.0.0, the response would NOT include a `X-Frame-Options` header since the named override would be a copy of the default configuration, but with `X-Content-Type-Options` set to `nosniff`. As of 6.0.0, the above code results in both `X-Frame-Options` set to `DENY` AND `X-Content-Type-Options` set to `nosniff`.
