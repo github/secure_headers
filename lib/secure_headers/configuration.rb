@@ -28,7 +28,7 @@ module SecureHeaders
       #
       # Returns: the newly created config
       def override(name, base = DEFAULT_CONFIG, &block)
-        unless get(base)
+        unless get(base, internal: true)
           raise NotYetConfiguredError, "#{base} policy not yet supplied"
         end
         override = @configurations[base].dup
@@ -40,7 +40,11 @@ module SecureHeaders
       #
       # Returns the configuration with a given name or raises a
       # NotYetConfiguredError if `default` has not been called.
-      def get(name = DEFAULT_CONFIG)
+      def get(name = DEFAULT_CONFIG, internal: false)
+        unless internal
+          Kernel.warn "#{Kernel.caller.first}: [DEPRECATION] `#get` is deprecated. It will be removed in the next major release. Use SecureHeaders::Configuration.dup to retrieve the default config."
+        end
+
         if @configurations.nil?
           raise NotYetConfiguredError, "Default policy not yet supplied"
         end

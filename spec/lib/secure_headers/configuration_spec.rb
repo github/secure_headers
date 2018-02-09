@@ -9,15 +9,15 @@ module SecureHeaders
     end
 
     it "has a default config" do
-      expect(Configuration.get(Configuration::DEFAULT_CONFIG)).to_not be_nil
+      expect(Configuration.get(Configuration::DEFAULT_CONFIG, internal: true)).to_not be_nil
     end
 
     it "has an 'noop' config" do
-      expect(Configuration.get(Configuration::NOOP_CONFIGURATION)).to_not be_nil
+      expect(Configuration.get(Configuration::NOOP_CONFIGURATION, internal: true)).to_not be_nil
     end
 
     it "precomputes headers upon creation" do
-      default_config = Configuration.get(Configuration::DEFAULT_CONFIG)
+      default_config = Configuration.get(Configuration::DEFAULT_CONFIG, internal: true)
       header_hash = default_config.cached_headers.each_with_object({}) do |(key, value), hash|
         header_name, header_value = if key == :csp
           value["Chrome"]
@@ -35,8 +35,8 @@ module SecureHeaders
         # do nothing, just copy it
       end
 
-      config = Configuration.get(:test_override)
-      noop = Configuration.get(Configuration::NOOP_CONFIGURATION)
+      config = Configuration.get(:test_override, internal: true)
+      noop = Configuration.get(Configuration::NOOP_CONFIGURATION, internal: true)
       [:csp, :csp_report_only, :cookies].each do |key|
         expect(config.send(key)).to eq(noop.send(key))
       end
@@ -47,7 +47,7 @@ module SecureHeaders
         config.x_content_type_options = OPT_OUT
       end
 
-      expect(Configuration.get.cached_headers).to_not eq(Configuration.get(:test_override).cached_headers)
+      expect(Configuration.get(Configuration::DEFAULT_CONFIG, internal: true).cached_headers).to_not eq(Configuration.get(:test_override, internal: true).cached_headers)
     end
 
     it "stores an override of the global config" do
@@ -55,7 +55,7 @@ module SecureHeaders
         config.x_frame_options = "DENY"
       end
 
-      expect(Configuration.get(:test_override)).to_not be_nil
+      expect(Configuration.get(:test_override, internal: true)).to_not be_nil
     end
 
     it "deep dup's config values when overriding so the original cannot be modified" do
@@ -63,8 +63,8 @@ module SecureHeaders
         config.csp[:default_src] << "'self'"
       end
 
-      default = Configuration.get
-      override = Configuration.get(:override)
+      default = Configuration.get(Configuration::DEFAULT_CONFIG, internal: true)
+      override = Configuration.get(:override, internal: true)
 
       expect(override.csp.directive_value(:default_src)).not_to be(default.csp.directive_value(:default_src))
     end
@@ -78,9 +78,9 @@ module SecureHeaders
         config.csp = config.csp.merge(script_src: %w(example.org))
       end
 
-      original_override = Configuration.get(:override)
+      original_override = Configuration.get(:override, internal: true)
       expect(original_override.csp.to_h).to eq(default_src: %w('self'), script_src: %w('self'))
-      override_config = Configuration.get(:second_override)
+      override_config = Configuration.get(:second_override, internal: true)
       expect(override_config.csp.to_h).to eq(default_src: %w('self'), script_src: %w('self' example.org))
     end
 
@@ -101,7 +101,7 @@ module SecureHeaders
         config.cookies = OPT_OUT
       end
 
-      config = Configuration.get
+      config = Configuration.get(Configuration::DEFAULT_CONFIG, internal: true)
       expect(config.cookies).to eq(OPT_OUT)
     end
 
@@ -110,7 +110,7 @@ module SecureHeaders
         config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
       end
 
-      config = Configuration.get
+      config = Configuration.get(Configuration::DEFAULT_CONFIG, internal: true)
       expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
     end
   end
