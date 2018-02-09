@@ -66,7 +66,7 @@ module SecureHeaders
       end
 
       it "allows opting out of cookie protection with OPT_OUT alone" do
-        Configuration.default { |config| config.cookies = OPT_OUT}
+        Configuration.default { |config| config.cookies = OPT_OUT }
 
         # do NOT make this request https. non-https requests modify a config,
         # causing an exception when operating on OPT_OUT. This ensures we don't

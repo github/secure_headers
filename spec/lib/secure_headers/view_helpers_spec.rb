@@ -67,7 +67,7 @@ TEMPLATE
     end
 
     if options.is_a?(Hash)
-      options = options.map {|k, v| " #{k}=#{v}"}
+      options = options.map { |k, v| " #{k}=#{v}" }
     end
     "<#{type}#{options}>#{content}</#{type}>"
   end
