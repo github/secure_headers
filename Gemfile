@@ -19,5 +19,5 @@ group :guard do
   gem "growl"
   gem "guard-rspec", platforms: [:ruby_19, :ruby_20, :ruby_21, :ruby_22, :ruby_23, :ruby_24]
   gem "rb-fsevent"
-  gem 'terminal-notifier-guard'
+  gem "terminal-notifier-guard"
 end
