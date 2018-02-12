@@ -196,7 +196,7 @@ module SecureHeaders
     #
     # name - the name of the previously configured override.
     def use_secure_headers_override(request, name)
-      if config = Configuration.get(name)
+      if config = Configuration.get(name, internal: true)
         override_secure_headers_request_config(request, config)
       else
         raise ArgumentError.new("no override by the name of #{name} has been configured")
@@ -228,7 +228,7 @@ module SecureHeaders
     # Falls back to the global config
     def config_for(request, prevent_dup = false)
       config = request.env[SECURE_HEADERS_CONFIG] ||
-        Configuration.get(Configuration::DEFAULT_CONFIG)
+        Configuration.get(Configuration::DEFAULT_CONFIG, internal: true)
 
 
       # Global configs are frozen, per-request configs are not. When we're not
