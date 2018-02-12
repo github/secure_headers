@@ -12,6 +12,11 @@ module SecureHeaders
       expect(Configuration.get(Configuration::DEFAULT_CONFIG, internal: true)).to_not be_nil
     end
 
+    it "warns when using deprecated internal-ish #get API" do
+      expect(Kernel).to receive(:warn).once.with(/`#get` is deprecated/)
+      Configuration.get(Configuration::DEFAULT_CONFIG)
+    end
+
     it "has an 'noop' config" do
       expect(Configuration.get(Configuration::NOOP_CONFIGURATION, internal: true)).to_not be_nil
     end
