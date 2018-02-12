@@ -46,7 +46,7 @@ module SecureHeaders
       #
       # Returns a String of quoted values that are comma separated.
       def make_header_value(types)
-        types.map { |t| "\"#{t}\"" }.join(", ")
+        types.map { |t| %("#{t}") }.join(", ")
       end
     end
   end
