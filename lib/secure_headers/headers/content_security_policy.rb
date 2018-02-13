@@ -213,7 +213,7 @@ module SecureHeaders
     # unsafe-inline, this is more concise.
     def append_nonce(source_list, nonce)
       if nonce
-        source_list.push(*["'nonce-#{nonce}'", UNSAFE_INLINE])
+        source_list.push("'nonce-#{nonce}'", UNSAFE_INLINE)
       end
 
       source_list
