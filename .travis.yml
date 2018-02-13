@@ -19,7 +19,10 @@ matrix:
     - rvm: jruby-head
     - rvm: ruby-head
 
-before_install: gem update bundler
+before_install:
+  - gem update --system
+  - gem --version
+  - gem update bundler
 bundler_args: --without guard -j 3
 
 sudo: false
