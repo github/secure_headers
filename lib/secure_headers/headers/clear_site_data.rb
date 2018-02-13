@@ -11,13 +11,11 @@ module SecureHeaders
     EXECUTION_CONTEXTS = "executionContexts".freeze
     ALL_TYPES = [CACHE, COOKIES, STORAGE, EXECUTION_CONTEXTS]
 
-    CONFIG_KEY = :clear_site_data
-
     class << self
       # Public: make an Clear-Site-Data header name, value pair
       #
       # Returns nil if not configured, returns header name and value if configured.
-      def make_header(config = nil)
+      def make_header(config = nil, user_agent = nil)
         case config
         when nil, OPT_OUT, []
           # noop
@@ -48,7 +46,7 @@ module SecureHeaders
       #
       # Returns a String of quoted values that are comma separated.
       def make_header_value(types)
-        types.map { |t| "\"#{t}\""}.join(", ")
+        types.map { |t| %("#{t}") }.join(", ")
       end
     end
   end

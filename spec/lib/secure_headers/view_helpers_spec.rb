@@ -67,7 +67,7 @@ TEMPLATE
     end
 
     if options.is_a?(Hash)
-      options = options.map {|k, v| " #{k}=#{v}"}
+      options = options.map { |k, v| " #{k}=#{v}" }
     end
     "<#{type}#{options}>#{content}</#{type}>"
   end
@@ -105,6 +105,7 @@ module SecureHeaders
     let(:filename) { "app/views/asdfs/index.html.erb" }
 
     before(:all) do
+      reset_config
       Configuration.default do |config|
         config.csp = {
           default_src: %w('self'),

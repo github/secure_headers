@@ -14,14 +14,14 @@ module SecureHeaders
       origin-when-cross-origin
       unsafe-url
     )
-    CONFIG_KEY = :referrer_policy
 
     class << self
       # Public: generate an Referrer Policy header.
       #
       # Returns a default header if no configuration is provided, or a
       # header name and value based on the config.
-      def make_header(config = nil)
+      def make_header(config = nil, user_agent = nil)
+        return if config == OPT_OUT
         config ||= DEFAULT_VALUE
         [HEADER_NAME, Array(config).join(", ")]
       end

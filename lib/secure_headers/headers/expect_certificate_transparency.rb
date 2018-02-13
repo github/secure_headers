@@ -4,7 +4,6 @@ module SecureHeaders
 
   class ExpectCertificateTransparency
     HEADER_NAME = "Expect-CT".freeze
-    CONFIG_KEY  = :expect_certificate_transparency
     INVALID_CONFIGURATION_ERROR = "config must be a hash.".freeze
     INVALID_ENFORCE_VALUE_ERROR = "enforce must be a boolean".freeze
     REQUIRED_MAX_AGE_ERROR      = "max-age is a required directive.".freeze
@@ -15,8 +14,8 @@ module SecureHeaders
       #
       # Returns nil if not configured, returns header name and value if
       # configured.
-      def make_header(config)
-        return if config.nil?
+      def make_header(config, use_agent = nil)
+        return if config.nil? || config == OPT_OUT
 
         header = new(config)
         [HEADER_NAME, header.value]

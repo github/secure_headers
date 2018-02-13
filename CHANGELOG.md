@@ -1,3 +1,11 @@
+## 6.0
+
+- See the [upgrading to 6.0](docs/upgrading-to-6-0.md) guide for the breaking changes.
+=======
+## 5.0.5
+
+A release to deprecate `SecureHeaders::Configuration#get` in prep for 6.x
+
 ## 5.0.4
 
 - Adds support for `nonced_stylesheet_pack_tag` #373 (@paulfri)

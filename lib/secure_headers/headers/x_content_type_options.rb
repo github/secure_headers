@@ -5,14 +5,14 @@ module SecureHeaders
   class XContentTypeOptions
     HEADER_NAME = "X-Content-Type-Options".freeze
     DEFAULT_VALUE = "nosniff"
-    CONFIG_KEY = :x_content_type_options
 
     class << self
       # Public: generate an X-Content-Type-Options header.
       #
       # Returns a default header if no configuration is provided, or a
       # header name and value based on the config.
-      def make_header(config = nil)
+      def make_header(config = nil, user_agent = nil)
+        return if config == OPT_OUT
         [HEADER_NAME, config || DEFAULT_VALUE]
       end
 

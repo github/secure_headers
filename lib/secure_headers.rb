@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require "secure_headers/configuration"
 require "secure_headers/hash_helper"
 require "secure_headers/headers/cookie"
 require "secure_headers/headers/public_key_pins"
@@ -18,6 +17,7 @@ require "secure_headers/railtie"
 require "secure_headers/view_helper"
 require "useragent"
 require "singleton"
+require "secure_headers/configuration"
 
 # All headers (except for hpkp) have a default value. Provide SecureHeaders::OPT_OUT
 # or ":optout_of_protection" as a config value to disable a given header
@@ -52,29 +52,9 @@ module SecureHeaders
   HTTPS = "https".freeze
   CSP = ContentSecurityPolicy
 
-  ALL_HEADER_CLASSES = [
-    ExpectCertificateTransparency,
-    ClearSiteData,
-    ContentSecurityPolicyConfig,
-    ContentSecurityPolicyReportOnlyConfig,
-    StrictTransportSecurity,
-    PublicKeyPins,
-    ReferrerPolicy,
-    XContentTypeOptions,
-    XDownloadOptions,
-    XFrameOptions,
-    XPermittedCrossDomainPolicies,
-    XXssProtection
-  ].freeze
-
-  ALL_HEADERS_BESIDES_CSP = (
-    ALL_HEADER_CLASSES -
-      [ContentSecurityPolicyConfig, ContentSecurityPolicyReportOnlyConfig]
-  ).freeze
-
   # Headers set on http requests (excludes STS and HPKP)
-  HTTP_HEADER_CLASSES =
-    (ALL_HEADER_CLASSES - [StrictTransportSecurity, PublicKeyPins]).freeze
+  HTTPS_HEADER_CLASSES =
+    [StrictTransportSecurity, PublicKeyPins].freeze
 
   class << self
     # Public: override a given set of directives for the current request. If a
@@ -153,7 +133,7 @@ module SecureHeaders
     # Public: opts out of setting all headers by telling secure_headers to use
     # the NOOP configuration.
     def opt_out_of_all_protection(request)
-      use_secure_headers_override(request, Configuration::NOOP_CONFIGURATION)
+      use_secure_headers_override(request, Configuration::NOOP_OVERRIDE)
     end
 
     # Public: Builds the hash of headers that should be applied base on the
@@ -168,27 +148,16 @@ module SecureHeaders
     def header_hash_for(request)
       prevent_dup = true
       config = config_for(request, prevent_dup)
-      headers = config.cached_headers
+      config.validate_config!
       user_agent = UserAgent.parse(request.user_agent)
+      headers = config.generate_headers(user_agent)
 
-      if !config.csp.opt_out? && config.csp.modified?
-        headers = update_cached_csp(config.csp, headers, user_agent)
-      end
-
-      if !config.csp_report_only.opt_out? && config.csp_report_only.modified?
-        headers = update_cached_csp(config.csp_report_only, headers, user_agent)
-      end
-
-      header_classes_for(request).each_with_object({}) do |klass, hash|
-        if header = headers[klass::CONFIG_KEY]
-          header_name, value = if klass == ContentSecurityPolicyConfig || klass == ContentSecurityPolicyReportOnlyConfig
-            csp_header_for_ua(header, user_agent)
-          else
-            header
-          end
-          hash[header_name] = value
+      if request.scheme != HTTPS
+        HTTPS_HEADER_CLASSES.each do |klass|
+          headers.delete(klass::HEADER_NAME)
         end
       end
+      headers
     end
 
     # Public: specify which named override will be used for this request.
@@ -196,11 +165,9 @@ module SecureHeaders
     #
     # name - the name of the previously configured override.
     def use_secure_headers_override(request, name)
-      if config = Configuration.get(name)
-        override_secure_headers_request_config(request, config)
-      else
-        raise ArgumentError.new("no override by the name of #{name} has been configured")
-      end
+      config = config_for(request)
+      config.override(name)
+      override_secure_headers_request_config(request, config)
     end
 
     # Public: gets or creates a nonce for CSP.
@@ -228,7 +195,7 @@ module SecureHeaders
     # Falls back to the global config
     def config_for(request, prevent_dup = false)
       config = request.env[SECURE_HEADERS_CONFIG] ||
-        Configuration.get(Configuration::DEFAULT_CONFIG)
+        Configuration.send(:default_config)
 
 
       # Global configs are frozen, per-request configs are not. When we're not
@@ -284,35 +251,6 @@ module SecureHeaders
     # Returns the config.
     def override_secure_headers_request_config(request, config)
       request.env[SECURE_HEADERS_CONFIG] = config
-    end
-
-    # Private: determines which headers are applicable to a given request.
-    #
-    # Returns a list of classes whose corresponding header values are valid for
-    # this request.
-    def header_classes_for(request)
-      if request.scheme == HTTPS
-        ALL_HEADER_CLASSES
-      else
-        HTTP_HEADER_CLASSES
-      end
-    end
-
-    def update_cached_csp(config, headers, user_agent)
-      headers = Configuration.send(:deep_copy, headers)
-      headers[config.class::CONFIG_KEY] = {}
-      variation = ContentSecurityPolicy.ua_to_variation(user_agent)
-      headers[config.class::CONFIG_KEY][variation] = ContentSecurityPolicy.make_header(config, user_agent)
-      headers
-    end
-
-    # Private: chooses the applicable CSP header for the provided user agent.
-    #
-    # headers - a hash of header_config_key => [header_name, header_value]
-    #
-    # Returns a CSP [header, value] array
-    def csp_header_for_ua(headers, user_agent)
-      headers[ContentSecurityPolicy.ua_to_variation(user_agent)]
     end
   end
 
