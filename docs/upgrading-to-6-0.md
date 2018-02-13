@@ -42,3 +42,9 @@ Prior to 6.0.0 SecureHeaders pre-built and cached the headers that corresponded 
 ## Configuration the default configuration more than once will result in an Exception
 
 Prior to 6.0.0 you could conceivably, though unlikely, have `Configure#default` called more than once. Because configurations are dynamic, configuring more than once could result in unexpected behavior. So, as of 6.0.0 we raise `AlreadyConfiguredError` if the default configuration is setup more than once.
+
+## Nonce behavior and console warnings
+
+Since the first commit, reducing browser console messages was a goal. It led to overly complicated and error-prone UA sniffing. Nowadays, consoles warn on completely legitimate use of features meant to be backwards compatible. So the goal is impossible and the impact is negative, so eliminating code using sniffing is a goal.
+
+The first example: we will now send `'unsafe-inline'` along with nonce source expressions. This will generate warnings in some consoles but is 100% valid use and was a design goal of CSP in the early days. The concept of versioning CSP lost out and so we're left with backward compatibility as our only option.

@@ -5,7 +5,6 @@ module SecureHeaders
       base.extend(ClassMethods)
     end
 
-    MODERN_BROWSERS = %w(Chrome Opera Firefox)
     DEFAULT_CONFIG = {
       default_src: %w(https:),
       img_src: %w(https: data: 'self'),
@@ -236,15 +235,6 @@ module SecureHeaders
             validate_directive!(key, value)
           end
         end
-      end
-
-      # Public: check if a user agent supports CSP nonces
-      #
-      # user_agent - a String or a UserAgent object
-      def nonces_supported?(user_agent)
-        user_agent = UserAgent.parse(user_agent) if user_agent.is_a?(String)
-        MODERN_BROWSERS.include?(user_agent.browser) ||
-          user_agent.browser == "Safari" && (user_agent.version || CSP::FALLBACK_VERSION) >= CSP::VERSION_10
       end
 
       # Public: combine the values from two different configs.
