@@ -2,7 +2,6 @@
 module SecureHeaders
   module DynamicConfig
     def self.included(base)
-      base.send(:attr_writer, :modified)
       base.send(:attr_reader, *base.attrs)
       base.attrs.each do |attr|
         base.send(:define_method, "#{attr}=") do |value|
@@ -42,7 +41,6 @@ module SecureHeaders
       @upgrade_insecure_requests = nil
 
       from_hash(hash)
-      @modified = false
     end
 
     def update_directive(directive, value)
@@ -55,12 +53,10 @@ module SecureHeaders
       end
     end
 
-    def modified?
-      @modified
-    end
-
     def merge(new_hash)
-      ContentSecurityPolicy.combine_policies(self.to_h, new_hash)
+      new_config = self.dup
+      new_config.send(:from_hash, new_hash)
+      new_config
     end
 
     def merge!(new_hash)
@@ -109,17 +105,12 @@ module SecureHeaders
     def write_attribute(attr, value)
       value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
       attr_variable = "@#{attr}"
-      prev_value = self.instance_variable_get(attr_variable)
       self.instance_variable_set(attr_variable, value)
-      if prev_value != value
-        @modified = true
-      end
     end
   end
 
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicyConfig
-    CONFIG_KEY = :csp
     HEADER_NAME = "Content-Security-Policy".freeze
 
     ATTRS = PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
@@ -149,7 +140,6 @@ module SecureHeaders
   end
 
   class ContentSecurityPolicyReportOnlyConfig < ContentSecurityPolicyConfig
-    CONFIG_KEY = :csp_report_only
     HEADER_NAME = "Content-Security-Policy-Report-Only".freeze
 
     def report_only?

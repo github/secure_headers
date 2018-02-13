@@ -17,8 +17,15 @@ module SecureHeaders
 
     it "raises a NotYetConfiguredError if trying to opt-out of unconfigured headers" do
       expect do
-        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyConfig::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, :csp)
       end.to raise_error(Configuration::NotYetConfiguredError)
+    end
+
+    it "raises a AlreadyConfiguredError if trying to configure and default has already been set " do
+      Configuration.default
+      expect do
+        Configuration.default
+      end.to raise_error(Configuration::AlreadyConfiguredError)
     end
 
     it "raises and ArgumentError when referencing an override that has not been set" do
@@ -34,9 +41,9 @@ module SecureHeaders
           config.csp = { default_src: %w('self'), script_src: %w('self')}
           config.csp_report_only = config.csp
         end
-        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyConfig::CONFIG_KEY)
-        SecureHeaders.opt_out_of_header(request, ContentSecurityPolicyReportOnlyConfig::CONFIG_KEY)
-        SecureHeaders.opt_out_of_header(request, XContentTypeOptions::CONFIG_KEY)
+        SecureHeaders.opt_out_of_header(request, :csp)
+        SecureHeaders.opt_out_of_header(request, :csp_report_only)
+        SecureHeaders.opt_out_of_header(request, :x_content_type_options)
         hash = SecureHeaders.header_hash_for(request)
         expect(hash["Content-Security-Policy-Report-Only"]).to be_nil
         expect(hash["Content-Security-Policy"]).to be_nil
@@ -60,6 +67,24 @@ module SecureHeaders
         expect(hash["X-Frame-Options"]).to be_nil
       end
 
+      it "Overrides the current default config if default config changes during request" do
+        Configuration.default do |config|
+          config.x_frame_options = OPT_OUT
+        end
+
+        # Dynamically update the default config for this request
+        SecureHeaders.override_x_frame_options(request, "DENY")
+
+        Configuration.override(:dynamic_override) do |config|
+          config.x_content_type_options = "nosniff"
+        end
+
+        SecureHeaders.use_secure_headers_override(request, :dynamic_override)
+        hash = SecureHeaders.header_hash_for(request)
+        expect(hash["X-Content-Type-Options"]).to eq("nosniff")
+        expect(hash["X-Frame-Options"]).to eq("DENY")
+      end
+
       it "allows you to opt out entirely" do
         # configure the disabled-by-default headers to ensure they also do not get set
         Configuration.default do |config|
@@ -78,9 +103,6 @@ module SecureHeaders
         end
         SecureHeaders.opt_out_of_all_protection(request)
         hash = SecureHeaders.header_hash_for(request)
-        ALL_HEADER_CLASSES.each do |klass|
-          expect(hash[klass::CONFIG_KEY]).to be_nil
-        end
         expect(hash.count).to eq(0)
       end
 
@@ -116,7 +138,7 @@ module SecureHeaders
         firefox_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:firefox]))
 
         # append an unsupported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(flash)})
+        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(application/pdf)})
         # append a supported directive
         SecureHeaders.override_content_security_policy_directives(firefox_request, {script_src: %w('self')})
 
@@ -322,7 +344,7 @@ module SecureHeaders
                 report_only: true
               }
             end
-          }.to raise_error(ArgumentError)
+          }.to raise_error(ContentSecurityPolicyConfigError)
         end
 
         it "Raises an error if csp_report_only is used with `report_only: false`" do
@@ -349,6 +371,7 @@ module SecureHeaders
           end
 
           it "sets identical values when the configs are the same" do
+            reset_config
             Configuration.default do |config|
               config.csp = {
                 default_src: %w('self'),
@@ -366,6 +389,7 @@ module SecureHeaders
           end
 
           it "sets different headers when the configs are different" do
+            reset_config
             Configuration.default do |config|
               config.csp = {
                 default_src: %w('self'),
@@ -376,10 +400,11 @@ module SecureHeaders
 
             hash = SecureHeaders.header_hash_for(request)
             expect(hash["Content-Security-Policy"]).to eq("default-src 'self'; script-src 'self'")
-            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src 'self' foo.com")
+            expect(hash["Content-Security-Policy-Report-Only"]).to eq("default-src 'self'; script-src foo.com")
           end
 
           it "allows you to opt-out of enforced CSP" do
+            reset_config
             Configuration.default do |config|
               config.csp = SecureHeaders::OPT_OUT
               config.csp_report_only = {
@@ -437,6 +462,7 @@ module SecureHeaders
 
           context "when inferring which config to modify" do
             it "updates the enforced header when configured" do
+              reset_config
               Configuration.default do |config|
                 config.csp = {
                   default_src: %w('self'),
@@ -451,6 +477,7 @@ module SecureHeaders
             end
 
             it "updates the report only header when configured" do
+              reset_config
               Configuration.default do |config|
                 config.csp = OPT_OUT
                 config.csp_report_only = {
@@ -466,6 +493,7 @@ module SecureHeaders
             end
 
             it "updates both headers if both are configured" do
+              reset_config
               Configuration.default do |config|
                 config.csp = {
                   default_src: %w(enforced.com),

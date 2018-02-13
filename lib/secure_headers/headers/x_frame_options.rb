@@ -3,7 +3,6 @@ module SecureHeaders
   class XFOConfigError < StandardError; end
   class XFrameOptions
     HEADER_NAME = "X-Frame-Options".freeze
-    CONFIG_KEY = :x_frame_options
     SAMEORIGIN = "sameorigin"
     DENY = "deny"
     ALLOW_FROM = "allow-from"
@@ -16,7 +15,7 @@ module SecureHeaders
       #
       # Returns a default header if no configuration is provided, or a
       # header name and value based on the config.
-      def make_header(config = nil)
+      def make_header(config = nil, user_agent = nil)
         return if config == OPT_OUT
         [HEADER_NAME, config || DEFAULT_VALUE]
       end

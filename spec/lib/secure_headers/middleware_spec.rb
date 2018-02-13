@@ -16,6 +16,7 @@ module SecureHeaders
 
     it "warns if the hpkp report-uri host is the same as the current host" do
       report_host = "report-uri.io"
+      reset_config
       Configuration.default do |config|
         config.hpkp = {
           max_age: 10000000,
@@ -50,12 +51,14 @@ module SecureHeaders
       end
       request = Rack::Request.new({})
       SecureHeaders.use_secure_headers_override(request, "my_custom_config")
-      expect(request.env[SECURE_HEADERS_CONFIG]).to be(Configuration.get("my_custom_config", internal: true))
       _, env = middleware.call request.env
       expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match("example.org")
     end
 
     context "cookies" do
+      before(:each) do
+        reset_config
+      end
       context "cookies should be flagged" do
         it "flags cookies as secure" do
           Configuration.default { |config| config.cookies = {secure: true, httponly: OPT_OUT, samesite: OPT_OUT} }
@@ -87,6 +90,9 @@ module SecureHeaders
     end
 
     context "cookies" do
+      before(:each) do
+        reset_config
+      end
       it "flags cookies from configuration" do
         Configuration.default { |config| config.cookies = { secure: true, httponly: true, samesite: { lax: true} } }
         request = Rack::Request.new("HTTPS" => "on")

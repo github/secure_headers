@@ -5,14 +5,14 @@ module SecureHeaders
     HEADER_NAME = "X-Permitted-Cross-Domain-Policies".freeze
     DEFAULT_VALUE = "none"
     VALID_POLICIES = %w(all none master-only by-content-type by-ftp-filename)
-    CONFIG_KEY = :x_permitted_cross_domain_policies
 
     class << self
       # Public: generate an X-Permitted-Cross-Domain-Policies header.
       #
       # Returns a default header if no configuration is provided, or a
       # header name and value based on the config.
-      def make_header(config = nil)
+      def make_header(config = nil, user_agent = nil)
+        return if config == OPT_OUT
         [HEADER_NAME, config || DEFAULT_VALUE]
       end
 
