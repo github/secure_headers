@@ -77,7 +77,7 @@ SecureHeaders::Configuration.default do |config|
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
 
     # directive values: these values will directly translate into source directives
-    default_src: %w(https: 'self'),
+    default_src: %w('none'),
     base_uri: %w('self'),
     block_all_mixed_content: true, # see http://www.w3.org/TR/mixed-content/
     child_src: %w('self'), # if child-src isn't supported, the value for frame-src will be set.
