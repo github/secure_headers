@@ -97,6 +97,12 @@ TEMPLATE
   end
 end
 
+class MessageWithConflictingMethod < Message
+  def content_security_policy_nonce
+    "rails-nonce"
+  end
+end
+
 module SecureHeaders
   describe ViewHelpers do
     let(:app) { lambda { |env| [200, env, "app"] } }
@@ -157,6 +163,28 @@ module SecureHeaders
         expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/script-src[^;]*'nonce-abc123'/)
         expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'nonce-abc123'/)
         expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'#{Regexp.escape(expected_style_hash)}'/)
+      end
+    end
+
+    it "avoids calling content_security_policy_nonce internally" do
+      begin
+        allow(SecureRandom).to receive(:base64).and_return("abc123")
+
+        expected_hash = "sha256-3/URElR9+3lvLIouavYD/vhoICSNKilh15CzI/nKqg8="
+        Configuration.instance_variable_set(:@script_hashes, filename => ["'#{expected_hash}'"])
+        expected_style_hash = "sha256-7oYK96jHg36D6BM042er4OfBnyUDTG3pH1L8Zso3aGc="
+        Configuration.instance_variable_set(:@style_hashes, filename => ["'#{expected_style_hash}'"])
+
+        # render erb that calls out to helpers.
+        MessageWithConflictingMethod.new(request).result
+        _, env = middleware.call request.env
+
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/script-src[^;]*'#{Regexp.escape(expected_hash)}'/)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/script-src[^;]*'nonce-abc123'/)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'nonce-abc123'/)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'#{Regexp.escape(expected_style_hash)}'/)
+
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).not_to match(/rails-nonce/)
       end
     end
   end

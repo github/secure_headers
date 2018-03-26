@@ -19,7 +19,7 @@ module SecureHeaders
     #
     # Returns an html-safe link tag with the nonce attribute.
     def nonced_stylesheet_link_tag(*args, &block)
-      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:style))
+      opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:style))
 
       stylesheet_link_tag(*args, opts, &block)
     end
@@ -37,7 +37,7 @@ module SecureHeaders
     #
     # Returns an html-safe script tag with the nonce attribute.
     def nonced_javascript_include_tag(*args, &block)
-      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:script))
+      opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:script))
 
       javascript_include_tag(*args, opts, &block)
     end
@@ -47,7 +47,7 @@ module SecureHeaders
     #
     # Returns an html-safe script tag with the nonce attribute.
     def nonced_javascript_pack_tag(*args, &block)
-      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:script))
+      opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:script))
 
       javascript_pack_tag(*args, opts, &block)
     end
@@ -57,7 +57,7 @@ module SecureHeaders
     #
     # Returns an html-safe link tag with the nonce attribute.
     def nonced_stylesheet_pack_tag(*args, &block)
-      opts = extract_options(args).merge(nonce: content_security_policy_nonce(:style))
+      opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:style))
 
       stylesheet_pack_tag(*args, opts, &block)
     end
@@ -66,7 +66,7 @@ module SecureHeaders
     # Instructs secure_headers to append a nonce to style/script-src directives.
     #
     # Returns a non-html-safe nonce value.
-    def content_security_policy_nonce(type)
+    def _content_security_policy_nonce(type)
       case type
       when :script
         SecureHeaders.content_security_policy_script_nonce(@_request)
@@ -74,13 +74,14 @@ module SecureHeaders
         SecureHeaders.content_security_policy_style_nonce(@_request)
       end
     end
+    alias_method :content_security_policy_nonce, :_content_security_policy_nonce
 
     def content_security_policy_script_nonce
-      content_security_policy_nonce(:script)
+      _content_security_policy_nonce(:script)
     end
 
     def content_security_policy_style_nonce
-      content_security_policy_nonce(:style)
+      _content_security_policy_nonce(:style)
     end
 
     ##
@@ -152,7 +153,7 @@ module SecureHeaders
       else
         content_or_options.html_safe # :'(
       end
-      content_tag type, content, options.merge(nonce: content_security_policy_nonce(type))
+      content_tag type, content, options.merge(nonce: _content_security_policy_nonce(type))
     end
 
     def extract_options(args)
