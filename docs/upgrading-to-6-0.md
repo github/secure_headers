@@ -35,10 +35,6 @@ These classes are typically not directly instantiated by users of SecureHeaders.
 
 This method is not typically directly called by users of SecureHeaders. Given that named overrides are no longer statically stored, fetching them no longer makes sense.
 
-## `content_security_policy_nonce` has been renamed
-
-While tag helpers such as `nonced_javascript_tag` and `nonced_style_tag`, the value for the nonce was available via `content_security_policy_nonce`. Rails 5.2 has implemented a method with the same name but clashes with the number of arguments. It has been renamed to`_content_security_policy_nonce` and will likely be removed in future versions.
-
 ## Configuration headers are no longer cached
 
 Prior to 6.0.0 SecureHeaders pre-built and cached the headers that corresponded to the default configuration. The same was also done for named overrides. However, now that named overrides are applied dynamically, those can no longer be cached. As a result, caching has been removed in the name of simplicity. Some micro-benchmarks indicate this shouldn't be a performance problem and will help to eliminate a class of bugs entirely.
