@@ -48,3 +48,7 @@ Prior to 6.0.0 you could conceivably, though unlikely, have `Configure#default` 
 Since the first commit, reducing browser console messages was a goal. It led to overly complicated and error-prone UA sniffing. Nowadays, consoles warn on completely legitimate use of features meant to be backwards compatible. So the goal is impossible and the impact is negative, so eliminating code using sniffing is a goal.
 
 The first example: we will now send `'unsafe-inline'` along with nonce source expressions. This will generate warnings in some consoles but is 100% valid use and was a design goal of CSP in the early days. The concept of versioning CSP lost out and so we're left with backward compatibility as our only option.
+
+## No more frame-src/child-src magic
+
+First there was frame-src. Then there was child-src which deprecated frame-src. Then child-src became deprecated in favor of frame-src and worker-src. In the meantime, every browser did something different. For a while, it was recommended to set child-src and frame-src but the values had to be identical. secure_headers would sniff the UA to determine whether to use frame or child src. Now that the dust has settled, I think we can stop sniffing UAs and just go with a straightforward application.
