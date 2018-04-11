@@ -194,11 +194,11 @@ module SecureHeaders
       self
     end
 
-    def generate_headers(user_agent)
+    def generate_headers
       headers = {}
       HEADERABLE_ATTRIBUTES.each do |attr|
         klass = CONFIG_ATTRIBUTES_TO_HEADER_CLASSES[attr]
-        header_name, value = klass.make_header(instance_variable_get("@#{attr}"), user_agent)
+        header_name, value = klass.make_header(instance_variable_get("@#{attr}"))
         if header_name && value
           headers[header_name] = value
         end
