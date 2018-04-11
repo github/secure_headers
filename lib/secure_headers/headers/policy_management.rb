@@ -257,15 +257,9 @@ module SecureHeaders
           # Don't set a default if directive has an existing value
           next if original[directive]
           if FETCH_SOURCES.include?(directive)
-            original[directive] = default_for(directive, original)
+            original[directive] = original[DEFAULT_SRC]
           end
         end
-      end
-
-      def default_for(directive, original)
-        return original[FRAME_SRC] if directive == CHILD_SRC && original[FRAME_SRC]
-        return original[CHILD_SRC] if directive == FRAME_SRC && original[CHILD_SRC]
-        original[DEFAULT_SRC]
       end
 
       def source_list?(directive)
