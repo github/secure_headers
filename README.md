@@ -37,7 +37,11 @@ It can also mark all http cookies with the Secure, HttpOnly and SameSite attribu
 
 ### Rails 3+
 
-For Rails 3+ applications, `secure_headers` has a `railtie` that should automatically include the middleware. If for some reason the middleware is not being included follow the instructions for Rails 2.
+For Rails 3+ applications, `secure_headers` has a `railtie` that should automatically include the middleware. If for some reason the middleware is not being included follow the instructions for Rails 2. So you just need to add to your `Gemfile`:
+
+```
+gem 'secure_headers'
+```
 
 ### Rails 2
 
