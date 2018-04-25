@@ -127,27 +127,6 @@ module SecureHeaders
         expect(hash[XFrameOptions::HEADER_NAME]).to eq(XFrameOptions::SAMEORIGIN)
       end
 
-      it "produces a UA-specific CSP when overriding (and busting the cache)" do
-        Configuration.default do |config|
-          config.csp = {
-            default_src: %w('self'),
-            script_src: %w('self'),
-            child_src: %w('self')
-          }
-        end
-        firefox_request = Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:firefox]))
-
-        # append an unsupported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, {plugin_types: %w(application/pdf)})
-        # append a supported directive
-        SecureHeaders.override_content_security_policy_directives(firefox_request, {script_src: %w('self')})
-
-        hash = SecureHeaders.header_hash_for(firefox_request)
-
-        # child-src is translated to frame-src
-        expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; frame-src 'self'; script-src 'self'")
-      end
-
       it "produces a hash of headers with default config" do
         Configuration.default
         hash = SecureHeaders.header_hash_for(request)
@@ -195,22 +174,6 @@ module SecureHeaders
           SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
           hash = SecureHeaders.header_hash_for(request)
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
-        end
-
-        it "child-src and frame-src must match" do
-          Configuration.default do |config|
-            config.csp = {
-              default_src: %w('self'),
-              frame_src: %w(frame_src.com),
-              script_src: %w('self')
-            }
-          end
-
-          SecureHeaders.append_content_security_policy_directives(chrome_request, child_src: %w(child_src.com))
-
-          expect {
-            SecureHeaders.header_hash_for(chrome_request)
-          }.to raise_error(ArgumentError)
         end
 
         it "supports named appends" do

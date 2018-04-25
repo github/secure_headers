@@ -81,57 +81,11 @@ module SecureHeaders
       UPGRADE_INSECURE_REQUESTS
     ].flatten.freeze
 
-    EDGE_DIRECTIVES = DIRECTIVES_1_0
-    SAFARI_DIRECTIVES = DIRECTIVES_1_0
-    SAFARI_10_DIRECTIVES = DIRECTIVES_2_0
-
-    FIREFOX_UNSUPPORTED_DIRECTIVES = [
-      BLOCK_ALL_MIXED_CONTENT,
-      CHILD_SRC,
-      WORKER_SRC,
-      PLUGIN_TYPES
-    ].freeze
-
-    FIREFOX_46_DEPRECATED_DIRECTIVES = [
-      FRAME_SRC
-    ].freeze
-
-    FIREFOX_46_UNSUPPORTED_DIRECTIVES = [
-      BLOCK_ALL_MIXED_CONTENT,
-      WORKER_SRC,
-      PLUGIN_TYPES
-    ].freeze
-
-    FIREFOX_DIRECTIVES = (
-      DIRECTIVES_3_0 - FIREFOX_UNSUPPORTED_DIRECTIVES
-    ).freeze
-
-    FIREFOX_46_DIRECTIVES = (
-      DIRECTIVES_3_0 - FIREFOX_46_UNSUPPORTED_DIRECTIVES - FIREFOX_46_DEPRECATED_DIRECTIVES
-    ).freeze
-
-    CHROME_DIRECTIVES = (
-      DIRECTIVES_3_0
-    ).freeze
-
     ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0).uniq.sort
 
     # Think of default-src and report-uri as the beginning and end respectively,
     # everything else is in between.
     BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
-
-    VARIATIONS = {
-      "Chrome" => CHROME_DIRECTIVES,
-      "Opera" => CHROME_DIRECTIVES,
-      "Firefox" => FIREFOX_DIRECTIVES,
-      "FirefoxTransitional" => FIREFOX_46_DIRECTIVES,
-      "Safari" => SAFARI_DIRECTIVES,
-      "SafariTransitional" => SAFARI_10_DIRECTIVES,
-      "Edge" => EDGE_DIRECTIVES,
-      "Other" => CHROME_DIRECTIVES
-    }.freeze
-
-    OTHER = "Other".freeze
 
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                  => :source_list,
@@ -199,9 +153,9 @@ module SecureHeaders
       #
       # Returns a default policy if no configuration is provided, or a
       # header name and value based on the config.
-      def make_header(config, user_agent = nil)
+      def make_header(config)
         return if config.nil? || config == OPT_OUT
-        header = new(config, user_agent)
+        header = new(config)
         [header.name, header.value]
       end
 
@@ -303,15 +257,9 @@ module SecureHeaders
           # Don't set a default if directive has an existing value
           next if original[directive]
           if FETCH_SOURCES.include?(directive)
-            original[directive] = default_for(directive, original)
+            original[directive] = original[DEFAULT_SRC]
           end
         end
-      end
-
-      def default_for(directive, original)
-        return original[FRAME_SRC] if directive == CHILD_SRC && original[FRAME_SRC]
-        return original[CHILD_SRC] if directive == FRAME_SRC && original[CHILD_SRC]
-        original[DEFAULT_SRC]
       end
 
       def source_list?(directive)

@@ -15,7 +15,6 @@ require "secure_headers/headers/expect_certificate_transparency"
 require "secure_headers/middleware"
 require "secure_headers/railtie"
 require "secure_headers/view_helper"
-require "useragent"
 require "singleton"
 require "secure_headers/configuration"
 
@@ -149,8 +148,7 @@ module SecureHeaders
       prevent_dup = true
       config = config_for(request, prevent_dup)
       config.validate_config!
-      user_agent = UserAgent.parse(request.user_agent)
-      headers = config.generate_headers(user_agent)
+      headers = config.generate_headers
 
       if request.scheme != HTTPS
         HTTPS_HEADER_CLASSES.each do |klass|

@@ -1,19 +1,12 @@
 # frozen_string_literal: true
 require_relative "policy_management"
 require_relative "content_security_policy_config"
-require "useragent"
 
 module SecureHeaders
   class ContentSecurityPolicy
     include PolicyManagement
 
-    # constants to be used for version-specific UA sniffing
-    VERSION_46 = ::UserAgent::Version.new("46")
-    VERSION_10 = ::UserAgent::Version.new("10")
-    FALLBACK_VERSION = ::UserAgent::Version.new("0")
-
-    def initialize(config = nil, user_agent = OTHER)
-      user_agent ||= OTHER
+    def initialize(config = nil)
       @config = if config.is_a?(Hash)
         if config[:report_only]
           ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
@@ -26,12 +19,6 @@ module SecureHeaders
         config
       end
 
-      @parsed_ua = if user_agent.is_a?(UserAgent::Browsers::Base)
-        user_agent
-      else
-        UserAgent.parse(user_agent)
-      end
-      @frame_src = normalize_child_frame_src
       @preserve_schemes = @config.preserve_schemes
       @script_nonce = @config.script_nonce
       @style_nonce = @config.style_nonce
@@ -56,19 +43,9 @@ module SecureHeaders
 
     private
 
-    def normalize_child_frame_src
-      if @config.frame_src && @config.child_src && @config.frame_src != @config.child_src
-        raise ArgumentError, "#{Kernel.caller.first}: both :child_src and :frame_src supplied and do not match. This can lead to inconsistent behavior across browsers."
-      end
-
-      @config.frame_src || @config.child_src
-    end
-
     # Private: converts the config object into a string representing a policy.
     # Places default-src at the first directive and report-uri as the last. All
     # others are presented in alphabetical order.
-    #
-    # Unsupported directives are filtered based on the user agent.
     #
     # Returns a content security policy header value.
     def build_value
@@ -125,18 +102,7 @@ module SecureHeaders
     #
     # Returns a string representing a directive.
     def build_source_list_directive(directive)
-      source_list = case directive
-      when :child_src
-        if supported_directives.include?(:child_src)
-          @frame_src
-        end
-      when :frame_src
-        unless supported_directives.include?(:child_src)
-          @frame_src
-        end
-      else
-        @config.directive_value(directive)
-      end
+      source_list = @config.directive_value(directive)
 
       if source_list != OPT_OUT && source_list && source_list.any?
         normalized_source_list = minify_source_list(directive, source_list)
@@ -219,38 +185,19 @@ module SecureHeaders
       source_list
     end
 
-    # Private: return the list of directives that are supported by the user agent,
+    # Private: return the list of directives,
     # starting with default-src and ending with report-uri.
     def directives
       [
         DEFAULT_SRC,
-        BODY_DIRECTIVES.select { |key| supported_directives.include?(key) },
-        REPORT_URI
+        BODY_DIRECTIVES,
+        REPORT_URI,
       ].flatten
     end
 
     # Private: Remove scheme from source expressions.
     def strip_source_schemes(source_list)
       source_list.map { |source_expression| source_expression.sub(HTTP_SCHEME_REGEX, "") }
-    end
-
-    # Private: determine which directives are supported for the given user agent.
-    #
-    # Add UA-sniffing special casing here.
-    #
-    # Returns an array of symbols representing the directives.
-    def supported_directives
-      @supported_directives ||= if VARIATIONS[@parsed_ua.browser]
-        if @parsed_ua.browser == "Firefox" && ((@parsed_ua.version || FALLBACK_VERSION) >= VERSION_46)
-          VARIATIONS["FirefoxTransitional"]
-        elsif @parsed_ua.browser == "Safari" && ((@parsed_ua.version || FALLBACK_VERSION) >= VERSION_10)
-          VARIATIONS["SafariTransitional"]
-        else
-          VARIATIONS[@parsed_ua.browser]
-        end
-      else
-        VARIATIONS[OTHER]
-      end
     end
 
     def symbol_to_hyphen_case(sym)

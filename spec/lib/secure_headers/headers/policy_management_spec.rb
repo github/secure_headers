@@ -190,7 +190,7 @@ module SecureHeaders
         report_uri = "https://report-uri.io/asdf"
         default_policy = Configuration.dup
         combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, report_uri: [report_uri])
-        csp = ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox])
+        csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.value).to include("report-uri #{report_uri}")
       end
 
@@ -223,7 +223,7 @@ module SecureHeaders
         end
         default_policy = Configuration.dup
         combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, report_only: true)
-        csp = ContentSecurityPolicy.new(combined_config, USER_AGENTS[:firefox])
+        csp = ContentSecurityPolicy.new(combined_config)
         expect(csp.name).to eq(ContentSecurityPolicyReportOnlyConfig::HEADER_NAME)
       end
 
