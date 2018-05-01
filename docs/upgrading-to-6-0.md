@@ -43,12 +43,8 @@ Prior to 6.0.0 SecureHeaders pre-built and cached the headers that corresponded 
 
 Prior to 6.0.0 you could conceivably, though unlikely, have `Configure#default` called more than once. Because configurations are dynamic, configuring more than once could result in unexpected behavior. So, as of 6.0.0 we raise `AlreadyConfiguredError` if the default configuration is setup more than once.
 
-## Nonce behavior and console warnings
+## All user agent sniffing has been removed
 
-Since the first commit, reducing browser console messages was a goal. It led to overly complicated and error-prone UA sniffing. Nowadays, consoles warn on completely legitimate use of features meant to be backwards compatible. So the goal is impossible and the impact is negative, so eliminating code using sniffing is a goal.
+The policy configured is the policy that is delivered in terms of which directives are sent. We still dedup, strip schemes, and look for other optimizations but we will not e.g. conditionally send `frame-src` / `child-src` or apply `nonce`s / `unsafe-inline`.
 
-The first example: we will now send `'unsafe-inline'` along with nonce source expressions. This will generate warnings in some consoles but is 100% valid use and was a design goal of CSP in the early days. The concept of versioning CSP lost out and so we're left with backward compatibility as our only option.
-
-## No more frame-src/child-src magic
-
-First there was frame-src. Then there was child-src which deprecated frame-src. Then child-src became deprecated in favor of frame-src and worker-src. In the meantime, every browser did something different. For a while, it was recommended to set child-src and frame-src but the values had to be identical. secure_headers would sniff the UA to determine whether to use frame or child src. That can lead to confusing things like setting frame-src but seeing child-src. If the child-src and frame-src did not match up, an error is raised. This can be very confusing when using dynamic overrides ("Do we use child-src or frame-src?" => :boom:). Now that the dust has settled, I think we can stop sniffing UAs and just go with a straightforward application.
+The primary reason for these per-browser customization was to reduce console warnings. This has lead to many bugs and results inc confusing behavior. Also, console logs are incredibly noisy today and increasingly warn you about perfectly valid things (like sending `X-Frame-Options` and `frame-ancestors` together).
