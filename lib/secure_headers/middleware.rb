@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 module SecureHeaders
   class Middleware
-    HPKP_SAME_HOST_WARNING = "[WARNING] HPKP report host should not be the same as the request host. See https://github.com/twitter/secureheaders/issues/166"
-
     def initialize(app)
       @app = app
     end
@@ -13,10 +11,6 @@ module SecureHeaders
       status, headers, response = @app.call(env)
 
       config = SecureHeaders.config_for(req)
-      if config.hpkp_report_host == req.host
-        Kernel.warn(HPKP_SAME_HOST_WARNING)
-      end
-
       flag_cookies!(headers, override_secure(env, config.cookies)) unless config.cookies == OPT_OUT
       headers.merge!(SecureHeaders.header_hash_for(req))
       [status, headers, response]

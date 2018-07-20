@@ -14,25 +14,6 @@ module SecureHeaders
       Configuration.default
     end
 
-    it "warns if the hpkp report-uri host is the same as the current host" do
-      report_host = "report-uri.io"
-      reset_config
-      Configuration.default do |config|
-        config.hpkp = {
-          max_age: 10000000,
-          pins: [
-            {sha256: "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c"},
-            {sha256: "73a2c64f9545172c1195efb6616ca5f7afd1df6f245407cafb90de3998a1c97f"}
-          ],
-          report_uri: "https://#{report_host}/example-hpkp"
-        }
-      end
-
-      expect(Kernel).to receive(:warn).with(Middleware::HPKP_SAME_HOST_WARNING)
-
-      middleware.call(Rack::MockRequest.env_for("https://#{report_host}", {}))
-    end
-
     it "sets the headers" do
       _, env = middleware.call(Rack::MockRequest.env_for("https://looocalhost", {}))
       expect_default_values(env)

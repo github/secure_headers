@@ -37,7 +37,6 @@ def expect_default_values(hash)
   expect(hash[SecureHeaders::ExpectCertificateTransparency::HEADER_NAME]).to be_nil
   expect(hash[SecureHeaders::ClearSiteData::HEADER_NAME]).to be_nil
   expect(hash[SecureHeaders::ExpectCertificateTransparency::HEADER_NAME]).to be_nil
-  expect(hash[SecureHeaders::PublicKeyPins::HEADER_NAME]).to be_nil
 end
 
 module SecureHeaders

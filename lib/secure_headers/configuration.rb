@@ -115,7 +115,6 @@ module SecureHeaders
       expect_certificate_transparency: ExpectCertificateTransparency,
       csp: ContentSecurityPolicy,
       csp_report_only: ContentSecurityPolicy,
-      hpkp: PublicKeyPins,
       cookies: Cookie,
     }.freeze
 
@@ -144,7 +143,6 @@ module SecureHeaders
       @clear_site_data = nil
       @csp = nil
       @csp_report_only = nil
-      @hpkp = nil
       @hsts = nil
       @x_content_type_options = nil
       @x_download_options = nil
@@ -153,7 +151,6 @@ module SecureHeaders
       @x_xss_protection = nil
       @expect_certificate_transparency = nil
 
-      self.hpkp = OPT_OUT
       self.referrer_policy = OPT_OUT
       self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
       self.csp_report_only = OPT_OUT
@@ -178,7 +175,6 @@ module SecureHeaders
       copy.clear_site_data = @clear_site_data
       copy.expect_certificate_transparency = @expect_certificate_transparency
       copy.referrer_policy = @referrer_policy
-      copy.hpkp = @hpkp
       copy
     end
 
@@ -262,11 +258,6 @@ module SecureHeaders
       else
         raise ArgumentError, "Must provide either an existing CSP config or a CSP config hash"
       end
-    end
-
-    def hpkp_report_host
-      return nil unless @hpkp && hpkp != OPT_OUT && @hpkp[:report_uri]
-      URI.parse(@hpkp[:report_uri]).host
     end
   end
 end

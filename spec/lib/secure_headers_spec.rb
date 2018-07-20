@@ -90,16 +90,6 @@ module SecureHeaders
         Configuration.default do |config|
           config.csp = { default_src: ["example.com"], script_src: %w('self') }
           config.csp_report_only = config.csp
-          config.hpkp = {
-            report_only: false,
-            max_age: 10000000,
-            include_subdomains: true,
-            report_uri: "https://report-uri.io/example-hpkp",
-            pins: [
-              {sha256: "abc"},
-              {sha256: "123"}
-            ]
-          }
         end
         SecureHeaders.opt_out_of_all_protection(request)
         hash = SecureHeaders.header_hash_for(request)
@@ -139,23 +129,6 @@ module SecureHeaders
           config.hsts = "max-age=123456"
         end
         expect(SecureHeaders.header_hash_for(plaintext_request)[StrictTransportSecurity::HEADER_NAME]).to be_nil
-      end
-
-      it "does not set the HPKP header if request is over HTTP" do
-        plaintext_request = Rack::Request.new({})
-        Configuration.default do |config|
-          config.hpkp = {
-            max_age: 1_000_000,
-            include_subdomains: true,
-            report_uri: "//example.com/uri-directive",
-            pins: [
-              { sha256: "abc" },
-              { sha256: "123" }
-            ]
-          }
-        end
-
-        expect(SecureHeaders.header_hash_for(plaintext_request)[PublicKeyPins::HEADER_NAME]).to be_nil
       end
 
       context "content security policy" do
@@ -529,14 +502,6 @@ module SecureHeaders
             config.referrer_policy = "lol"
           end
         end.to raise_error(ReferrerPolicyConfigError)
-      end
-
-      it "validates your hpkp config upon configuration" do
-        expect do
-          Configuration.default do |config|
-            config.hpkp = "lol"
-          end
-        end.to raise_error(PublicKeyPinsConfigError)
       end
 
       it "validates your cookies config upon configuration" do
