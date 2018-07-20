@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 require "secure_headers/hash_helper"
 require "secure_headers/headers/cookie"
-require "secure_headers/headers/public_key_pins"
 require "secure_headers/headers/content_security_policy"
 require "secure_headers/headers/x_frame_options"
 require "secure_headers/headers/strict_transport_security"
@@ -18,8 +17,7 @@ require "secure_headers/view_helper"
 require "singleton"
 require "secure_headers/configuration"
 
-# All headers (except for hpkp) have a default value. Provide SecureHeaders::OPT_OUT
-# or ":optout_of_protection" as a config value to disable a given header
+# Provide SecureHeaders::OPT_OUT as a config value to disable a given header
 module SecureHeaders
   class NoOpHeaderConfig
     include Singleton
@@ -50,10 +48,6 @@ module SecureHeaders
   NONCE_KEY = "secure_headers_content_security_policy_nonce".freeze
   HTTPS = "https".freeze
   CSP = ContentSecurityPolicy
-
-  # Headers set on http requests (excludes STS and HPKP)
-  HTTPS_HEADER_CLASSES =
-    [StrictTransportSecurity, PublicKeyPins].freeze
 
   class << self
     # Public: override a given set of directives for the current request. If a
@@ -138,7 +132,7 @@ module SecureHeaders
     # Public: Builds the hash of headers that should be applied base on the
     # request.
     #
-    # StrictTransportSecurity and PublicKeyPins are not applied to http requests.
+    # StrictTransportSecurity is not applied to http requests.
     # See #config_for to determine which config is used for a given request.
     #
     # Returns a hash of header names => header values. The value
@@ -151,9 +145,7 @@ module SecureHeaders
       headers = config.generate_headers
 
       if request.scheme != HTTPS
-        HTTPS_HEADER_CLASSES.each do |klass|
-          headers.delete(klass::HEADER_NAME)
-        end
+        headers.delete(StrictTransportSecurity::HEADER_NAME)
       end
       headers
     end
