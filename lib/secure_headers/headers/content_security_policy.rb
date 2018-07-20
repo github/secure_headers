@@ -51,14 +51,14 @@ module SecureHeaders
     def build_value
       directives.map do |directive_name|
         case DIRECTIVE_VALUE_TYPES[directive_name]
+        when :source_list, :require_sri_for_list # require_sri is a simple set of strings that don't need to deal with symbol casing
+          build_source_list_directive(directive_name)
         when :boolean
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
         when :sandbox_list
           build_sandbox_list_directive(directive_name)
         when :media_type_list
           build_media_type_list_directive(directive_name)
-        when :source_list
-          build_source_list_directive(directive_name)
         end
       end.compact.join("; ")
     end

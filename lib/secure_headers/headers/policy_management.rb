@@ -1,4 +1,7 @@
 # frozen_string_literal: true
+
+require "set"
+
 module SecureHeaders
   module PolicyManagement
     def self.included(base)
@@ -70,6 +73,9 @@ module SecureHeaders
     # https://w3c.github.io/webappsec/specs/CSP2/
     BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
     MANIFEST_SRC = :manifest_src
+    NAVIGATE_TO = :navigate_to
+    PREFETCH_SRC = :prefetch_src
+    REQUIRE_SRI_FOR = :require_sri_for
     UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
     WORKER_SRC = :worker_src
 
@@ -77,6 +83,9 @@ module SecureHeaders
       DIRECTIVES_2_0,
       BLOCK_ALL_MIXED_CONTENT,
       MANIFEST_SRC,
+      NAVIGATE_TO,
+      PREFETCH_SRC,
+      REQUIRE_SRI_FOR,
       WORKER_SRC,
       UPGRADE_INSECURE_REQUESTS
     ].flatten.freeze
@@ -100,14 +109,17 @@ module SecureHeaders
       IMG_SRC                   => :source_list,
       MANIFEST_SRC              => :source_list,
       MEDIA_SRC                 => :source_list,
+      NAVIGATE_TO               => :source_list,
       OBJECT_SRC                => :source_list,
       PLUGIN_TYPES              => :media_type_list,
+      REQUIRE_SRI_FOR           => :require_sri_for_list,
       REPORT_URI                => :source_list,
+      PREFETCH_SRC              => :source_list,
       SANDBOX                   => :sandbox_list,
       SCRIPT_SRC                => :source_list,
       STYLE_SRC                 => :source_list,
       WORKER_SRC                => :source_list,
-      UPGRADE_INSECURE_REQUESTS => :boolean
+      UPGRADE_INSECURE_REQUESTS => :boolean,
     }.freeze
 
     # These are directives that don't have use a source list, and hence do not
@@ -122,7 +134,8 @@ module SecureHeaders
       BASE_URI,
       FORM_ACTION,
       FRAME_ANCESTORS,
-      REPORT_URI
+      NAVIGATE_TO,
+      REPORT_URI,
     ]
 
     FETCH_SOURCES = ALL_DIRECTIVES - NON_FETCH_SOURCES - NON_SOURCE_LIST_SOURCES
@@ -147,6 +160,8 @@ module SecureHeaders
       :script_nonce,
       :style_nonce
     ].freeze
+
+    REQUIRE_SRI_FOR_VALUES = Set.new(%w(script style))
 
     module ClassMethods
       # Public: generate a header name, value array that is user-agent-aware.
@@ -241,7 +256,8 @@ module SecureHeaders
       def list_directive?(directive)
         source_list?(directive) ||
           sandbox_list?(directive) ||
-          media_type_list?(directive)
+          media_type_list?(directive) ||
+          require_sri_for_list?(directive)
       end
 
       # For each directive in additions that does not exist in the original config,
@@ -274,11 +290,17 @@ module SecureHeaders
         DIRECTIVE_VALUE_TYPES[directive] == :media_type_list
       end
 
+      def require_sri_for_list?(directive)
+        DIRECTIVE_VALUE_TYPES[directive] == :require_sri_for_list
+      end
+
       # Private: Validates that the configuration has a valid type, or that it is a valid
       # source expression.
       def validate_directive!(directive, value)
         ensure_valid_directive!(directive)
         case ContentSecurityPolicy::DIRECTIVE_VALUE_TYPES[directive]
+        when :source_list
+          validate_source_expression!(directive, value)
         when :boolean
           unless boolean?(value)
             raise ContentSecurityPolicyConfigError.new("#{directive} must be a boolean. Found #{value.class} value")
@@ -287,8 +309,8 @@ module SecureHeaders
           validate_sandbox_expression!(directive, value)
         when :media_type_list
           validate_media_type_expression!(directive, value)
-        when :source_list
-          validate_source_expression!(directive, value)
+        when :require_sri_for_list
+          validate_require_sri_source_expression!(directive, value)
         else
           raise ContentSecurityPolicyConfigError.new("Unknown directive #{directive}")
         end
@@ -320,6 +342,16 @@ module SecureHeaders
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of valid media types (ex. application/pdf)")
+        end
+      end
+
+      # Private: validates that a require sri for expression:
+      # 1. is an array of strings
+      # 2. is a subset of ["string", "style"]
+      def validate_require_sri_source_expression!(directive, require_sri_for_expression)
+        ensure_array_of_strings!(directive, require_sri_for_expression)
+        unless require_sri_for_expression.to_set.subset?(REQUIRE_SRI_FOR_VALUES)
+          raise ContentSecurityPolicyConfigError.new(%(require-sri for must be a subset of #{REQUIRE_SRI_FOR_VALUES.to_a} but was #{require_sri_for_expression}))
         end
       end
 

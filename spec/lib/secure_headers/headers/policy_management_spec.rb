@@ -28,24 +28,29 @@ module SecureHeaders
 
           # directive values: these values will directly translate into source directives
           default_src: %w(https: 'self'),
-          frame_src: %w('self' *.twimg.com itunes.apple.com),
-          child_src: %w('self' *.twimg.com itunes.apple.com),
+
+          base_uri: %w('self'),
+          block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
           connect_src: %w(wss:),
+          child_src: %w('self' *.twimg.com itunes.apple.com),
           font_src: %w('self' data:),
+          form_action: %w('self' github.com),
+          frame_ancestors: %w('none'),
+          frame_src: %w('self' *.twimg.com itunes.apple.com),
           img_src: %w(mycdn.com data:),
           manifest_src: %w(manifest.com),
           media_src: %w(utoob.com),
+          navigate_to: %w(netscape.com),
           object_src: %w('self'),
+          plugin_types: %w(application/x-shockwave-flash),
+          prefetch_src: %w(fetch.com),
+          require_sri_for: %w(script style),
           script_src: %w('self'),
           style_src: %w('unsafe-inline'),
-          worker_src: %w(worker.com),
-          base_uri: %w('self'),
-          form_action: %w('self' github.com),
-          frame_ancestors: %w('none'),
-          plugin_types: %w(application/x-shockwave-flash),
-          block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
           upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
-          report_uri: %w(https://example.com/uri-directive)
+          worker_src: %w(worker.com),
+
+          report_uri: %w(https://example.com/uri-directive),
         }
 
         ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(config))
