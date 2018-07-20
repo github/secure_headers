@@ -65,7 +65,7 @@ module SecureHeaders
 
     def validate_hash_or_true_or_opt_out!(attribute)
       if !(is_hash?(config[attribute]) || is_true_or_opt_out?(config[attribute]))
-        raise CookiesConfigError.new("#{attribute} cookie config must be a hash or boolean")
+        raise CookiesConfigError.new("#{attribute} cookie config must be a hash, true, or SecureHeaders::OPT_OUT")
       end
     end
 
