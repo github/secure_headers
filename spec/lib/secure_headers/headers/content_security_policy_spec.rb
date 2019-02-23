@@ -116,6 +116,31 @@ module SecureHeaders
         ContentSecurityPolicy.new(default_src: %w('self'), frame_src: %w('self')).value
       end
 
+      it "allows script as a require-sri-src" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), require_sri_for: %w(script))
+        expect(csp.value).to eq("default-src 'self'; require-sri-for script")
+      end
+
+      it "allows style as a require-sri-src" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), require_sri_for: %w(style))
+        expect(csp.value).to eq("default-src 'self'; require-sri-for style")
+      end
+
+      it "allows script and style as a require-sri-src" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), require_sri_for: %w(script style))
+        expect(csp.value).to eq("default-src 'self'; require-sri-for script style")
+      end
+
+      it "includes prefetch-src" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), prefetch_src: %w(foo.com))
+        expect(csp.value).to eq("default-src 'self'; prefetch-src foo.com")
+      end
+
+      it "includes navigate-to" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), navigate_to: %w(foo.com))
+        expect(csp.value).to eq("default-src 'self'; navigate-to foo.com")
+      end
+
       it "supports strict-dynamic" do
         csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456})
         expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456' 'unsafe-inline'")

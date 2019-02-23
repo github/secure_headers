@@ -2,10 +2,9 @@ language: ruby
 
 rvm:
   - ruby-head
+  - 2.6.1
   - 2.5.0
   - 2.4.3
-  - 2.3.6
-  - 2.2.9
   - jruby-head
 
 env:

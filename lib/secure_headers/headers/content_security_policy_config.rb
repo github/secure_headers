@@ -27,11 +27,14 @@ module SecureHeaders
       @img_src = nil
       @manifest_src = nil
       @media_src = nil
+      @navigate_to = nil
       @object_src = nil
       @plugin_types = nil
+      @prefetch_src = nil
       @preserve_schemes = nil
       @report_only = nil
       @report_uri = nil
+      @require_sri_for = nil
       @sandbox = nil
       @script_nonce = nil
       @script_src = nil
