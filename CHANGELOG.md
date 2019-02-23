@@ -1,3 +1,7 @@
+## 6.1
+
+Adds support for navigate-to, prefetch-src, and require-sri-for #395
+
 ## 6.0
 
 - See the [upgrading to 6.0](docs/upgrading-to-6-0.md) guide for the breaking changes.
