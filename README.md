@@ -2,10 +2,6 @@
 
 **master represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
 
-**The [3.x](https://github.com/twitter/secureheaders/tree/2.x) branch is moving into maintenance mode**. See the [upgrading to 3.x doc](docs/upgrading-to-3-0.md) for instructions on how to upgrade including the differences and benefits of using the 3.x branch.
-
-**The [2.x branch](https://github.com/twitter/secureheaders/tree/2.x) will be not be maintained once 4.x is released**. The documentation below only applies to the 3.x branch. See the 2.x [README](https://github.com/twitter/secureheaders/blob/2.x/README.md) for the old way of doing things.
-
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
   - https://csp.withgoogle.com
@@ -32,20 +28,6 @@ It can also mark all http cookies with the Secure, HttpOnly and SameSite attribu
 - [Cookies](docs/cookies.md)
 - [Hashes](docs/hashes.md)
 - [Sinatra Config](docs/sinatra.md)
-
-## Getting Started
-
-### Rails 3+
-
-For Rails 3+ applications, `secure_headers` has a `railtie` that should automatically include the middleware. If for some reason the middleware is not being included follow the instructions for Rails 2.
-
-### Rails 2
-
-For Rails 2 or non-rails applications, an explicit statement is required to use the middleware component.
-
-```ruby
-use SecureHeaders::Middleware
-```
 
 ## Configuration
 
@@ -118,6 +100,23 @@ X-Frame-Options: sameorigin
 X-Permitted-Cross-Domain-Policies: none
 X-Xss-Protection: 1; mode=block
 ```
+
+## API configurations
+
+Which headers you decide to use for API responses is entirely a personal choice. Things like X-Frame-Options seem to have no place in an API response and would be wasting bytes. While this is true, browsers can do funky things with non-html responses. At the minimum, we suggest CSP:
+
+```ruby
+SecureHeaders::Configuration.override(:api) do |config|
+  config.csp = { default_src: 'none' }
+  config.hsts = SecureHeaders::OPT_OUT
+  config.x_frame_options = SecureHeaders::OPT_OUT
+  config.x_content_type_options = SecureHeaders::OPT_OUT
+  config.x_xss_protection = SecureHeaders::OPT_OUT
+  config.x_permitted_cross_domain_policies = SecureHeaders::OPT_OUT
+end
+```
+
+However, I would consider these headers anyways depending on your load and bandwidth requirements. 
 
 ## Similar libraries
 
