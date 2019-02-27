@@ -2,6 +2,8 @@
 
 Adds support for navigate-to, prefetch-src, and require-sri-for #395
 
+NOTE: this version is a breaking change due to the removal of HPKP. Remove the HPKP config, the standard is dead. Apologies for not doing a proper deprecate/major rev cycle :pray:
+
 ## 6.0
 
 - See the [upgrading to 6.0](docs/upgrading-to-6-0.md) guide for the breaking changes.
