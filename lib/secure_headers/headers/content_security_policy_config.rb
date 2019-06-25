@@ -42,6 +42,7 @@ module SecureHeaders
       @style_src = nil
       @worker_src = nil
       @upgrade_insecure_requests = nil
+      @disable_nonce_backwards_compatibility = nil
 
       from_hash(hash)
     end

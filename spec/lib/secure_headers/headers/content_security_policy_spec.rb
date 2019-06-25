@@ -145,6 +145,11 @@ module SecureHeaders
         csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456})
         expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456' 'unsafe-inline'")
       end
+
+      it "supports strict-dynamic and opting out of the appended 'unsafe-inline'" do
+        csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456, disable_nonce_backwards_compatibility: true })
+        expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456'")
+      end
     end
   end
 end
