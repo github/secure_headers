@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "secure_headers/version"
 
-# -*- encoding: utf-8 -*-
-# frozen_string_literal: true
 Gem::Specification.new do |gem|
   gem.name          = "secure_headers"
   gem.version       = SecureHeaders::VERSION
