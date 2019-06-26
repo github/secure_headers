@@ -179,7 +179,8 @@ module SecureHeaders
     # unsafe-inline, this is more concise.
     def append_nonce(source_list, nonce)
       if nonce
-        source_list.push("'nonce-#{nonce}'", UNSAFE_INLINE)
+        source_list.push("'nonce-#{nonce}'")
+        source_list.push(UNSAFE_INLINE) unless @config[:disable_nonce_backwards_compatibility]
       end
 
       source_list
