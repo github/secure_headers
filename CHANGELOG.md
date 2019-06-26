@@ -1,3 +1,7 @@
+## 6.1.1
+
+Adds the ability to disable the automatically-appended `'unsafe-inline'` value when nonces are used #404 (@will)
+
 ## 6.1
 
 Adds support for navigate-to, prefetch-src, and require-sri-for #395
