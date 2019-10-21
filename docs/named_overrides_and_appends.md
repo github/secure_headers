@@ -76,11 +76,6 @@ class ApplicationController < ActionController::Base
   SecureHeaders::Configuration.override(:script_from_otherdomain_com) do |config|
     config.csp[:script_src] << "otherdomain.com"
   end
-
-  # overrides the :script_from_otherdomain_com configuration
-  SecureHeaders::Configuration.override(:another_config, :script_from_otherdomain_com) do |config|
-    config.csp[:script_src] << "evenanotherdomain.com"
-  end
 end
 
 class MyController < ApplicationController
