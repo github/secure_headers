@@ -25,6 +25,11 @@ module SecureHeaders
       expect(cookie.to_s.scan(/secure/i).count).to eq(1)
     end
 
+    it "handles and preserves blank attribute sections" do
+      cookie = Cookie.new("_session=thisisatest;; secure", secure: true, httponly: true, samesite: OPT_OUT)
+      expect(cookie.to_s).to eq("_session=thisisatest;; secure; HttpOnly")
+    end
+
     context "Secure cookies" do
       context "when configured with a boolean" do
         it "flags cookies as Secure" do
