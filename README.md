@@ -57,6 +57,7 @@ SecureHeaders::Configuration.default do |config|
   config.csp = {
     # "meta" values. these will shape the header, but the values are not included in the header.
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
+    disable_nonce_backwards_compatibility: true, # default: false. If false, `unsafe-inline` will be added automatically when using nonces. If true, it won't. See #403 for why you'd want this.
 
     # directive values: these values will directly translate into source directives
     default_src: %w('none'),
