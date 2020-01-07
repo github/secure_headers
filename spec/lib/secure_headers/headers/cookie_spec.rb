@@ -141,34 +141,15 @@ module SecureHeaders
       end.to raise_error(CookiesConfigError)
     end
 
-    it "raises an exception when SameSite lax and strict enforcement modes are configured with booleans" do
-      expect do
-        Cookie.validate_config!(samesite: { lax: true, strict: true})
-      end.to raise_error(CookiesConfigError)
-    end
-
-    it "raises an exception when SameSite lax and none enforcement modes are configured with booleans" do
-      expect do
-        Cookie.validate_config!(samesite: { lax: true, none: true})
-      end.to raise_error(CookiesConfigError)
-    end
-
-    it "raises an exception when SameSite strict and none enforcement modes are configured with booleans" do
-      expect do
-        Cookie.validate_config!(samesite: { strict: true, none: true})
-      end.to raise_error(CookiesConfigError)
-    end
-
-    it "raises an exception when SameSite none and lax enforcement modes are configured with booleans" do
-      expect do
-        Cookie.validate_config!(samesite: { none: true, lax: true})
-      end.to raise_error(CookiesConfigError)
-    end
-
-    it "raises an exception when SameSite none and strict enforcement modes are configured with booleans" do
-      expect do
-        Cookie.validate_config!(samesite: { none: true, strict: true})
-      end.to raise_error(CookiesConfigError)
+    cookie_options = %i(none lax strict)
+    cookie_options.each do |flag|
+      (cookie_options - [flag]).each do |other_flag|
+        it "raises an exception when SameSite #{flag} and #{other_flag} enforcement modes are configured with booleans" do
+          expect do
+            Cookie.validate_config!(samesite: { flag => true, other_flag => true})
+          end.to raise_error(CookiesConfigError)
+        end
+      end
     end
 
     it "raises an exception when SameSite lax and strict enforcement modes are configured with booleans" do
