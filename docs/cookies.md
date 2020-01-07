@@ -52,13 +52,14 @@ config.cookies = {
 }
 ```
 
-`Strict` and `Lax` enforcement modes can also be specified using a Hash.
+`Strict`, `Lax`, and `None` enforcement modes can also be specified using a Hash.
 
 ```ruby
 config.cookies = {
   samesite: {
     strict: { only: ['_rails_session'] },
-    lax: { only: ['_guest'] }
+    lax: { only: ['_guest'] },
+    none: { only: ['_tracking'] },
   }
 }
 ```
