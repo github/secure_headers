@@ -43,10 +43,12 @@ module SecureHeaders
 
     # when configuring with booleans, only one enforcement is permitted
     def validate_samesite_boolean_config!
-      if config[:samesite].key?(:lax) && config[:samesite][:lax].is_a?(TrueClass) && config[:samesite].key?(:strict)
-        raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure lax and strict enforcement is not permitted.")
-      elsif config[:samesite].key?(:strict) && config[:samesite][:strict].is_a?(TrueClass) && config[:samesite].key?(:lax)
-        raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure lax and strict enforcement is not permitted.")
+      if config[:samesite].key?(:lax) && config[:samesite][:lax].is_a?(TrueClass) && (config[:samesite].key?(:strict) || config[:samesite].key?(:none))
+        raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure lax with strict or no enforcement is not permitted.")
+      elsif config[:samesite].key?(:strict) && config[:samesite][:strict].is_a?(TrueClass) && (config[:samesite].key?(:lax) || config[:samesite].key?(:none))
+        raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure strict with lax or no enforcement is not permitted.")
+      elsif config[:samesite].key?(:none) && config[:samesite][:none].is_a?(TrueClass) && (config[:samesite].key?(:lax) || config[:samesite].key?(:strict))
+        raise CookiesConfigError.new("samesite cookie config is invalid, combination use of booleans and Hash to configure no enforcement with lax or strict is not permitted.")
       end
     end
 

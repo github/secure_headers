@@ -93,6 +93,21 @@ module SecureHeaders
         expect(cookie.to_s).to eq("_session=thisisatest")
       end
 
+      it "flags SameSite=None" do
+        cookie = Cookie.new(raw_cookie, samesite: { none: { only: ["_session"] } }, secure: OPT_OUT, httponly: OPT_OUT)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=None")
+      end
+
+      it "flags SameSite=None when configured with a boolean" do
+        cookie = Cookie.new(raw_cookie, samesite: { none: true}, secure: OPT_OUT, httponly: OPT_OUT)
+        expect(cookie.to_s).to eq("_session=thisisatest; SameSite=None")
+      end
+
+      it "does not flag cookies as SameSite=none when excluded" do
+        cookie = Cookie.new(raw_cookie, samesite: { none: { except: ["_session"] } }, secure: OPT_OUT, httponly: OPT_OUT)
+        expect(cookie.to_s).to eq("_session=thisisatest")
+      end
+
       it "flags SameSite=Strict when configured with a boolean" do
         cookie = Cookie.new(raw_cookie, {samesite: { strict: true}, secure: OPT_OUT, httponly: OPT_OUT})
         expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Strict")
@@ -152,6 +167,30 @@ module SecureHeaders
     it "raises an exception when SameSite lax and strict enforcement modes are configured with booleans" do
       expect do
         Cookie.validate_config!(samesite: { lax: true, strict: true})
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when SameSite lax and none enforcement modes are configured with booleans" do
+      expect do
+        Cookie.validate_config!(samesite: { lax: true, none: true})
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when SameSite strict and none enforcement modes are configured with booleans" do
+      expect do
+        Cookie.validate_config!(samesite: { strict: true, none: true})
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when SameSite none and lax enforcement modes are configured with booleans" do
+      expect do
+        Cookie.validate_config!(samesite: { none: true, lax: true})
+      end.to raise_error(CookiesConfigError)
+    end
+
+    it "raises an exception when SameSite none and strict enforcement modes are configured with booleans" do
+      expect do
+        Cookie.validate_config!(samesite: { none: true, strict: true})
       end.to raise_error(CookiesConfigError)
     end
 
