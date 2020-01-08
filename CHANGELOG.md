@@ -1,3 +1,7 @@
+## 6.1.2
+
+Adds the ability to specify `SameSite=none` with the same configurability as `Strict`/`Lax` in order to disable Chrome's soon-to-be-lax-by-default state.
+
 ## 6.1.1
 
 Adds the ability to disable the automatically-appended `'unsafe-inline'` value when nonces are used #404 (@will)
