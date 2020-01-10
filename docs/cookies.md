@@ -57,9 +57,9 @@ config.cookies = {
 ```ruby
 config.cookies = {
   samesite: {
-    strict: { only: ['_rails_session'] },
-    lax: { only: ['_guest'] },
-    none: { only: ['_tracking'] },
+    strict: { only: ['_rails_session_duplicate'] },
+    lax: { only: ['_guest', '_rails_session', 'device_id'] },
+    none: { only: ['_tracking', 'saml_cookie'] },
   }
 }
 ```
