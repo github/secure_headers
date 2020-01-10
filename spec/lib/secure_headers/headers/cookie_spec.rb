@@ -123,7 +123,7 @@ module SecureHeaders
       end.to raise_error(CookiesConfigError)
     end
 
-    cookie_options = %i(none lax strict)
+    cookie_options = %w(none lax strict).map(&:to_sym)
     cookie_options.each do |flag|
       (cookie_options - [flag]).each do |other_flag|
         it "raises an exception when SameSite #{flag} and #{other_flag} enforcement modes are configured with booleans" do
