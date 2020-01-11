@@ -25,7 +25,7 @@ Boolean-based configuration is intended to globally enable or disable a specific
 ```ruby
 config.cookies = {
   secure: true, # mark all cookies as Secure
-  httponly: OPT_OUT, # do not mark any cookies as HttpOnly
+  httponly: SecureHeaders::OPT_OUT, # do not mark any cookies as HttpOnly
 }
 ```
 

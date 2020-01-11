@@ -5,7 +5,7 @@ The original implementation of name overrides worked by making a copy of the def
 ```ruby
 class ApplicationController < ActionController::Base
   Configuration.default do |config|
-    config.x_frame_options = OPT_OUT
+    config.x_frame_options = SecureHeaders::OPT_OUT
   end
 
   SecureHeaders::Configuration.override(:dynamic_override) do |config|
