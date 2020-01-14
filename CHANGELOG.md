@@ -1,3 +1,7 @@
+## 3.7.4
+
+Backport SameSite=None functionality into 3.x line
+
 ## 3.7.3
 
 - Updates `Expect-CT` header to use a comma separator between directives, as specified in the most current spec.
