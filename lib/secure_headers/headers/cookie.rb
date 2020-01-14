@@ -81,11 +81,13 @@ module SecureHeaders
         "SameSite=Lax"
       elsif flag_samesite_strict?
         "SameSite=Strict"
+      elsif flag_samesite_none?
+        "SameSite=None"
       end
     end
 
     def flag_samesite?
-      flag_samesite_lax? || flag_samesite_strict?
+      flag_samesite_lax? || flag_samesite_strict? || flag_samesite_none?
     end
 
     def flag_samesite_lax?
@@ -94,6 +96,10 @@ module SecureHeaders
 
     def flag_samesite_strict?
       flag_samesite_enforcement?(:strict)
+    end
+
+    def flag_samesite_none?
+      flag_samesite_enforcement?(:none)
     end
 
     def flag_samesite_enforcement?(mode)
