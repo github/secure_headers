@@ -126,7 +126,7 @@ module SecureHeaders
     # The list of attributes that must respond to a `make_header` method
     HEADERABLE_ATTRIBUTES = (CONFIG_ATTRIBUTES - [:cookies]).freeze
 
-    attr_writer(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.reject { |key| [:csp, :csp_report_only].include?(key)}.keys))
+    attr_writer(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.reject { |key| [:csp, :csp_report_only].include?(key) }.keys))
 
     attr_reader(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.keys))
 
