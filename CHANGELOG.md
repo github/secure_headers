@@ -1,3 +1,7 @@
+## 5.1.0
+
+Fixes semicolon injection issue reported by @mvgijssel see https://github.com/twitter/secure_headers/issues/418
+
 ## 5.0.5
 
 A release to deprecate `SecureHeaders::Configuration#get` in prep for 6.x
