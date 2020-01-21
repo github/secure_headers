@@ -1,3 +1,7 @@
+## 6.2.0
+
+Fixes semicolon injection issue reported by @mvgijssel see https://github.com/twitter/secure_headers/issues/418
+
 ## 6.1.2
 
 Adds the ability to specify `SameSite=none` with the same configurability as `Strict`/`Lax` in order to disable Chrome's soon-to-be-lax-by-default state.
