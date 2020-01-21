@@ -144,10 +144,10 @@ module SecureHeaders
       return unless source_list && source_list.any?
       normalized_source_list = minify_source_list(directive, source_list).join(" ")
 
-      if normalized_source_list.include?(";")
-        Kernel.warn("#{directive} contains a ; in '#{normalized_source_list}' which will raise an error in future versions. It has been replaced with a blank space.")
+      if normalized_source_list =~ /(\n|;)/
+        Kernel.warn("#{directive} contains a #{$1} in #{normalized_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
       end
-      escaped_source_list = normalized_source_list.gsub(";", " ")
+      escaped_source_list = normalized_source_list.gsub(/[\n;]/, " ")
 
       [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
     end
