@@ -23,6 +23,15 @@ module SecureHeaders
     end
 
     describe "#value" do
+      it "uses a safe but non-breaking default value" do
+        expect(ContentSecurityPolicy.new.value).to eq("default-src https:")
+      end
+
+      it "deprecates and escapes semicolons in directive source lists" do
+        expect(Kernel).to receive(:warn).with("frame_ancestors contains a ; in 'google.com;script-src *;.;' which will raise an error in future versions. It has been replaced with a blank space.")
+        expect(ContentSecurityPolicy.new(frame_ancestors: %w(https://google.com;script-src https://*;.;)).value).to eq("frame-ancestors google.com script-src * .")
+      end
+
       it "discards 'none' values if any other source expressions are present" do
         csp = ContentSecurityPolicy.new(default_opts.merge(child_src: %w('self' 'none')))
         expect(csp.value).not_to include("'none'")
