@@ -1,3 +1,7 @@
+## 3.8.0
+
+Fixes semicolon injection issue reported by @mvgijssel see https://github.com/twitter/secure_headers/issues/418
+
 ## 3.7.4
 
 Backport SameSite=None functionality into 3.x line
