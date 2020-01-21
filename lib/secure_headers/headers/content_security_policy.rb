@@ -103,10 +103,15 @@ module SecureHeaders
     # Returns a string representing a directive.
     def build_source_list_directive(directive)
       source_list = @config.directive_value(directive)
-
       if source_list != OPT_OUT && source_list && source_list.any?
-        normalized_source_list = minify_source_list(directive, source_list)
-        [symbol_to_hyphen_case(directive), normalized_source_list].join(" ")
+        minified_source_list = minify_source_list(directive, source_list).join(" ")
+
+        if minified_source_list.include?(";")
+          Kernel.warn("#{directive} contains a ; in '#{minified_source_list}' which will raise an error in future versions. It has been replaced with a blank space.")
+        end
+
+        escaped_source_list = minified_source_list.gsub(";", " ")
+        [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
       end
     end
 
