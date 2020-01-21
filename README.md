@@ -132,9 +132,3 @@ However, I would consider these headers anyways depending on your load and bandw
 * Dropwizard [dropwizard-web-security](https://github.com/palantir/dropwizard-web-security)
 * Ember.js [ember-cli-content-security-policy](https://github.com/rwjblue/ember-cli-content-security-policy/)
 * PHP [secure-headers](https://github.com/BePsvPT/secure-headers)
-
-## License
-
-Copyright 2013-2014 Twitter, Inc and other contributors.
-
-Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
