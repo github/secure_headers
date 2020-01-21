@@ -1,3 +1,7 @@
+## 6.3.0
+
+Fixes newline injection issue
+
 ## 6.2.0
 
 Fixes semicolon injection issue reported by @mvgijssel see https://github.com/twitter/secure_headers/issues/418
