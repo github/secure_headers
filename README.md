@@ -117,7 +117,47 @@ SecureHeaders::Configuration.override(:api) do |config|
 end
 ```
 
-However, I would consider these headers anyways depending on your load and bandwidth requirements. 
+However, I would consider these headers anyways depending on your load and bandwidth requirements.
+
+## Acknowledgements
+
+This project originated within the Security team at Twitter, and its contributors include
+
+* Neil Matatall @oreoshake
+* Chris Aniszczyk
+* Artur Dryomov
+* Bjørn Mæland
+* Arthur Chiu
+* Jonathan Viney
+* Jeffrey Horn
+* David Collazo
+* Brendon Murphy
+* William Makley
+* Reed Loden
+* Noah Kantrowitz
+* Wyatt Anderson
+* Salimane Adjao Moustapha
+* Francois Chagnon
+* Jeff Hodges
+* Ian Melven
+* Darío Javier Cravero
+* Logan Hasson
+* Raul E Rangel
+* Steve Agalloco
+* Nate Collings
+* Josh Kalderimis
+* Alex Kwiatkowski
+* Julich Mera
+* Jesse Storimer
+* Tom Daniels
+* Kolja Dummann
+* Jean-Philippe Doyle
+* Blake Hitchcock
+* vanderhoorn
+* orthographic-pedant
+* Narsimham Chelluri
+
+If you've made a contribution and see your name missing from the list, make a PR and add it!
 
 ## Similar libraries
 
