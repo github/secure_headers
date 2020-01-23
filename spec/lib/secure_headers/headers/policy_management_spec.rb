@@ -113,7 +113,13 @@ module SecureHeaders
       it "disallows newlines in configs" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_src: %w('self'), script_src: %w(mycdn.com), object_src: ["http://foo.com \n script-src *"]))
-        end.to raise_error(ContentSecurityPolicyConfigError, %r{object_src contains a "\\n" in "http://foo.com \\n script-src})
+        end.to raise_error(ContentSecurityPolicyConfigError, %r(object_src contains a "\\n" in "http://foo.com \\n script-src))
+      end
+
+      it "catches semicolons that somehow bypass validation" do
+        expect do
+          ContentSecurityPolicy.new(ContentSecurityPolicyConfig.new(default_src: %w('self'), script_src: %w(mycdn.com), object_src: ["http://foo.com ; script-src *"])).value
+        end.to raise_error(ContentSecurityPolicyConfigError, %(generated object_src contains a ";" in "foo.com ; script-src *"))
       end
 
       it "allows nil values" do
@@ -141,16 +147,16 @@ module SecureHeaders
         end.to raise_error(ContentSecurityPolicyConfigError, %(sandbox must be True or an array of zero or more sandbox token strings (ex. allow-forms). Was ["steve"]))
       end
 
-      it "accepts anything of the form allow-* as a sandbox value " do
+      it "accepts anything of the form allow-* as a sandbox value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: ["allow-foo"])))
         end.to_not raise_error
       end
 
-      it "rejects escapes in sandbox value " do
+      it "rejects escapes in sandbox value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: ["allow-; script-src foo"])))
-        end.to raise_error(ContentSecurityPolicyConfigError, %(sandbox must be True or an array of zero or more sandbox token strings (ex. allow-forms). Was ["allow-; script-src foo"]))
+        end.to raise_error(ContentSecurityPolicyConfigError, %(sandbox contains a ";" in "allow-; script-src foo"))
       end
 
       it "accepts true as a sandbox policy" do
@@ -168,10 +174,10 @@ module SecureHeaders
       it "rejects escape values as plugin-type value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: [";/script-src*"])))
-        end.to raise_error(ContentSecurityPolicyConfigError, "plugin_types must be an array of valid media types (ex. application/pdf)")
+        end.to raise_error(ContentSecurityPolicyConfigError, %(plugin_types contains a ";" in ";/script-src*"))
       end
 
-      it "accepts anything of the form type/subtype as a plugin-type value " do
+      it "accepts anything of the form type/subtype as a plugin-type value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["application/pdf"])))
         end.to_not raise_error

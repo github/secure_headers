@@ -329,7 +329,7 @@ module SecureHeaders
         return if boolean?(sandbox_token_expression) && sandbox_token_expression == true
         ensure_array_of_strings!(directive, sandbox_token_expression)
         valid = sandbox_token_expression.compact.all? do |v|
-          v.is_a?(String) && v.start_with?("allow-") && v !~ ESCAPE_SEQUENCE
+          v.is_a?(String) && v.start_with?("allow-")
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be True or an array of zero or more sandbox token strings (ex. allow-forms). Was #{sandbox_token_expression.inspect}")
@@ -380,7 +380,18 @@ module SecureHeaders
       end
 
       def ensure_array_of_strings!(directive, value)
-        if (!value.is_a?(Array) || !value.compact.all? { |v| v.is_a?(String) })
+        unless value.is_a?(Array)
+          raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of strings")
+        end
+
+        all_valid_strings = value.compact.all? do |v|
+          if v =~ ESCAPE_SEQUENCE
+            raise ContentSecurityPolicyConfigError.new("#{directive} contains a #{$1.inspect} in #{v.inspect}")
+          end
+          v.is_a?(String)
+        end
+
+        unless all_valid_strings
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of strings")
         end
       end
@@ -390,10 +401,6 @@ module SecureHeaders
         source_expression.each do |expression|
           if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(expression)
             raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{expression}). This value must be single quoted.")
-          end
-
-          if expression =~ ESCAPE_SEQUENCE
-            raise ContentSecurityPolicyConfigError.new("#{directive} contains a #{$1.inspect} in #{expression.inspect}")
           end
         end
       end
