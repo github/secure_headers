@@ -164,6 +164,10 @@ module SecureHeaders
 
     REQUIRE_SRI_FOR_VALUES = Set.new(%w(script style))
 
+    # These values are not valid in a policy and can be used to escape context
+    # boundaries
+    ESCAPE_SEQUENCE = /(\n|;)/
+
     module ClassMethods
       # Public: generate a header name, value array that is user-agent-aware.
       #
@@ -386,6 +390,10 @@ module SecureHeaders
         source_expression.each do |expression|
           if ContentSecurityPolicy::DEPRECATED_SOURCE_VALUES.include?(expression)
             raise ContentSecurityPolicyConfigError.new("#{directive} contains an invalid keyword source (#{expression}). This value must be single quoted.")
+          end
+
+          if expression =~ ESCAPE_SEQUENCE
+            raise ContentSecurityPolicyConfigError.new("#{directive} contains a #{$1.inspect} in #{expression.inspect}")
           end
         end
       end
