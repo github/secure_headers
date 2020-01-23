@@ -138,13 +138,19 @@ module SecureHeaders
       it "rejects anything not of the form allow-* as a sandbox value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: ["steve"])))
-        end.to raise_error(ContentSecurityPolicyConfigError, "sandbox must be True or an array of zero or more sandbox token strings (ex. allow-forms)")
+        end.to raise_error(ContentSecurityPolicyConfigError, %(sandbox must be True or an array of zero or more sandbox token strings (ex. allow-forms). Was ["steve"]))
       end
 
       it "accepts anything of the form allow-* as a sandbox value " do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: ["allow-foo"])))
         end.to_not raise_error
+      end
+
+      it "rejects escapes in sandbox value " do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: ["allow-; script-src foo"])))
+        end.to raise_error(ContentSecurityPolicyConfigError, %(sandbox must be True or an array of zero or more sandbox token strings (ex. allow-forms). Was ["allow-; script-src foo"]))
       end
 
       it "accepts true as a sandbox policy" do
@@ -156,6 +162,12 @@ module SecureHeaders
       it "rejects anything not of the form type/subtype as a plugin-type value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["steve"])))
+        end.to raise_error(ContentSecurityPolicyConfigError, "plugin_types must be an array of valid media types (ex. application/pdf)")
+      end
+
+      it "rejects escape values as plugin-type value" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: [";/script-src*"])))
         end.to raise_error(ContentSecurityPolicyConfigError, "plugin_types must be an array of valid media types (ex. application/pdf)")
       end
 

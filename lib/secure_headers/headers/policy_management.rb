@@ -329,10 +329,10 @@ module SecureHeaders
         return if boolean?(sandbox_token_expression) && sandbox_token_expression == true
         ensure_array_of_strings!(directive, sandbox_token_expression)
         valid = sandbox_token_expression.compact.all? do |v|
-          v.is_a?(String) && v.start_with?("allow-")
+          v.is_a?(String) && v.start_with?("allow-") && v !~ ESCAPE_SEQUENCE
         end
         if !valid
-          raise ContentSecurityPolicyConfigError.new("#{directive} must be True or an array of zero or more sandbox token strings (ex. allow-forms)")
+          raise ContentSecurityPolicyConfigError.new("#{directive} must be True or an array of zero or more sandbox token strings (ex. allow-forms). Was #{sandbox_token_expression.inspect}")
         end
       end
 
@@ -343,7 +343,7 @@ module SecureHeaders
         ensure_array_of_strings!(directive, media_type_expression)
         valid = media_type_expression.compact.all? do |v|
           # All media types are of the form: <type from RFC 2045> "/" <subtype from RFC 2045>.
-          v =~ /\A.+\/.+\z/
+          v =~ /\A[^\n;]+\/[^\n;]+\z/
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of valid media types (ex. application/pdf)")
