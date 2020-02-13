@@ -121,8 +121,9 @@ However, I would consider these headers anyways depending on your load and bandw
 
 ## Acknowledgements
 
-This project originated within the Security team at Twitter, and its contributors include
+This project originated within the Security team at Twitter. An archived fork from the point of transition is here: https://github.com/twitter-archive/secure_headers.
 
+Contributors include:
 * Neil Matatall @oreoshake
 * Chris Aniszczyk
 * Artur Dryomov
