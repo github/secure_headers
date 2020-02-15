@@ -17,4 +17,4 @@ jobs:
         gem install bundler
         bundle install --jobs 4 --retry 3 --without guard
         bundle exec rspec spec
-        bundle exec rspec rubocop
+        bundle exec rubocop 
