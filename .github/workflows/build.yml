@@ -5,13 +5,16 @@ jobs:
   build:
     name: Build + Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: [ '2.4', '2.5', '2.6' ]
 
     steps:
     - uses: actions/checkout@master
-    - name: Set up Ruby 2.6
+    - name: Set up Ruby ${{ matrix.ruby }}
       uses: actions/setup-ruby@v1
       with:
-        version: 2.6.x       
+        version: ${{ matrix.ruby }}       
     - name: Build and test with Rake
       run: |
         gem install bundler
