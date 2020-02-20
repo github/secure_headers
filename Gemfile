@@ -10,8 +10,8 @@ group :test do
   gem "rack"
   gem "rspec"
   gem "rubocop", "< 0.68"
-  gem "rubocop-performance"
   gem "rubocop-github"
+  gem "rubocop-performance"
   gem "term-ansicolor"
   gem "tins"
 end
