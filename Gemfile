@@ -11,6 +11,7 @@ group :test do
   gem "rspec"
   gem "rubocop", "< 0.68"
   gem "rubocop-github"
+  gem "rubocop-performance"
   gem "term-ansicolor"
   gem "tins"
 end
