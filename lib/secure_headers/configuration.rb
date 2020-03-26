@@ -43,6 +43,9 @@ module SecureHeaders
       def override(name, &block)
         @overrides ||= {}
         raise "Provide a configuration block" unless block_given?
+        if named_append_or_override_exists?(name)
+          raise AlreadyConfiguredError, "Configuration already exists"
+        end
         @overrides[name] = block
       end
 
@@ -59,6 +62,9 @@ module SecureHeaders
       def named_append(name, &block)
         @appends ||= {}
         raise "Provide a configuration block" unless block_given?
+        if named_append_or_override_exists?(name)
+          raise AlreadyConfiguredError, "Configuration already exists"
+        end
         @appends[name] = block
       end
 
@@ -67,6 +73,11 @@ module SecureHeaders
       end
 
       private
+
+      def named_append_or_override_exists?(name)
+        (defined?(@appends) && @appends.key?(name)) ||
+          (defined?(@overrides) && @overrides.key?(name))
+      end
 
       # Public: perform a basic deep dup. The shallow copy provided by dup/clone
       # can lead to modifying parent objects.

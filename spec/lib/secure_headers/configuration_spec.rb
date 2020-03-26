@@ -34,6 +34,60 @@ module SecureHeaders
       expect(Configuration.overrides(:test_override)).to_not be_nil
     end
 
+    describe "#override" do
+      it "raises on configuring an existing override" do
+        set_override = Proc.new {
+          Configuration.override(:test_override) do |config|
+            config.x_frame_options = "DENY"
+          end
+        }
+
+        set_override.call
+
+        expect { set_override.call }
+          .to raise_error(Configuration::AlreadyConfiguredError, "Configuration already exists")
+      end
+
+      it "raises when a named append with the given name exists" do
+        Configuration.named_append(:test_override) do |config|
+          config.x_frame_options = "DENY"
+        end
+
+        expect do
+          Configuration.override(:test_override) do |config|
+            config.x_frame_options = "SAMEORIGIN"
+          end
+        end.to raise_error(Configuration::AlreadyConfiguredError, "Configuration already exists")
+      end
+    end
+
+    describe "#named_append" do
+      it "raises on configuring an existing append" do
+        set_override = Proc.new {
+          Configuration.named_append(:test_override) do |config|
+            config.x_frame_options = "DENY"
+          end
+        }
+
+        set_override.call
+
+        expect { set_override.call }
+          .to raise_error(Configuration::AlreadyConfiguredError, "Configuration already exists")
+      end
+
+      it "raises when an override with the given name exists" do
+        Configuration.override(:test_override) do |config|
+          config.x_frame_options = "DENY"
+        end
+
+        expect do
+          Configuration.named_append(:test_override) do |config|
+            config.x_frame_options = "SAMEORIGIN"
+          end
+        end.to raise_error(Configuration::AlreadyConfiguredError, "Configuration already exists")
+      end
+    end
+
     it "deprecates the secure_cookies configuration" do
       expect {
         Configuration.default do |config|
