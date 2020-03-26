@@ -34,6 +34,19 @@ module SecureHeaders
       expect(Configuration.overrides(:test_override)).to_not be_nil
     end
 
+    it "raises on configuring an existing override" do
+      set_override = Proc.new {
+        Configuration.override(:test_override) do |config|
+          config.x_frame_options = "DENY"
+        end
+      }
+
+      set_override.call
+
+      expect { set_override.call }
+        .to raise_error(Configuration::AlreadyConfiguredError, "Configuration already exists")
+    end
+
     it "deprecates the secure_cookies configuration" do
       expect {
         Configuration.default do |config|

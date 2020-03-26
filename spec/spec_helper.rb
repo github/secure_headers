@@ -45,10 +45,15 @@ module SecureHeaders
       def clear_default_config
         remove_instance_variable(:@default_config) if defined?(@default_config)
       end
+
+      def clear_overrides
+        remove_instance_variable(:@overrides) if defined?(@overrides)
+      end
     end
   end
 end
 
 def reset_config
   SecureHeaders::Configuration.clear_default_config
+  SecureHeaders::Configuration.clear_overrides
 end

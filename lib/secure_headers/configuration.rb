@@ -43,6 +43,7 @@ module SecureHeaders
       def override(name, &block)
         @overrides ||= {}
         raise "Provide a configuration block" unless block_given?
+        raise AlreadyConfiguredError, "Configuration already exists" if @overrides.key?(name)
         @overrides[name] = block
       end
 
