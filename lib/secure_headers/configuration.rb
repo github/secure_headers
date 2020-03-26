@@ -60,6 +60,7 @@ module SecureHeaders
       def named_append(name, &block)
         @appends ||= {}
         raise "Provide a configuration block" unless block_given?
+        raise AlreadyConfiguredError, "Configuration already exists" if @appends.key?(name)
         @appends[name] = block
       end
 

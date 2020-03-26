@@ -49,6 +49,10 @@ module SecureHeaders
       def clear_overrides
         remove_instance_variable(:@overrides) if defined?(@overrides)
       end
+
+      def clear_appends
+        remove_instance_variable(:@appends) if defined?(@appends)
+      end
     end
   end
 end
@@ -56,4 +60,5 @@ end
 def reset_config
   SecureHeaders::Configuration.clear_default_config
   SecureHeaders::Configuration.clear_overrides
+  SecureHeaders::Configuration.clear_appends
 end

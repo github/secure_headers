@@ -47,6 +47,19 @@ module SecureHeaders
         .to raise_error(Configuration::AlreadyConfiguredError, "Configuration already exists")
     end
 
+    it "raises on configuring an existing append" do
+      set_override = Proc.new {
+        Configuration.named_append(:test_override) do |config|
+          config.x_frame_options = "DENY"
+        end
+      }
+
+      set_override.call
+
+      expect { set_override.call }
+        .to raise_error(Configuration::AlreadyConfiguredError, "Configuration already exists")
+    end
+
     it "deprecates the secure_cookies configuration" do
       expect {
         Configuration.default do |config|
