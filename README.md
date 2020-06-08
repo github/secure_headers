@@ -1,6 +1,6 @@
-# Secure Headers ![Build + Test](https://github.com/github/secure_headers/workflows/Build%20+%20Test/badge.svg?branch=master)  [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.svg)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.svg)](https://coveralls.io/r/twitter/secureheaders)
+# Secure Headers ![Build + Test](https://github.com/github/secure_headers/workflows/Build%20+%20Test/badge.svg?branch=main)  [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.svg)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.svg)](https://coveralls.io/r/twitter/secureheaders)
 
-**master represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
+**main branch represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
 
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
