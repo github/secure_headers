@@ -1,0 +1,20 @@
+# This workflow ensures the "master" branch is always up-to-date with the
+# "main" branch (our default one)
+name: sync_main_branch
+on:
+  push:
+    branches: [ main ]
+jobs:
+  catch_up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+        with:
+         fetch-depth: 0
+      - name: Merge development into master, then push it
+        run: |
+          git pull
+          git checkout master
+          git merge development
+          git push

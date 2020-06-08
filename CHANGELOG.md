@@ -372,7 +372,7 @@ Adds `upgrade-insecure-requests` support for requests from Firefox and Chrome (a
 
 ## 3.0.0
 
-secure_headers 3.0.0 is a near-complete, not-entirely-backward-compatible rewrite. Please see the [upgrade guide](https://github.com/twitter/secureheaders/blob/master/docs/upgrading-to-3-0.md) for an in-depth explanation of the changes and the suggested upgrade path.
+secure_headers 3.0.0 is a near-complete, not-entirely-backward-compatible rewrite. Please see the [upgrade guide](https://github.com/twitter/secureheaders/blob/main/docs/upgrading-to-3-0.md) for an in-depth explanation of the changes and the suggested upgrade path.
 
 ## 2.5.1 - 2016-02-16 18:11:11 UTC - Remove noisy deprecation warning
 
