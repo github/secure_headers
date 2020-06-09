@@ -16,5 +16,5 @@ jobs:
         run: |
           git pull
           git checkout master
-          git merge development
+          git merge main
           git push
