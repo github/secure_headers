@@ -1,3 +1,7 @@
+## 6.3.1
+
+Fixes deprecation warnings when running under ruby 2.7
+
 ## 6.3.0
 
 Fixes newline injection issue
