@@ -154,7 +154,8 @@ module SecureHeaders
     META_CONFIGS = [
       :report_only,
       :preserve_schemes,
-      :disable_nonce_backwards_compatibility
+      :disable_nonce_backwards_compatibility,
+      :disable_minification,
     ].freeze
 
     NONCES = [

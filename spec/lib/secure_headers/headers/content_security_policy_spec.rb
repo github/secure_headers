@@ -56,6 +56,15 @@ module SecureHeaders
         expect(csp.value).to eq("default-src *.example.org")
       end
 
+      it "preserves source expressions based on overlapping wildcards when configured" do
+        config = {
+          default_src: %w(a.example.org b.example.org *.example.org https://*.example.org),
+          disable_minification: true,
+        }
+        csp = ContentSecurityPolicy.new(config)
+        expect(csp.value).to eq("default-src a.example.org b.example.org *.example.org https://*.example.org")
+      end
+
       it "removes http/s schemes from hosts" do
         csp = ContentSecurityPolicy.new(default_src: %w(https://example.org))
         expect(csp.value).to eq("default-src example.org")
@@ -104,6 +113,11 @@ module SecureHeaders
       it "deduplicates any source expressions" do
         csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org))
         expect(csp.value).to eq("default-src example.org")
+      end
+
+      it "preserves any source expressions when configured" do
+        csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org), disable_minification: true)
+        expect(csp.value).to eq("default-src example.org example.org example.org")
       end
 
       it "creates maximally strict sandbox policy when passed no sandbox token values" do

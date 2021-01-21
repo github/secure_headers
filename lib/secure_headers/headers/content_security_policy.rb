@@ -104,7 +104,11 @@ module SecureHeaders
     def build_source_list_directive(directive)
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
-        minified_source_list = minify_source_list(directive, source_list).join(" ")
+        minified_source_list = if @config[:disable_minification]
+          source_list
+        else
+          minify_source_list(directive, source_list)
+        end.join(" ")
 
         if minified_source_list =~ /(\n|;)/
           Kernel.warn("#{directive} contains a #{$1} in #{minified_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
