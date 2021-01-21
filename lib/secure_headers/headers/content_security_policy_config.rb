@@ -89,7 +89,6 @@ module SecureHeaders
 
     def write_attribute(attr, value)
       value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
-      attr_variable = "@#{attr}"
       send("#{attr}=", value)
     end
   end
