@@ -101,6 +101,7 @@ module SecureHeaders
     # directive_name - a symbol representing the various ALL_DIRECTIVES
     #
     # Returns a string representing a directive.
+    NEWLINE_OR_SEMI_COLON = /(\n|;)/
     def build_source_list_directive(directive)
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
@@ -110,7 +111,7 @@ module SecureHeaders
           minify_source_list(directive, source_list)
         end.join(" ")
 
-        if minified_source_list =~ /(\n|;)/
+        if minified_source_list =~ NEWLINE_OR_SEMI_COLON
           Kernel.warn("#{directive} contains a #{$1} in #{minified_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
         end
 

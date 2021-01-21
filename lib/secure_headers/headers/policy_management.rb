@@ -336,11 +336,12 @@ module SecureHeaders
       # Private: validates that a media type expression:
       # 1. is an array of strings
       # 2. each element is of the form type/subtype
+      MEDIA_TYPE_EXPRESSION = /\A.+\/.+\z/
       def validate_media_type_expression!(directive, media_type_expression)
         ensure_array_of_strings!(directive, media_type_expression)
         valid = media_type_expression.compact.all? do |v|
           # All media types are of the form: <type from RFC 2045> "/" <subtype from RFC 2045>.
-          v =~ /\A.+\/.+\z/
+          v =~ MEDIA_TYPE_EXPRESSION
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of valid media types (ex. application/pdf)")
