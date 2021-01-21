@@ -1,19 +1,6 @@
 # frozen_string_literal: true
 module SecureHeaders
   module DynamicConfig
-    def self.included(base)
-      base.send(:attr_reader, *base.attrs)
-      base.attrs.each do |attr|
-        base.send(:define_method, "#{attr}=") do |value|
-          if self.class.attrs.include?(attr)
-            write_attribute(attr, value)
-          else
-            raise ContentSecurityPolicyConfigError, "Unknown config directive: #{attr}=#{value}"
-          end
-        end
-      end
-    end
-
     def initialize(hash)
       @base_uri = nil
       @block_all_mixed_content = nil
@@ -53,7 +40,7 @@ module SecureHeaders
     end
 
     def directive_value(directive)
-      if self.class.attrs.include?(directive)
+      if self.class::ATTRS.include?(directive)
         self.send(directive)
       end
     end
@@ -73,7 +60,7 @@ module SecureHeaders
     end
 
     def to_h
-      self.class.attrs.each_with_object({}) do |key, hash|
+      self.class::ATTRS.each_with_object({}) do |key, hash|
         value = self.send(key)
         hash[key] = value unless value.nil?
       end
@@ -99,7 +86,7 @@ module SecureHeaders
       hash.each_pair do |k, v|
         next if v.nil?
 
-        if self.class.attrs.include?(k)
+        if self.class::ATTRS.include?(k)
           write_attribute(k, v)
         else
           raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{v}"
@@ -116,12 +103,12 @@ module SecureHeaders
 
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicyConfig
+
     HEADER_NAME = "Content-Security-Policy".freeze
 
     ATTRS = PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
-    def self.attrs
-      ATTRS
-    end
+
+    attr_accessor *ATTRS
 
     include DynamicConfig
 
