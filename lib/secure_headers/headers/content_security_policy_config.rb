@@ -40,9 +40,7 @@ module SecureHeaders
     end
 
     def directive_value(directive)
-      if self.class::ATTRS.include?(directive)
-        self.send(directive)
-      end
+      self.send(directive)
     end
 
     def merge(new_hash)
@@ -85,19 +83,14 @@ module SecureHeaders
     def from_hash(hash)
       hash.each_pair do |k, v|
         next if v.nil?
-
-        if self.class::ATTRS.include?(k)
-          write_attribute(k, v)
-        else
-          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{v}"
-        end
+        write_attribute(k, v)
       end
     end
 
     def write_attribute(attr, value)
       value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
       attr_variable = "@#{attr}"
-      self.instance_variable_set(attr_variable, value)
+      send("#{attr}=", value)
     end
   end
 
