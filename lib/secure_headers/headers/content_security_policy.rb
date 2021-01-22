@@ -157,7 +157,7 @@ module SecureHeaders
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
       sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
+      wild_sources = sources.select { |source| STAR_REGEXP.match?(source)  }
 
       if wild_sources.any?
         sources.reject do |source|
