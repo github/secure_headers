@@ -89,7 +89,68 @@ module SecureHeaders
 
     def write_attribute(attr, value)
       value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
-      send("#{attr}=", value)
+      case attr
+      when :base_uri
+        @base_uri = value
+      when :block_all_mixed_content
+        @block_all_mixed_content = value
+      when :child_src
+        @child_src = value
+      when :connect_src
+        @connect_src = value
+      when :default_src
+        @default_src = value
+      when :font_src
+        @font_src = value
+      when :form_action
+        @form_action = value
+      when :frame_ancestors
+        @frame_ancestors = value
+      when :frame_src
+        @frame_src = value
+      when :img_src
+        @img_src = value
+      when :manifest_src
+        @manifest_src = value
+      when :media_src
+        @media_src = value
+      when :navigate_to
+        @navigate_to = value
+      when :object_src
+        @object_src = value
+      when :plugin_types
+        @plugin_types = value
+      when :prefetch_src
+        @prefetch_src = value
+      when :preserve_schemes
+        @preserve_schemes = value
+      when :report_only
+        @report_only = value
+      when :report_uri
+        @report_uri = value
+      when :require_sri_for
+        @require_sri_for = value
+      when :sandbox
+        @sandbox = value
+      when :script_nonce
+        @script_nonce = value
+      when :script_src
+        @script_src = value
+      when :style_nonce
+        @style_nonce = value
+      when :style_src
+        @style_src = value
+      when :worker_src
+        @worker_src = value
+      when :upgrade_insecure_requests
+        @upgrade_insecure_requests = value
+      when :disable_nonce_backwards_compatibility
+        @disable_nonce_backwards_compatibility = value
+      when :disable_minification
+        @disable_minification = value
+      else
+        raise NoMethodError
+      end
     end
   end
 
