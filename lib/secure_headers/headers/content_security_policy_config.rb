@@ -36,7 +36,7 @@ module SecureHeaders
     end
 
     def update_directive(directive, value)
-      self.send("#{directive}=", value)
+      write_attribute(directive, value)
     end
 
     def directive_value(directive)
