@@ -40,7 +40,68 @@ module SecureHeaders
     end
 
     def directive_value(directive)
-      self.send(directive)
+      case directive
+      when :base_uri
+        @base_uri
+      when :block_all_mixed_content
+        @block_all_mixed_content
+      when :child_src
+        @child_src
+      when :connect_src
+        @connect_src
+      when :default_src
+        @default_src
+      when :font_src
+        @font_src
+      when :form_action
+        @form_action
+      when :frame_ancestors
+        @frame_ancestors
+      when :frame_src
+        @frame_src
+      when :img_src
+        @img_src
+      when :manifest_src
+        @manifest_src
+      when :media_src
+        @media_src
+      when :navigate_to
+        @navigate_to
+      when :object_src
+        @object_src
+      when :plugin_types
+        @plugin_types
+      when :prefetch_src
+        @prefetch_src
+      when :preserve_schemes
+        @preserve_schemes
+      when :report_only
+        @report_only
+      when :report_uri
+        @report_uri
+      when :require_sri_for
+        @require_sri_for
+      when :sandbox
+        @sandbox
+      when :script_nonce
+        @script_nonce
+      when :script_src
+        @script_src
+      when :style_nonce
+        @style_nonce
+      when :style_src
+        @style_src
+      when :worker_src
+        @worker_src
+      when :upgrade_insecure_requests
+        @upgrade_insecure_requests
+      when :disable_nonce_backwards_compatibility
+        @disable_nonce_backwards_compatibility
+      when :disable_minification
+        @disable_minification
+      else
+        raise NoMethodError
+      end
     end
 
     def merge(new_hash)
@@ -59,7 +120,7 @@ module SecureHeaders
 
     def to_h
       self.class::ATTRS.each_with_object({}) do |key, hash|
-        value = self.send(key)
+        value = directive_value(key)
         hash[key] = value unless value.nil?
       end
     end
