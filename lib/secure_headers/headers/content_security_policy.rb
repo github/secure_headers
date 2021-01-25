@@ -118,7 +118,7 @@ module SecureHeaders
           Kernel.warn("#{directive} contains a #{$1} in #{enhanced_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
         end
 
-        escaped_source_list = enhanced_source_list.gsub(/[\n;]/, " ")
+        escaped_source_list = enhanced_source_list.gsub(NEWLINE_OR_SEMI_COLON, " ")
         [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
       end
     end
