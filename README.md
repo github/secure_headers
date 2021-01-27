@@ -1,6 +1,6 @@
-# Secure Headers [![Build Status](https://travis-ci.org/twitter/secure_headers.svg?branch=master)](http://travis-ci.org/twitter/secure_headers) [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.svg)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.svg)](https://coveralls.io/r/twitter/secureheaders)
+# Secure Headers ![Build + Test](https://github.com/github/secure_headers/workflows/Build%20+%20Test/badge.svg?branch=main)
 
-**master represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
+**main branch represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
 
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
@@ -117,14 +117,54 @@ SecureHeaders::Configuration.override(:api) do |config|
 end
 ```
 
-However, I would consider these headers anyways depending on your load and bandwidth requirements. 
+However, I would consider these headers anyways depending on your load and bandwidth requirements.
+
+## Acknowledgements
+
+This project originated within the Security team at Twitter. An archived fork from the point of transition is here: https://github.com/twitter-archive/secure_headers.
+
+Contributors include:
+* Neil Matatall @oreoshake
+* Chris Aniszczyk
+* Artur Dryomov
+* Bjørn Mæland
+* Arthur Chiu
+* Jonathan Viney
+* Jeffrey Horn
+* David Collazo
+* Brendon Murphy
+* William Makley
+* Reed Loden
+* Noah Kantrowitz
+* Wyatt Anderson
+* Salimane Adjao Moustapha
+* Francois Chagnon
+* Jeff Hodges
+* Ian Melven
+* Darío Javier Cravero
+* Logan Hasson
+* Raul E Rangel
+* Steve Agalloco
+* Nate Collings
+* Josh Kalderimis
+* Alex Kwiatkowski
+* Julich Mera
+* Jesse Storimer
+* Tom Daniels
+* Kolja Dummann
+* Jean-Philippe Doyle
+* Blake Hitchcock
+* vanderhoorn
+* orthographic-pedant
+* Narsimham Chelluri
+
+If you've made a contribution and see your name missing from the list, make a PR and add it!
 
 ## Similar libraries
 
 * Rack [rack-secure_headers](https://github.com/frodsan/rack-secure_headers)
 * Node.js (express) [helmet](https://github.com/helmetjs/helmet) and [hood](https://github.com/seanmonstar/hood)
 * Node.js (hapi) [blankie](https://github.com/nlf/blankie)
-* J2EE Servlet >= 3.0 [headlines](https://github.com/sourceclear/headlines)
 * ASP.NET - [NWebsec](https://github.com/NWebsec/NWebsec/wiki)
 * Python - [django-csp](https://github.com/mozilla/django-csp) + [commonware](https://github.com/jsocol/commonware/); [django-security](https://github.com/sdelements/django-security)
 * Go - [secureheader](https://github.com/kr/secureheader)

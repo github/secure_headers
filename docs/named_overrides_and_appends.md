@@ -1,6 +1,6 @@
 ## Named Appends
 
-Named Appends are blocks of code that can be reused and composed during requests. e.g. If a certain partial is rendered conditionally, and the csp needs to be adjusted for that partial, you can create a named append for that situation. The value returned by the block will be passed into `append_content_security_policy_directives`. The current request object is passed as an argument to the block for even more flexibility.
+Named Appends are blocks of code that can be reused and composed during requests. e.g. If a certain partial is rendered conditionally, and the csp needs to be adjusted for that partial, you can create a named append for that situation. The value returned by the block will be passed into `append_content_security_policy_directives`. The current request object is passed as an argument to the block for even more flexibility. Reusing a configuration name is not allowed and will throw an exception.
 
 ```ruby
 def show
@@ -90,6 +90,8 @@ class MyController < ApplicationController
   end
 end
 ```
+
+Reusing a configuration name is not allowed and will throw an exception.
 
 By default, a no-op configuration is provided. No headers will be set when this default override is used.
 
