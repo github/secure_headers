@@ -101,16 +101,24 @@ module SecureHeaders
     # directive_name - a symbol representing the various ALL_DIRECTIVES
     #
     # Returns a string representing a directive.
+    NEWLINE_OR_SEMI_COLON = /(\n|;)/
     def build_source_list_directive(directive)
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
-        minified_source_list = minify_source_list(directive, source_list).join(" ")
+        enhanced_source_list = populate_nonces(directive, source_list)
+        enhanced_source_list = reject_all_values_if_none(enhanced_source_list)
 
-        if minified_source_list =~ /(\n|;)/
-          Kernel.warn("#{directive} contains a #{$1} in #{minified_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
+        enhanced_source_list = if @config[:disable_minification]
+          enhanced_source_list
+        else
+          minify_source_list(directive, enhanced_source_list)
+        end.join(" ")
+
+        if enhanced_source_list =~ NEWLINE_OR_SEMI_COLON
+          Kernel.warn("#{directive} contains a #{$1} in #{enhanced_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
         end
 
-        escaped_source_list = minified_source_list.gsub(/[\n;]/, " ")
+        escaped_source_list = enhanced_source_list.gsub(NEWLINE_OR_SEMI_COLON, " ")
         [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
       end
     end
@@ -123,9 +131,6 @@ module SecureHeaders
       if source_list.include?(STAR)
         keep_wildcard_sources(source_list)
       else
-        source_list = populate_nonces(directive, source_list)
-        source_list = reject_all_values_if_none(source_list)
-
         unless directive == REPORT_URI || @preserve_schemes
           source_list = strip_source_schemes(source_list)
         end
@@ -152,7 +157,7 @@ module SecureHeaders
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
       sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
+      wild_sources = sources.select { |source| STAR_REGEXP.match?(source)  }
 
       if wild_sources.any?
         sources.reject do |source|

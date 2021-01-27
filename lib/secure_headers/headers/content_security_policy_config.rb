@@ -1,19 +1,6 @@
 # frozen_string_literal: true
 module SecureHeaders
   module DynamicConfig
-    def self.included(base)
-      base.send(:attr_reader, *base.attrs)
-      base.attrs.each do |attr|
-        base.send(:define_method, "#{attr}=") do |value|
-          if self.class.attrs.include?(attr)
-            write_attribute(attr, value)
-          else
-            raise ContentSecurityPolicyConfigError, "Unknown config directive: #{attr}=#{value}"
-          end
-        end
-      end
-    end
-
     def initialize(hash)
       @base_uri = nil
       @block_all_mixed_content = nil
@@ -43,17 +30,77 @@ module SecureHeaders
       @worker_src = nil
       @upgrade_insecure_requests = nil
       @disable_nonce_backwards_compatibility = nil
+      @disable_minification = nil
 
       from_hash(hash)
     end
 
     def update_directive(directive, value)
-      self.send("#{directive}=", value)
+      write_attribute(directive, value)
     end
 
     def directive_value(directive)
-      if self.class.attrs.include?(directive)
-        self.send(directive)
+      case directive
+      when :base_uri
+        @base_uri
+      when :block_all_mixed_content
+        @block_all_mixed_content
+      when :child_src
+        @child_src
+      when :connect_src
+        @connect_src
+      when :default_src
+        @default_src
+      when :font_src
+        @font_src
+      when :form_action
+        @form_action
+      when :frame_ancestors
+        @frame_ancestors
+      when :frame_src
+        @frame_src
+      when :img_src
+        @img_src
+      when :manifest_src
+        @manifest_src
+      when :media_src
+        @media_src
+      when :navigate_to
+        @navigate_to
+      when :object_src
+        @object_src
+      when :plugin_types
+        @plugin_types
+      when :prefetch_src
+        @prefetch_src
+      when :preserve_schemes
+        @preserve_schemes
+      when :report_only
+        @report_only
+      when :report_uri
+        @report_uri
+      when :require_sri_for
+        @require_sri_for
+      when :sandbox
+        @sandbox
+      when :script_nonce
+        @script_nonce
+      when :script_src
+        @script_src
+      when :style_nonce
+        @style_nonce
+      when :style_src
+        @style_src
+      when :worker_src
+        @worker_src
+      when :upgrade_insecure_requests
+        @upgrade_insecure_requests
+      when :disable_nonce_backwards_compatibility
+        @disable_nonce_backwards_compatibility
+      when :disable_minification
+        @disable_minification
+      else
+        raise NoMethodError
       end
     end
 
@@ -72,8 +119,8 @@ module SecureHeaders
     end
 
     def to_h
-      self.class.attrs.each_with_object({}) do |key, hash|
-        value = self.send(key)
+      self.class::ATTRS.each_with_object({}) do |key, hash|
+        value = directive_value(key)
         hash[key] = value unless value.nil?
       end
     end
@@ -97,30 +144,85 @@ module SecureHeaders
     def from_hash(hash)
       hash.each_pair do |k, v|
         next if v.nil?
-
-        if self.class.attrs.include?(k)
-          write_attribute(k, v)
-        else
-          raise ContentSecurityPolicyConfigError, "Unknown config directive: #{k}=#{v}"
-        end
+        write_attribute(k, v)
       end
     end
 
     def write_attribute(attr, value)
       value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
-      attr_variable = "@#{attr}"
-      self.instance_variable_set(attr_variable, value)
+      case attr
+      when :base_uri
+        @base_uri = value
+      when :block_all_mixed_content
+        @block_all_mixed_content = value
+      when :child_src
+        @child_src = value
+      when :connect_src
+        @connect_src = value
+      when :default_src
+        @default_src = value
+      when :font_src
+        @font_src = value
+      when :form_action
+        @form_action = value
+      when :frame_ancestors
+        @frame_ancestors = value
+      when :frame_src
+        @frame_src = value
+      when :img_src
+        @img_src = value
+      when :manifest_src
+        @manifest_src = value
+      when :media_src
+        @media_src = value
+      when :navigate_to
+        @navigate_to = value
+      when :object_src
+        @object_src = value
+      when :plugin_types
+        @plugin_types = value
+      when :prefetch_src
+        @prefetch_src = value
+      when :preserve_schemes
+        @preserve_schemes = value
+      when :report_only
+        @report_only = value
+      when :report_uri
+        @report_uri = value
+      when :require_sri_for
+        @require_sri_for = value
+      when :sandbox
+        @sandbox = value
+      when :script_nonce
+        @script_nonce = value
+      when :script_src
+        @script_src = value
+      when :style_nonce
+        @style_nonce = value
+      when :style_src
+        @style_src = value
+      when :worker_src
+        @worker_src = value
+      when :upgrade_insecure_requests
+        @upgrade_insecure_requests = value
+      when :disable_nonce_backwards_compatibility
+        @disable_nonce_backwards_compatibility = value
+      when :disable_minification
+        @disable_minification = value
+      else
+        raise NoMethodError
+      end
     end
   end
 
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicyConfig
+
     HEADER_NAME = "Content-Security-Policy".freeze
 
     ATTRS = PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
-    def self.attrs
-      ATTRS
-    end
+
+    attr_accessor *ATTRS
 
     include DynamicConfig
 

@@ -154,7 +154,8 @@ module SecureHeaders
     META_CONFIGS = [
       :report_only,
       :preserve_schemes,
-      :disable_nonce_backwards_compatibility
+      :disable_nonce_backwards_compatibility,
+      :disable_minification,
     ].freeze
 
     NONCES = [
@@ -193,7 +194,7 @@ module SecureHeaders
           raise ContentSecurityPolicyConfigError.new("csp_report_only config must have :report_only set to true")
         end
 
-        ContentSecurityPolicyConfig.attrs.each do |key|
+        ContentSecurityPolicyConfig::ATTRS.each do |key|
           value = config.directive_value(key)
           next unless value
 
@@ -335,11 +336,12 @@ module SecureHeaders
       # Private: validates that a media type expression:
       # 1. is an array of strings
       # 2. each element is of the form type/subtype
+      MEDIA_TYPE_EXPRESSION = /\A.+\/.+\z/
       def validate_media_type_expression!(directive, media_type_expression)
         ensure_array_of_strings!(directive, media_type_expression)
         valid = media_type_expression.compact.all? do |v|
           # All media types are of the form: <type from RFC 2045> "/" <subtype from RFC 2045>.
-          v =~ /\A.+\/.+\z/
+          MEDIA_TYPE_EXPRESSION.match?(v)
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of valid media types (ex. application/pdf)")
