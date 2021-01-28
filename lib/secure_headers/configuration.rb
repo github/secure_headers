@@ -177,8 +177,6 @@ module SecureHeaders
     def dup
       copy = self.class.new
       copy.cookies = self.class.deep_copy_if_hash(@cookies)
-      copy.csp = @csp.dup if @csp
-      copy.csp_report_only = @csp_report_only.dup if @csp_report_only
       copy.x_content_type_options = @x_content_type_options
       copy.hsts = @hsts
       copy.x_frame_options = @x_frame_options
@@ -188,6 +186,10 @@ module SecureHeaders
       copy.clear_site_data = @clear_site_data
       copy.expect_certificate_transparency = @expect_certificate_transparency
       copy.referrer_policy = @referrer_policy
+
+      # These settings handle any necessary dup'ing
+      copy.csp = @csp if @csp
+      copy.csp_report_only = @csp_report_only if @csp_report_only
       copy
     end
 
@@ -244,7 +246,7 @@ module SecureHeaders
       when OPT_OUT
         @csp = new_csp
       when ContentSecurityPolicyConfig
-        @csp = new_csp
+        @csp = new_csp.class.from_self(new_csp)
       when Hash
         @csp = ContentSecurityPolicyConfig.new(new_csp)
       else
@@ -263,7 +265,7 @@ module SecureHeaders
       when OPT_OUT
         @csp_report_only = new_csp
       when ContentSecurityPolicyReportOnlyConfig
-        @csp_report_only = new_csp.dup
+        @csp_report_only = new_csp.class.from_self(new_csp)
       when ContentSecurityPolicyConfig
         @csp_report_only = new_csp.make_report_only
       when Hash

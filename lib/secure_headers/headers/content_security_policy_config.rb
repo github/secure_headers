@@ -7,14 +7,14 @@ module SecureHeaders
 
     module ClassMethods
       def from_self(instance)
-        new_instance = instance.class.new
+        new_instance = new
         new_instance.base_uri = instance.base_uri
         new_instance.block_all_mixed_content = instance.block_all_mixed_content
         new_instance.child_src = instance.child_src.dup
         new_instance.connect_src = instance.connect_src.dup
         new_instance.default_src = instance.default_src.dup
         new_instance.font_src = instance.font_src.dup
-        new_instance.form_action = instance.form_action
+        new_instance.form_action = instance.form_action.dup
         new_instance.frame_ancestors = instance.frame_ancestors.dup
         new_instance.frame_src = instance.frame_src.dup
         new_instance.img_src = instance.img_src.dup
@@ -165,12 +165,6 @@ module SecureHeaders
       end
     end
 
-    def dup
-      # TODO: this is probably a major source of slowness?
-      # convert to hash to convert to object
-      self.class.from_self(self)
-    end
-
     def opt_out?
       false
     end
@@ -283,7 +277,9 @@ module SecureHeaders
     end
 
     def make_report_only
-      ContentSecurityPolicyReportOnlyConfig.new(self.to_h)
+      ContentSecurityPolicyReportOnlyConfig.from_self(self).tap do |config|
+        config.report_only = true
+      end
     end
   end
 
