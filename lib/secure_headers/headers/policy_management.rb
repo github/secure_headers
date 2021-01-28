@@ -273,7 +273,7 @@ module SecureHeaders
             directive
           end
           # Don't set a default if directive has an existing value
-          next if original[directive]
+          next if original[directive] == false || original[directive]&.any?
           if FETCH_SOURCES.include?(directive)
             original[directive] = original[DEFAULT_SRC]
           end
@@ -339,9 +339,9 @@ module SecureHeaders
       MEDIA_TYPE_EXPRESSION = /\A.+\/.+\z/
       def validate_media_type_expression!(directive, media_type_expression)
         ensure_array_of_strings!(directive, media_type_expression)
-        valid = media_type_expression.compact.all? do |v|
+        valid = media_type_expression.all? do |v|
           # All media types are of the form: <type from RFC 2045> "/" <subtype from RFC 2045>.
-          MEDIA_TYPE_EXPRESSION.match?(v)
+          v.nil? || MEDIA_TYPE_EXPRESSION.match?(v)
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of valid media types (ex. application/pdf)")
@@ -378,7 +378,8 @@ module SecureHeaders
       end
 
       def ensure_array_of_strings!(directive, value)
-        if (!value.is_a?(Array) || !value.compact.all? { |v| v.is_a?(String) })
+        array_or_set = value.is_a?(Array) || value.is_a?(Set)
+        if (!array_or_set || !value.all? { |v| v.nil? || v.is_a?(String) })
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of strings")
         end
       end

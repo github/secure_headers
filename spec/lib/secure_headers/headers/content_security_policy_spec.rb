@@ -120,11 +120,6 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org")
       end
 
-      it "preserves any source expressions when configured" do
-        csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org), disable_minification: true)
-        expect(csp.value).to eq("default-src example.org example.org example.org")
-      end
-
       it "creates maximally strict sandbox policy when passed no sandbox token values" do
         csp = ContentSecurityPolicy.new(default_src: %w(example.org), sandbox: [])
         expect(csp.value).to eq("default-src example.org; sandbox")

@@ -81,7 +81,7 @@ module SecureHeaders
       elsif sandbox_list && sandbox_list.any?
         [
           symbol_to_hyphen_case(directive),
-          sandbox_list.uniq
+          sandbox_list
         ].join(" ")
       end
     end
@@ -91,7 +91,7 @@ module SecureHeaders
       if media_type_list && media_type_list.any?
         [
           symbol_to_hyphen_case(directive),
-          media_type_list.uniq
+          media_type_list
         ].join(" ")
       end
     end
@@ -112,7 +112,7 @@ module SecureHeaders
           enhanced_source_list
         else
           minify_source_list(directive, enhanced_source_list)
-        end.join(" ")
+        end.to_a.uniq.join(" ")
 
         if enhanced_source_list =~ NEWLINE_OR_SEMI_COLON
           Kernel.warn("#{directive} contains a #{$1} in #{enhanced_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
@@ -127,7 +127,6 @@ module SecureHeaders
     # If a directive contains 'none' but has other values, 'none' is ommitted.
     # Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
     def minify_source_list(directive, source_list)
-      source_list = source_list.compact
       if source_list.include?(STAR)
         keep_wildcard_sources(source_list)
       else
@@ -156,7 +155,6 @@ module SecureHeaders
     #
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
-      sources = sources.uniq
       wild_sources = sources.select { |source| STAR_REGEXP.match?(source)  }
 
       if wild_sources.any?
@@ -189,8 +187,8 @@ module SecureHeaders
     # unsafe-inline, this is more concise.
     def append_nonce(source_list, nonce)
       if nonce
-        source_list.push("'nonce-#{nonce}'")
-        source_list.push(UNSAFE_INLINE) unless @config[:disable_nonce_backwards_compatibility]
+        source_list.add("'nonce-#{nonce}'")
+        source_list.add(UNSAFE_INLINE) unless @config[:disable_nonce_backwards_compatibility]
       end
 
       source_list
@@ -208,7 +206,7 @@ module SecureHeaders
 
     # Private: Remove scheme from source expressions.
     def strip_source_schemes(source_list)
-      source_list.map { |source_expression| source_expression.sub(HTTP_SCHEME_REGEX, "") }
+      source_list.map { |source_expression| source_expression&.sub(HTTP_SCHEME_REGEX, "") }
     end
 
     def symbol_to_hyphen_case(sym)
