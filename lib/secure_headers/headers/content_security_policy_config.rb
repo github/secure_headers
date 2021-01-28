@@ -169,6 +169,7 @@ module SecureHeaders
       false
     end
 
+    # Only used in tests
     def ==(o)
       self.class == o.class && self.to_h == o.to_h
     end

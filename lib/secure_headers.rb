@@ -22,12 +22,14 @@ module SecureHeaders
   class NoOpHeaderConfig
     include Singleton
 
+    EMPTY_HASH = {}.freeze
+
     def boom(*args)
       raise "Illegal State: attempted to modify NoOpHeaderConfig. Create a new config instead."
     end
 
     def to_h
-      {}
+      EMPTY_HASH
     end
 
     def dup
