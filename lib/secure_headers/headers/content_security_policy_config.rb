@@ -1,7 +1,47 @@
 # frozen_string_literal: true
 module SecureHeaders
   module DynamicConfig
-    def initialize(hash)
+    def self.included(base)
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      def from_self(instance)
+        new_instance = instance.class.new
+        new_instance.base_uri = instance.base_uri
+        new_instance.block_all_mixed_content = instance.block_all_mixed_content
+        new_instance.child_src = instance.child_src.dup
+        new_instance.connect_src = instance.connect_src.dup
+        new_instance.default_src = instance.default_src.dup
+        new_instance.font_src = instance.font_src.dup
+        new_instance.form_action = instance.form_action
+        new_instance.frame_ancestors = instance.frame_ancestors.dup
+        new_instance.frame_src = instance.frame_src.dup
+        new_instance.img_src = instance.img_src.dup
+        new_instance.manifest_src = instance.manifest_src.dup
+        new_instance.media_src = instance.media_src.dup
+        new_instance.navigate_to = instance.navigate_to.dup
+        new_instance.object_src = instance.object_src.dup
+        new_instance.plugin_types = instance.plugin_types.dup
+        new_instance.prefetch_src = instance.prefetch_src.dup
+        new_instance.preserve_schemes = instance.preserve_schemes
+        new_instance.report_only = instance.report_only
+        new_instance.report_uri = instance.report_uri.dup
+        new_instance.require_sri_for = instance.require_sri_for.dup
+        new_instance.sandbox = instance.sandbox
+        new_instance.script_nonce = instance.script_nonce
+        new_instance.script_src = instance.script_src
+        new_instance.style_nonce = instance.style_nonce
+        new_instance.style_src = instance.style_src.dup
+        new_instance.worker_src = instance.worker_src.dup
+        new_instance.upgrade_insecure_requests = instance.upgrade_insecure_requests
+        new_instance.disable_nonce_backwards_compatibility = instance.disable_nonce_backwards_compatibility
+        new_instance.disable_minification = instance.disable_minification
+        new_instance
+      end
+    end
+
+    def initialize(hash = nil)
       @base_uri = nil
       @block_all_mixed_content = nil
       @child_src = nil
@@ -32,7 +72,7 @@ module SecureHeaders
       @disable_nonce_backwards_compatibility = nil
       @disable_minification = nil
 
-      from_hash(hash)
+      from_hash(hash) if hash
     end
 
     def update_directive(directive, value)
@@ -126,7 +166,9 @@ module SecureHeaders
     end
 
     def dup
-      self.class.new(self.to_h)
+      # TODO: this is probably a major source of slowness?
+      # convert to hash to convert to object
+      self.class.from_self(self)
     end
 
     def opt_out?
