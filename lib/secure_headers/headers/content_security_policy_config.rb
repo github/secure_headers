@@ -145,7 +145,7 @@ module SecureHeaders
     end
 
     def merge(new_hash)
-      new_config = self.dup
+      new_config = self.class.from_self(self)
       new_config.send(:from_hash, new_hash)
       new_config
     end
