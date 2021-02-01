@@ -163,7 +163,7 @@ module SecureHeaders
       :style_nonce
     ].freeze
 
-    REQUIRE_SRI_FOR_VALUES = Set.new(%w(script style))
+    REQUIRE_SRI_FOR_VALUES = Set.new(%w(script style)).freeze
 
     module ClassMethods
       # Public: generate a header name, value array that is user-agent-aware.
