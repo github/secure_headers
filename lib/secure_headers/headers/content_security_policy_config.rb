@@ -10,30 +10,30 @@ module SecureHeaders
         new_instance = new
         new_instance.base_uri = instance.base_uri
         new_instance.block_all_mixed_content = instance.block_all_mixed_content
-        new_instance.child_src = instance.child_src.dup
-        new_instance.connect_src = instance.connect_src.dup
-        new_instance.default_src = instance.default_src.dup
-        new_instance.font_src = instance.font_src.dup
-        new_instance.form_action = instance.form_action.dup
-        new_instance.frame_ancestors = instance.frame_ancestors.dup
-        new_instance.frame_src = instance.frame_src.dup
-        new_instance.img_src = instance.img_src.dup
-        new_instance.manifest_src = instance.manifest_src.dup
-        new_instance.media_src = instance.media_src.dup
-        new_instance.navigate_to = instance.navigate_to.dup
-        new_instance.object_src = instance.object_src.dup
-        new_instance.plugin_types = instance.plugin_types.dup
-        new_instance.prefetch_src = instance.prefetch_src.dup
+        new_instance.child_src = Set.new(instance.child_src)
+        new_instance.connect_src = Set.new(instance.connect_src)
+        new_instance.default_src = Set.new(instance.default_src)
+        new_instance.font_src = Set.new(instance.font_src)
+        new_instance.form_action = Set.new(instance.form_action)
+        new_instance.frame_ancestors = Set.new(instance.frame_ancestors)
+        new_instance.frame_src = Set.new(instance.frame_src)
+        new_instance.img_src = Set.new(instance.img_src)
+        new_instance.manifest_src = Set.new(instance.manifest_src)
+        new_instance.media_src = Set.new(instance.media_src)
+        new_instance.navigate_to = Set.new(instance.navigate_to)
+        new_instance.object_src = Set.new(instance.object_src)
+        new_instance.plugin_types = Set.new(instance.plugin_types)
+        new_instance.prefetch_src = Set.new(instance.prefetch_src)
         new_instance.preserve_schemes = instance.preserve_schemes
         new_instance.report_only = instance.report_only
-        new_instance.report_uri = instance.report_uri.dup
-        new_instance.require_sri_for = instance.require_sri_for.dup
+        new_instance.report_uri = Set.new(instance.report_uri)
+        new_instance.require_sri_for = Set.new(instance.require_sri_for)
         new_instance.sandbox = instance.sandbox
         new_instance.script_nonce = instance.script_nonce
         new_instance.script_src = instance.script_src
         new_instance.style_nonce = instance.style_nonce
-        new_instance.style_src = instance.style_src.dup
-        new_instance.worker_src = instance.worker_src.dup
+        new_instance.style_src = Set.new(instance.style_src)
+        new_instance.worker_src = Set.new(instance.worker_src)
         new_instance.upgrade_insecure_requests = instance.upgrade_insecure_requests
         new_instance.disable_nonce_backwards_compatibility = instance.disable_nonce_backwards_compatibility
         new_instance.disable_minification = instance.disable_minification
@@ -185,7 +185,10 @@ module SecureHeaders
     end
 
     def write_attribute(attr, value)
-      value = value.dup if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list
+      if PolicyManagement::DIRECTIVE_VALUE_TYPES[attr] == :source_list && value.is_a?(Enumerable)
+        value = Set.new(value)
+      end
+
       case attr
       when :base_uri
         @base_uri = value
