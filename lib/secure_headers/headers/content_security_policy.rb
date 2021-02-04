@@ -54,7 +54,7 @@ module SecureHeaders
         when :source_list, :require_sri_for_list # require_sri is a simple set of strings that don't need to deal with symbol casing
           build_source_list_directive(directive_name)
         when :boolean
-          symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
+          PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[directive_name] if @config.directive_value(directive_name)
         when :sandbox_list
           build_sandbox_list_directive(directive_name)
         when :media_type_list
@@ -77,10 +77,10 @@ module SecureHeaders
       # A maximally strict sandbox policy is just the `sandbox` directive,
       # whith no configuraiton values.
       if max_strict_policy
-        symbol_to_hyphen_case(directive)
+        PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[directive]
       elsif sandbox_list && sandbox_list.any?
         [
-          symbol_to_hyphen_case(directive),
+          PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[directive],
           sandbox_list
         ].join(" ")
       end
@@ -90,7 +90,7 @@ module SecureHeaders
       return unless media_type_list = @config.directive_value(directive)
       if media_type_list && media_type_list.any?
         [
-          symbol_to_hyphen_case(directive),
+          PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[directive],
           media_type_list
         ].join(" ")
       end
@@ -119,7 +119,7 @@ module SecureHeaders
         end
 
         escaped_source_list = enhanced_source_list.gsub(NEWLINE_OR_SEMI_COLON, " ")
-        [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
+        [PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[directive], escaped_source_list].join(" ").strip
       end
     end
 
@@ -207,10 +207,6 @@ module SecureHeaders
     # Private: Remove scheme from source expressions.
     def strip_source_schemes(source_list)
       source_list.map { |source_expression| source_expression&.sub(HTTP_SCHEME_REGEX, "") }
-    end
-
-    def symbol_to_hyphen_case(sym)
-      PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[sym]
     end
   end
 end

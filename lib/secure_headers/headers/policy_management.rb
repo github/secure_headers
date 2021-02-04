@@ -92,7 +92,7 @@ module SecureHeaders
 
     ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0).uniq.sort
 
-    DIRECTIVES_SYMBOL_TO_STRING = Hash[ALL_DIRECTIVES.collect { |directive| [directive, directive.to_s.tr("_", "-")] }]
+    DIRECTIVES_SYMBOL_TO_STRING = Hash[ALL_DIRECTIVES.collect { |directive| [directive, directive.to_s.tr("_", "-").freeze] }].freeze
 
     # Think of default-src and report-uri as the beginning and end respectively,
     # everything else is in between.
