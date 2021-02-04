@@ -210,7 +210,7 @@ module SecureHeaders
     end
 
     def symbol_to_hyphen_case(sym)
-      sym.to_s.tr("_", "-")
+      PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[sym]
     end
   end
 end

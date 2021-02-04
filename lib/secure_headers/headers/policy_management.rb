@@ -92,6 +92,8 @@ module SecureHeaders
 
     ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0).uniq.sort
 
+    DIRECTIVES_SYMBOL_TO_STRING = Hash[ALL_DIRECTIVES.collect { |directive| [directive, directive.to_s.tr("_", "-")] }]
+
     # Think of default-src and report-uri as the beginning and end respectively,
     # everything else is in between.
     BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
