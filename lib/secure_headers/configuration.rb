@@ -167,6 +167,8 @@ module SecureHeaders
       @x_permitted_cross_domain_policies = nil
       @x_xss_protection = nil
       @expect_certificate_transparency = nil
+      @modified = false
+      @default_headers = nil
 
       self.referrer_policy = OPT_OUT
       self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)

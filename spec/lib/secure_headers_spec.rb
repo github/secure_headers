@@ -136,7 +136,7 @@ module SecureHeaders
           Rack::Request.new(request.env.merge("HTTP_USER_AGENT" => USER_AGENTS[:chrome]))
         }
 
-        it "appends a value to csp directive" do
+        it "appends a value to csp directive and marks a config as modified" do
           Configuration.default do |config|
             config.csp = {
               default_src: %w('self'),
@@ -147,6 +147,8 @@ module SecureHeaders
           SecureHeaders.append_content_security_policy_directives(request, script_src: %w(anothercdn.com))
           hash = SecureHeaders.header_hash_for(request)
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src mycdn.com 'unsafe-inline' anothercdn.com")
+          expect(SecureHeaders.config_for(request).modified).to be(true)
+          expect(SecureHeaders.config_for(request).default_headers).to_not eq(hash)
         end
 
         it "supports named appends" do
@@ -168,8 +170,9 @@ module SecureHeaders
           SecureHeaders.use_content_security_policy_named_append(request, :moar_default_sources)
           SecureHeaders.use_content_security_policy_named_append(request, :how_about_a_script_src_too)
           hash = SecureHeaders.header_hash_for(request)
-
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self' https:; script-src 'self' 'unsafe-inline'; style-src 'self'")
+          expect(SecureHeaders.config_for(request).modified).to be(true)
+          expect(SecureHeaders.config_for(request).default_headers).to_not eq(hash)
         end
 
         it "appends a nonce to a missing script-src value" do
@@ -183,6 +186,8 @@ module SecureHeaders
           SecureHeaders.content_security_policy_script_nonce(request) # should add the value to the header
           hash = SecureHeaders.header_hash_for(chrome_request)
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/\Adefault-src 'self'; script-src 'self' 'nonce-.*'\z/)
+          expect(SecureHeaders.config_for(request).modified).to be(true)
+          expect(SecureHeaders.config_for(request).default_headers).to_not eq(hash)
         end
 
         it "appends a hash to a missing script-src value" do
@@ -208,6 +213,8 @@ module SecureHeaders
           SecureHeaders.override_content_security_policy_directives(request, default_src: %w('none'))
           hash = SecureHeaders.header_hash_for(request)
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'none'; script-src 'self'")
+          expect(SecureHeaders.config_for(request).modified).to be(true)
+          expect(SecureHeaders.config_for(request).default_headers).to_not eq(hash)
         end
 
         it "overrides non-existant directives" do
