@@ -27,9 +27,11 @@ module SecureHeaders
           end
         end
 
-        new_config = new(&block).freeze
+        new_config = new(&block)
         new_config.validate_config!
-        @default_config = new_config
+        new_config.default_headers = new_config.generate_headers
+
+        @default_config = new_config.freeze
       end
       alias_method :configure, :default
 
@@ -140,6 +142,8 @@ module SecureHeaders
     attr_writer(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.reject { |key| [:csp, :csp_report_only].include?(key) }.keys))
 
     attr_reader(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.keys))
+
+    attr_accessor :modified, :default_headers
 
     @script_hashes = nil
     @style_hashes = nil

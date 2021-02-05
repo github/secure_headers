@@ -141,8 +141,13 @@ module SecureHeaders
     def header_hash_for(request)
       prevent_dup = true
       config = config_for(request, prevent_dup)
-      config.validate_config!
-      headers = config.generate_headers
+
+      headers = if config.modified
+        config.validate_config!
+        config.generate_headers
+      else
+        config.default_headers || config.generate_headers
+      end
 
       if request.scheme != HTTPS
         headers.delete(StrictTransportSecurity::HEADER_NAME)
@@ -240,6 +245,7 @@ module SecureHeaders
     #
     # Returns the config.
     def override_secure_headers_request_config(request, config)
+      config.modified = true
       request.env[SECURE_HEADERS_CONFIG] = config
     end
   end
