@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "secure_headers"
 
-require 'stackprof'
-require 'benchmark/ips'
-require 'rack'
+require "stackprof"
+require "benchmark/ips"
+require "rack"
 
 request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
 ::SecureHeaders::Configuration.default do |config|
