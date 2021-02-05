@@ -6,7 +6,7 @@ require "secure_headers/utils/cookies_config"
 module SecureHeaders
   class CookiesConfigError < StandardError; end
   class Cookie
-
+    COOKIE_PATTERN = /[;,]\s?/
     class << self
       def validate_config!(config)
         CookiesConfig.new(config).validate!
@@ -136,7 +136,7 @@ module SecureHeaders
     def parse(cookie)
       return unless cookie
 
-      cookie.split(/[;,]\s?/).each do |pairs|
+      cookie.split(COOKIE_PATTERN).each do |pairs|
         name, values = pairs.split("=", 2)
         name = CGI.unescape(name)
 
