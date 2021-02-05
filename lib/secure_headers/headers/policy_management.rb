@@ -142,6 +142,7 @@ module SecureHeaders
 
     STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
     HTTP_SCHEME_REGEX = %r{\Ahttps?://}
+    MEDIA_TYPE_EXPRESSION = /\A.+\/.+\z/
 
     WILDCARD_SOURCES = [
       UNSAFE_EVAL,
@@ -339,7 +340,7 @@ module SecureHeaders
         ensure_array_of_strings!(directive, media_type_expression)
         valid = media_type_expression.compact.all? do |v|
           # All media types are of the form: <type from RFC 2045> "/" <subtype from RFC 2045>.
-          v =~ /\A.+\/.+\z/
+          MEDIA_TYPE_EXPRESSION.match?(v)
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of valid media types (ex. application/pdf)")

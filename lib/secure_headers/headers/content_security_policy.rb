@@ -6,6 +6,8 @@ module SecureHeaders
   class ContentSecurityPolicy
     include PolicyManagement
 
+    SEMICOLON_OR_NEWLINE = /(\n|;)/
+
     def initialize(config = nil)
       @config = if config.is_a?(Hash)
         if config[:report_only]
@@ -106,12 +108,12 @@ module SecureHeaders
       if source_list != OPT_OUT && source_list && source_list.any?
         minified_source_list = minify_source_list(directive, source_list).join(" ")
 
-        if minified_source_list =~ /(\n|;)/
+        if minified_source_list =~ SEMICOLON_OR_NEWLINE
           Kernel.warn("#{directive} contains a #{$1} in #{minified_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
+          minified_source_list = minified_source_list.gsub(/[\n;]/, " ")
         end
 
-        escaped_source_list = minified_source_list.gsub(/[\n;]/, " ")
-        [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
+        [symbol_to_hyphen_case(directive), minified_source_list].join(" ").strip
       end
     end
 
@@ -152,7 +154,7 @@ module SecureHeaders
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
       sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
+      wild_sources = sources.select { |source| STAR_REGEXP.match?(source) }
 
       if wild_sources.any?
         sources.reject do |source|
