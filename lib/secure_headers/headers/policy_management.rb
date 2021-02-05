@@ -256,11 +256,11 @@ module SecureHeaders
       def merge_policy_additions(original, additions)
         original.merge(additions) do |directive, lhs, rhs|
           if list_directive?(directive)
-            (lhs.to_a + rhs.to_a).compact.uniq
+            (lhs.to_a + rhs.to_a).uniq
           else
             rhs
           end
-        end.reject { |_, value| value.nil? || value == [] } # this mess prevents us from adding empty directives.
+        end
       end
 
       # Returns True if a directive expects a list of values and False otherwise.
