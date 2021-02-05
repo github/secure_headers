@@ -271,15 +271,15 @@ module SecureHeaders
           require_sri_for_list?(directive)
       end
 
+      NONCE_PATTERN = /_nonce/
+      NONCE_MAPPING = Hash[NONCES.collect { |directive| [directive, directive.to_s.gsub(NONCE_PATTERN, "_src").to_sym] }]
       # For each directive in additions that does not exist in the original config,
       # copy the default-src value to the original config. This modifies the original hash.
       def populate_fetch_source_with_default!(original, additions)
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.each_key do |directive|
-          directive = if directive.to_s.end_with?("_nonce")
-            directive.to_s.gsub(/_nonce/, "_src").to_sym
-          else
-            directive
+          if NONCE_MAPPING.key?(directive)
+            directive = NONCE_MAPPING[directive]
           end
           # Don't set a default if directive has an existing value
           next if original[directive] == false || original[directive]&.any?
