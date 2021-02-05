@@ -142,11 +142,10 @@ module SecureHeaders
       prevent_dup = true
       config = config_for(request, prevent_dup)
 
-      headers = if config.modified
+      headers = config.default_headers unless config.modified
+      headers ||= begin
         config.validate_config!
         config.generate_headers
-      else
-        config.default_headers || config.generate_headers
       end
 
       if request.scheme != HTTPS
