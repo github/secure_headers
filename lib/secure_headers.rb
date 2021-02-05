@@ -145,7 +145,6 @@ module SecureHeaders
     def header_hash_for(request)
       prevent_dup = true
       config = config_for(request, prevent_dup)
-      config.validate_config!
       headers = config.generate_headers
 
       if request.scheme != HTTPS
