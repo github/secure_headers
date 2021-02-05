@@ -75,7 +75,11 @@ SecureHeaders::Configuration.default do |config|
     sandbox: true, # true and [] will set a maximally restrictive setting
     plugin_types: %w(application/x-shockwave-flash),
     script_src: %w('self'),
+    script_src_elem: %w('self'),
+    script_src_attr: %w('self'),
     style_src: %w('unsafe-inline'),
+    style_src_elem: %w('unsafe-inline'),
+    style_src_attr: %w('unsafe-inline'),
     worker_src: %w('self'),
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
     report_uri: %w(https://report-uri.io/example-csp)
