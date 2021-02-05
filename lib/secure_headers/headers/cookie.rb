@@ -133,10 +133,11 @@ module SecureHeaders
       end
     end
 
+    COOKIE_SPLIT = /[;,]\s?/
     def parse(cookie)
       return unless cookie
 
-      cookie.split(/[;,]\s?/).each do |pairs|
+      cookie.split(COOKIE_SPLIT).each do |pairs|
         name, values = pairs.split("=", 2)
         name = CGI.unescape(name)
 
