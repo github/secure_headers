@@ -38,8 +38,12 @@ module SecureHeaders
       @sandbox = nil
       @script_nonce = nil
       @script_src = nil
+      @script_src_elem = nil
+      @script_src_attr = nil
       @style_nonce = nil
       @style_src = nil
+      @style_src_elem = nil
+      @style_src_attr = nil
       @worker_src = nil
       @upgrade_insecure_requests = nil
       @disable_nonce_backwards_compatibility = nil
