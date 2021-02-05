@@ -139,7 +139,6 @@ module SecureHeaders
 
       cookie.split(COOKIE_SPLIT).each do |pairs|
         name, values = pairs.split("=", 2)
-        name = CGI.unescape(name)
 
         attribute = name.downcase.to_sym
         if @attributes.has_key?(attribute)
