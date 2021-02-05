@@ -49,12 +49,12 @@ module SecureHeaders
     #
     # Returns a content security policy header value.
     def build_value
-      directives.map do |directive_name|
+      ORDERED_DIRECTIVES.map do |directive_name|
         case DIRECTIVE_VALUE_TYPES[directive_name]
         when :source_list, :require_sri_for_list # require_sri is a simple set of strings that don't need to deal with symbol casing
           build_source_list_directive(directive_name)
         when :boolean
-          PolicyManagement::DIRECTIVES_SYMBOL_TO_STRING[directive_name] if @config.directive_value(directive_name)
+          DIRECTIVES_SYMBOL_TO_STRING[directive_name] if @config.directive_value(directive_name)
         when :sandbox_list
           build_sandbox_list_directive(directive_name)
         when :media_type_list
@@ -192,16 +192,6 @@ module SecureHeaders
       end
 
       source_list
-    end
-
-    # Private: return the list of directives,
-    # starting with default-src and ending with report-uri.
-    def directives
-      [
-        DEFAULT_SRC,
-        BODY_DIRECTIVES,
-        REPORT_URI,
-      ].flatten
     end
 
     # Private: Remove scheme from source expressions.

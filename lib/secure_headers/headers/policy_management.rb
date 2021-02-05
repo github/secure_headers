@@ -98,6 +98,13 @@ module SecureHeaders
     # everything else is in between.
     BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
 
+    # Because we like everything nice and tidy and in a logical order
+    ORDERED_DIRECTIVES = [
+      DEFAULT_SRC,
+      BODY_DIRECTIVES,
+      REPORT_URI,
+    ].flatten
+
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                  => :source_list,
       BLOCK_ALL_MIXED_CONTENT   => :boolean,

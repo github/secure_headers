@@ -8,7 +8,6 @@ require 'rack'
 
 request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
 ::SecureHeaders::Configuration.default do |config|
-  config.disable_validation = true
   config.csp.merge!(disable_minification: true)
 end
 
