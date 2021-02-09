@@ -160,6 +160,26 @@ module SecureHeaders
         csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456, disable_nonce_backwards_compatibility: true })
         expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456'")
       end
+
+      it "supports script-src-elem directive" do
+        csp = ContentSecurityPolicy.new({script_src: %w('self'), script_src_elem: %w('self')})
+        expect(csp.value).to eq("script-src 'self'; script-src-elem 'self'")
+      end
+
+      it "supports script-src-attr directive" do
+        csp = ContentSecurityPolicy.new({script_src: %w('self'), script_src_attr: %w('self')})
+        expect(csp.value).to eq("script-src 'self'; script-src-attr 'self'")
+      end
+
+      it "supports style-src-elem directive" do
+        csp = ContentSecurityPolicy.new({style_src: %w('self'), style_src_elem: %w('self')})
+        expect(csp.value).to eq("style-src 'self'; style-src-elem 'self'")
+      end
+
+      it "supports style-src-attr directive" do
+        csp = ContentSecurityPolicy.new({style_src: %w('self'), style_src_attr: %w('self')})
+        expect(csp.value).to eq("style-src 'self'; style-src-attr 'self'")
+      end
     end
   end
 end

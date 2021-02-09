@@ -78,6 +78,10 @@ module SecureHeaders
     REQUIRE_SRI_FOR = :require_sri_for
     UPGRADE_INSECURE_REQUESTS = :upgrade_insecure_requests
     WORKER_SRC = :worker_src
+    SCRIPT_SRC_ELEM = :script_src_elem
+    SCRIPT_SRC_ATTR = :script_src_attr
+    STYLE_SRC_ELEM = :style_src_elem
+    STYLE_SRC_ATTR = :style_src_attr
 
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
@@ -87,7 +91,11 @@ module SecureHeaders
       PREFETCH_SRC,
       REQUIRE_SRI_FOR,
       WORKER_SRC,
-      UPGRADE_INSECURE_REQUESTS
+      UPGRADE_INSECURE_REQUESTS,
+      SCRIPT_SRC_ELEM,
+      SCRIPT_SRC_ATTR,
+      STYLE_SRC_ELEM,
+      STYLE_SRC_ATTR
     ].flatten.freeze
 
     ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0).uniq.sort
@@ -117,7 +125,11 @@ module SecureHeaders
       PREFETCH_SRC              => :source_list,
       SANDBOX                   => :sandbox_list,
       SCRIPT_SRC                => :source_list,
+      SCRIPT_SRC_ELEM           => :source_list,
+      SCRIPT_SRC_ATTR           => :source_list,
       STYLE_SRC                 => :source_list,
+      STYLE_SRC_ELEM            => :source_list,
+      STYLE_SRC_ATTR            => :source_list,
       WORKER_SRC                => :source_list,
       UPGRADE_INSECURE_REQUESTS => :boolean,
     }.freeze

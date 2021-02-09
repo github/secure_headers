@@ -49,6 +49,10 @@ module SecureHeaders
           style_src: %w('unsafe-inline'),
           upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
           worker_src: %w(worker.com),
+          script_src_elem: %w(example.com),
+          script_src_attr: %w(example.com),
+          style_src_elem: %w(example.com),
+          style_src_attr: %w(example.com),
 
           report_uri: %w(https://example.com/uri-directive),
         }
