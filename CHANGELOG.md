@@ -1,3 +1,7 @@
+## 6.3.2
+
+Add support for style-src-attr, style-src-elem, script-src-attr, and script-src-elem directives (@ggalmazor)
+
 ## 6.3.1
 
 Fixes deprecation warnings when running under ruby 2.7
