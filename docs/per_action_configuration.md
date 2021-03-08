@@ -120,9 +120,7 @@ You can clear the browser cache after the logout request by using the following.
 class ApplicationController < ActionController::Base
   # Configuration override to send the Clear-Site-Data header.
   SecureHeaders::Configuration.override(:clear_browser_cache) do |config|
-    config.clear_site_data = [
-      SecureHeaders::ClearSiteData::ALL_TYPES
-    ]
+    config.clear_site_data = SecureHeaders::ClearSiteData::ALL_TYPES
   end
 
 
