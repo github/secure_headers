@@ -54,7 +54,7 @@ Code  | Result
 
 #### Nonce
 
-You can use a view helper to automatically add nonces to script tags:
+You can use a view helper to automatically add nonces to script tags. Currently, using a nonce helper or calling `content_security_policy_nonce` will populate all configured CSP headers, including report-only and enforced policies. 
 
 ```erb
 <%= nonced_javascript_tag do %>
