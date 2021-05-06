@@ -170,7 +170,7 @@ If you've made a contribution and see your name missing from the list, make a PR
 * Node.js (express) [helmet](https://github.com/helmetjs/helmet) and [hood](https://github.com/seanmonstar/hood)
 * Node.js (hapi) [blankie](https://github.com/nlf/blankie)
 * ASP.NET - [NWebsec](https://github.com/NWebsec/NWebsec/wiki)
-* Python - [django-csp](https://github.com/mozilla/django-csp) + [commonware](https://github.com/jsocol/commonware/); [django-security](https://github.com/sdelements/django-security)
+* Python - [django-csp](https://github.com/mozilla/django-csp) + [commonware](https://github.com/jsocol/commonware/); [django-security](https://github.com/sdelements/django-security), [secure](https://github.com/TypeError/secure)
 * Go - [secureheader](https://github.com/kr/secureheader)
 * Elixir [secure_headers](https://github.com/anotherhale/secure_headers)
 * Dropwizard [dropwizard-web-security](https://github.com/palantir/dropwizard-web-security)
