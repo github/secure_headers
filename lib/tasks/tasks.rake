@@ -20,10 +20,11 @@ namespace :secure_headers do
       (is_erb?(filename) && inline_script =~ /<%.*%>/)
   end
 
-  def find_inline_content(filename, regex, hashes)
+  def find_inline_content(filename, regex, hashes, strip_trailing_whitespace)
     file = File.read(filename)
     file.scan(regex) do # TODO don't use gsub
       inline_script = Regexp.last_match.captures.last
+      inline_script.gsub!(/(\r?\n)[\t ]+\z/, '\1') if strip_trailing_whitespace
       if dynamic_content?(filename, inline_script)
         puts "Looks like there's some dynamic content inside of a tag :-/"
         puts "That pretty much means the hash value will never match."
@@ -38,9 +39,8 @@ namespace :secure_headers do
   def generate_inline_script_hashes(filename)
     hashes = []
 
-    [INLINE_SCRIPT_REGEX, INLINE_HASH_SCRIPT_HELPER_REGEX].each do |regex|
-      find_inline_content(filename, regex, hashes)
-    end
+    find_inline_content(filename, INLINE_SCRIPT_REGEX, hashes, false)
+    find_inline_content(filename, INLINE_HASH_SCRIPT_HELPER_REGEX, hashes, true)
 
     hashes
   end
@@ -48,9 +48,8 @@ namespace :secure_headers do
   def generate_inline_style_hashes(filename)
     hashes = []
 
-    [INLINE_STYLE_REGEX, INLINE_HASH_STYLE_HELPER_REGEX].each do |regex|
-      find_inline_content(filename, regex, hashes)
-    end
+    find_inline_content(filename, INLINE_STYLE_REGEX, hashes, false)
+    find_inline_content(filename, INLINE_HASH_STYLE_HELPER_REGEX, hashes, true)
 
     hashes
   end
