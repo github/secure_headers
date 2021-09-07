@@ -1,3 +1,7 @@
+## 6.3.3
+
+Fix hash generation for indented helper methods (@rahearn)
+
 ## 6.3.2
 
 Add support for style-src-attr, style-src-elem, script-src-attr, and script-src-elem directives (@ggalmazor)
