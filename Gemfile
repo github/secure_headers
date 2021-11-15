@@ -9,7 +9,7 @@ group :test do
   gem "pry-nav"
   gem "rack"
   gem "rspec"
-  gem "rubocop", "< 0.68"
+  gem "rubocop"
   gem "rubocop-github"
   gem "rubocop-performance"
   gem "term-ansicolor"
