@@ -185,6 +185,26 @@ module SecureHeaders
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/\Adefault-src 'self'; script-src 'self' 'nonce-.*'\z/)
         end
 
+        it "only includes a nonce in the report only header when configured to do so" do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self'),
+              script_src: %w('self' 'unsafe-inline')
+            }
+            config.csp_report_only = {
+              default_src: %w('self'),
+              script_src: %w('self')
+            }
+            config.csp_nonces_applied_to = :report_only
+          end
+
+
+          SecureHeaders.content_security_policy_script_nonce(request) # should add the value to the header
+          hash = SecureHeaders.header_hash_for(chrome_request)
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/\Adefault-src 'self'; script-src 'self'/)
+          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to match(/\Adefault-src 'self'; script-src 'self' 'nonce-.*'/)
+        end
+
         it "appends a hash to a missing script-src value" do
           Configuration.default do |config|
             config.csp = {

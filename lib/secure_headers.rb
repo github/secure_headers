@@ -2,6 +2,7 @@
 require "secure_headers/hash_helper"
 require "secure_headers/headers/cookie"
 require "secure_headers/headers/content_security_policy"
+require "secure_headers/headers/content_security_policy_nonce_apply_to"
 require "secure_headers/headers/x_frame_options"
 require "secure_headers/headers/strict_transport_security"
 require "secure_headers/headers/x_xss_protection"
@@ -208,7 +209,7 @@ module SecureHeaders
 
     def config_and_target(request, target)
       config = config_for(request)
-      target = guess_target(config) unless target
+      target ||= config.csp_nonces_applied_to || guess_target(config)
       raise_on_unknown_target(target)
       [config, target]
     end
@@ -262,8 +263,8 @@ module SecureHeaders
     SecureHeaders.opt_out_of_header(request, header_key)
   end
 
-  def append_content_security_policy_directives(additions)
-    SecureHeaders.append_content_security_policy_directives(request, additions)
+  def append_content_security_policy_directives(additions, target)
+    SecureHeaders.append_content_security_policy_directives(request, additions, target)
   end
 
   def override_content_security_policy_directives(additions)

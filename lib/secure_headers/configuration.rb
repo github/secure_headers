@@ -126,6 +126,7 @@ module SecureHeaders
       expect_certificate_transparency: ExpectCertificateTransparency,
       csp: ContentSecurityPolicy,
       csp_report_only: ContentSecurityPolicy,
+      csp_nonces_applied_to: ContentSecurityPolicyNonceApplyTo,
       cookies: Cookie,
     }.freeze
 
@@ -135,7 +136,7 @@ module SecureHeaders
     VALIDATABLE_ATTRIBUTES = CONFIG_ATTRIBUTES
 
     # The list of attributes that must respond to a `make_header` method
-    HEADERABLE_ATTRIBUTES = (CONFIG_ATTRIBUTES - [:cookies]).freeze
+    HEADERABLE_ATTRIBUTES = (CONFIG_ATTRIBUTES - [:cookies, :csp_nonces_applied_to]).freeze
 
     attr_writer(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.reject { |key| [:csp, :csp_report_only].include?(key) }.keys))
 
@@ -163,6 +164,7 @@ module SecureHeaders
       @x_permitted_cross_domain_policies = nil
       @x_xss_protection = nil
       @expect_certificate_transparency = nil
+      @csp_nonces_applied_to = nil
 
       self.referrer_policy = OPT_OUT
       self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
@@ -179,6 +181,7 @@ module SecureHeaders
       copy.cookies = self.class.send(:deep_copy_if_hash, @cookies)
       copy.csp = @csp.dup if @csp
       copy.csp_report_only = @csp_report_only.dup if @csp_report_only
+      copy.csp_nonces_applied_to = @csp_nonces_applied_to
       copy.x_content_type_options = @x_content_type_options
       copy.hsts = @hsts
       copy.x_frame_options = @x_frame_options
