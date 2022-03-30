@@ -125,6 +125,7 @@ module SecureHeaders
       else
         source_list = populate_nonces(directive, source_list)
         source_list = reject_all_values_if_none(source_list)
+        source_list = normalize_uri_paths(source_list)
 
         unless directive == REPORT_URI || @preserve_schemes
           source_list = strip_source_schemes(source_list)
@@ -146,6 +147,19 @@ module SecureHeaders
         source_list
       end
     end
+
+    def normalize_uri_paths(source_list)
+      source_list.map do |source|
+        # Normalize domains ending in a single / as without omitting the slash accomplisheg the same.
+        # https://www.w3.org/TR/CSP3/#match-paths § 6.6.2.10 Step 2
+        if source.chomp("/").include?("/")
+          source
+        else
+          source.chomp("/")
+        end
+      end
+    end
+
 
     # Removes duplicates and sources that already match an existing wild card.
     #
