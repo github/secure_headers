@@ -157,7 +157,7 @@ module SecureHeaders
       if wild_sources.any?
         sources.reject do |source|
           !wild_sources.include?(source) &&
-            wild_sources.any? { |pattern| File.fnmatch(pattern, source) }
+            wild_sources.any? { |pattern| URI(pattern).scheme == URI(source).scheme && File.fnmatch(pattern, source) }
         end
       else
         sources
