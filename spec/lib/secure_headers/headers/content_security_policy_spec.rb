@@ -50,10 +50,10 @@ module SecureHeaders
 
       it "normalizes source expressions that end with a trailing /" do
         config = {
-          default_src: %w(a.example.org/ b.example.com/ c.example.net/foo/ b.example.co/bar)
+          default_src: %w(a.example.org/ b.example.com/ wss://c.example.com/ c.example.net/foo/ b.example.co/bar wss://b.example.co/)
         }
         csp = ContentSecurityPolicy.new(config)
-        expect(csp.value).to eq("default-src a.example.org b.example.com c.example.net/foo/ b.example.co/bar")
+        expect(csp.value).to eq("default-src a.example.org b.example.com wss://c.example.com c.example.net/foo/ b.example.co/bar wss://b.example.co")
       end
 
       it "minifies source expressions based on overlapping wildcards" do

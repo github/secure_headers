@@ -152,6 +152,14 @@ module SecureHeaders
       source_list.map do |source|
         # Normalize domains ending in a single / as without omitting the slash accomplisheg the same.
         # https://www.w3.org/TR/CSP3/#match-paths § 6.6.2.10 Step 2
+        begin
+          uri = URI(source)
+          if uri.path == "/"
+            next source.chomp("/")
+          end
+        rescue URI::InvalidURIError
+        end
+
         if source.chomp("/").include?("/")
           source
         else
