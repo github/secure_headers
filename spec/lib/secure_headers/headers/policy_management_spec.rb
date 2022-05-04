@@ -45,6 +45,7 @@ module SecureHeaders
           plugin_types: %w(application/x-shockwave-flash),
           prefetch_src: %w(fetch.com),
           require_sri_for: %w(script style),
+          require_trusted_types_for: %w(script),
           script_src: %w('self'),
           style_src: %w('unsafe-inline'),
           upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
@@ -53,6 +54,7 @@ module SecureHeaders
           script_src_attr: %w(example.com),
           style_src_elem: %w(example.com),
           style_src_attr: %w(example.com),
+          trusted_types: %w(abcpolicy),
 
           report_uri: %w(https://example.com/uri-directive),
         }
