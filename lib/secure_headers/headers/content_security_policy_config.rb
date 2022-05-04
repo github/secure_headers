@@ -35,6 +35,7 @@ module SecureHeaders
       @report_only = nil
       @report_uri = nil
       @require_sri_for = nil
+      @require_trusted_types_for = nil
       @sandbox = nil
       @script_nonce = nil
       @script_src = nil
@@ -44,6 +45,7 @@ module SecureHeaders
       @style_src = nil
       @style_src_elem = nil
       @style_src_attr = nil
+      @trusted_types = nil
       @worker_src = nil
       @upgrade_insecure_requests = nil
       @disable_nonce_backwards_compatibility = nil

@@ -146,6 +146,15 @@ module SecureHeaders
         expect(csp.value).to eq("default-src 'self'; require-sri-for script style")
       end
 
+      it "supports require-trusted-types-for directive" do
+        csp = ContentSecurityPolicy.new({require_trusted_types_for: %(script)})
+        expect(csp.value).to eq("require-trusted-types-for script")
+      end
+
+      it "does not support style for require-trusted-types-for directive" do
+        expect { ContentSecurityPolicy.new({require_trusted_types_for: %(script style)}) }.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
       it "includes prefetch-src" do
         csp = ContentSecurityPolicy.new(default_src: %w('self'), prefetch_src: %w(foo.com))
         expect(csp.value).to eq("default-src 'self'; prefetch-src foo.com")
@@ -184,6 +193,11 @@ module SecureHeaders
       it "supports style-src-attr directive" do
         csp = ContentSecurityPolicy.new({style_src: %w('self'), style_src_attr: %w('self')})
         expect(csp.value).to eq("style-src 'self'; style-src-attr 'self'")
+      end
+
+      it "supports trusted-types directive" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy)})
+        expect(csp.value).to eq("trusted-types blahblahpolicy")
       end
     end
   end
