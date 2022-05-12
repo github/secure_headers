@@ -286,7 +286,8 @@ module SecureHeaders
         source_list?(directive) ||
           sandbox_list?(directive) ||
           media_type_list?(directive) ||
-          require_sri_for_list?(directive)
+          require_sri_for_list?(directive) ||
+          require_trusted_types_for_list?(directive)
       end
 
       # For each directive in additions that does not exist in the original config,
@@ -322,6 +323,10 @@ module SecureHeaders
 
       def require_sri_for_list?(directive)
         DIRECTIVE_VALUE_TYPES[directive] == :require_sri_for_list
+      end
+
+      def require_trusted_types_for_list?(directive)
+        DIRECTIVE_VALUE_TYPES[directive] == :require_trusted_types_for_list
       end
 
       # Private: Validates that the configuration has a valid type, or that it is a valid

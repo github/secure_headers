@@ -61,8 +61,18 @@ module SecureHeaders
           build_sandbox_list_directive(directive_name)
         when :media_type_list
           build_media_type_list_directive(directive_name)
+        when :require_trusted_types_for_list
+          build_trusted_type_list_directive(directive_name)
         end
       end.compact.join("; ")
+    end
+
+    def build_trusted_type_list_directive(directive)
+      source_list = @config.directive_value(directive)
+      if source_list && !source_list.empty?
+        escaped_source_list = source_list.gsub(/[\n;]/, " ")
+        [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
+      end
     end
 
     def build_sandbox_list_directive(directive)
