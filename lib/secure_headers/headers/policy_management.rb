@@ -398,7 +398,7 @@ module SecureHeaders
       def validate_require_trusted_types_for_source_expression!(directive, require_trusted_types_for_expression)
         ensure_array_of_strings!(directive, require_trusted_types_for_expression)
         unless require_trusted_types_for_expression.to_set.subset?(REQUIRE_TRUSTED_TYPES_FOR_VALUES)
-          raise ContentSecurityPolicyConfigError.new(%(require-sri for must be a subset of #{REQUIRE_TRUSTED_TYPES_FOR_VALUES.to_a} but was #{require_trusted_types_for_expression}))
+          raise ContentSecurityPolicyConfigError.new(%(require-trusted-types-for for must be a subset of #{REQUIRE_TRUSTED_TYPES_FOR_VALUES.to_a} but was #{require_trusted_types_for_expression}))
         end
       end
 

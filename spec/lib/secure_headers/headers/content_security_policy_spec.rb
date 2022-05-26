@@ -147,7 +147,7 @@ module SecureHeaders
       end
 
       it "supports require-trusted-types-for directive" do
-        csp = ContentSecurityPolicy.new(default_src: %w('self'), require_trusted_types_for: %(script))
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), require_trusted_types_for: %w(script))
         expect(csp.value).to eq("default-src 'self'; require-trusted-types-for script")
       end
 
