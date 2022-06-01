@@ -106,6 +106,11 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org")
       end
 
+      it "does not deduplicate any mismatching schemes" do
+        csp = ContentSecurityPolicy.new(default_src: %w(*.example.org wss://whee.example.org example.org))
+        expect(csp.value).to eq("default-src *.example.org wss://whee.example.org example.org")
+      end
+
       it "creates maximally strict sandbox policy when passed no sandbox token values" do
         csp = ContentSecurityPolicy.new(default_src: %w(example.org), sandbox: [])
         expect(csp.value).to eq("default-src example.org; sandbox")

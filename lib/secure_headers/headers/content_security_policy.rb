@@ -117,7 +117,7 @@ module SecureHeaders
 
     # If a directive contains *, all other values are omitted.
     # If a directive contains 'none' but has other values, 'none' is ommitted.
-    # Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
+    # HTTP Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
     def minify_source_list(directive, source_list)
       source_list = source_list.compact
       if source_list.include?(STAR)
@@ -157,7 +157,7 @@ module SecureHeaders
       if wild_sources.any?
         sources.reject do |source|
           !wild_sources.include?(source) &&
-            wild_sources.any? { |pattern| File.fnmatch(pattern, source) }
+            wild_sources.any? { |pattern| URI.parse(source).scheme == URI.parse(pattern).scheme && File.fnmatch(pattern, source) }
         end
       else
         sources
