@@ -27,6 +27,7 @@ namespace :secure_headers do
       file.write(script_hashes.to_yaml)
     end
 
-    puts "Script hashes from " + script_hashes.keys.size.to_s + " files added to #{SecureHeaders::Configuration::HASH_CONFIG_FILE}"
+    file_count = (script_hashes["scripts"].keys + script_hashes["styles"].keys).uniq.count
+    puts "Script and style hashes from #{file_count} files added to #{SecureHeaders::Configuration::HASH_CONFIG_FILE}"
   end
 end
