@@ -122,6 +122,12 @@ module SecureHeaders
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
+      it "rejects style for trusted types" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(style_src: %w('self'), require_trusted_types_for: %w(script style), trusted_types: %w(abcpolicy))))
+        end
+      end
+
       # this is mostly to ensure people don't use the antiquated shorthands common in other configs
       it "performs light validation on source lists" do
         expect do
