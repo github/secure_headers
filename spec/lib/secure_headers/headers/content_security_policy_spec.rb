@@ -146,7 +146,7 @@ module SecureHeaders
         expect(csp.value).to eq("default-src 'self'; require-sri-for script style")
       end
 
-      it "supports require-trusted-types-for directive" do
+      it "allows style as a require-trusted-types-src" do
         csp = ContentSecurityPolicy.new(default_src: %w('self'), require_trusted_types_for: %w(script))
         expect(csp.value).to eq("default-src 'self'; require-trusted-types-for script")
       end
@@ -194,6 +194,11 @@ module SecureHeaders
       it "supports trusted-types directive" do
         csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy)})
         expect(csp.value).to eq("trusted-types blahblahpolicy")
+      end
+
+      it "allows duplicate policy names in trusted-types directive" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy 'allow-duplicates')})
+        expect(csp.value).to eq("trusted-types blahblahpolicy 'allow-duplicates'")
       end
     end
   end
