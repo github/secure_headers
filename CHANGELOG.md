@@ -1,3 +1,7 @@
+## 6.3.4
+
+- CSP: Do not deduplicate alternate schema source expressions (@keithamus): https://github.com/github/secure_headers/pull/478
+
 ## 6.3.3
 
 Fix hash generation for indented helper methods (@rahearn)
