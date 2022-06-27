@@ -1,0 +1,28 @@
+name: GitHub Release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  Publish:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Calculate release name
+        run: |
+          GITHUB_REF=${{ github.ref }}
+          RELEASE_NAME=${GITHUB_REF#"refs/tags/"}
+          echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
+      - name: Publish release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ env.RELEASE_NAME }}
+          draft: false
+          prerelease: false
