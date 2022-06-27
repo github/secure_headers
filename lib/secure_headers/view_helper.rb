@@ -147,12 +147,13 @@ module SecureHeaders
 
     def nonced_tag(type, content_or_options, block)
       options = {}
-      content = if block
-        options = content_or_options
-        capture(&block)
-      else
-        content_or_options.html_safe # :'(
-      end
+      content =
+        if block
+          options = content_or_options
+          capture(&block)
+        else
+          content_or_options.html_safe # :'(
+        end
       content_tag type, content, options.merge(nonce: _content_security_policy_nonce(type))
     end
 

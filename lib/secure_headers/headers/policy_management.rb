@@ -278,11 +278,12 @@ module SecureHeaders
       def populate_fetch_source_with_default!(original, additions)
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.each_key do |directive|
-          directive = if directive.to_s.end_with?("_nonce")
-            directive.to_s.gsub(/_nonce/, "_src").to_sym
-          else
-            directive
-          end
+          directive =
+            if directive.to_s.end_with?("_nonce")
+              directive.to_s.gsub(/_nonce/, "_src").to_sym
+            else
+              directive
+            end
           # Don't set a default if directive has an existing value
           next if original[directive]
           if FETCH_SOURCES.include?(directive)
