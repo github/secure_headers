@@ -146,7 +146,7 @@ module SecureHeaders
         expect(csp.value).to eq("default-src 'self'; require-sri-for script style")
       end
 
-      it "allows style as a require-trusted-types-src" do
+      it "allows style as a require-trusted-types-for source" do
         csp = ContentSecurityPolicy.new(default_src: %w('self'), require_trusted_types_for: %w(script))
         expect(csp.value).to eq("default-src 'self'; require-trusted-types-for script")
       end
