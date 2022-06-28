@@ -84,11 +84,12 @@ module SecureHeaders
       def deep_copy(config)
         return unless config
         config.each_with_object({}) do |(key, value), hash|
-          hash[key] = if value.is_a?(Array)
-            value.dup
-          else
-            value
-          end
+          hash[key] =
+            if value.is_a?(Array)
+              value.dup
+            else
+              value
+            end
         end
       end
 

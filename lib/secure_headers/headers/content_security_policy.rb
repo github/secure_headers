@@ -7,17 +7,18 @@ module SecureHeaders
     include PolicyManagement
 
     def initialize(config = nil)
-      @config = if config.is_a?(Hash)
-        if config[:report_only]
-          ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
+      @config =
+        if config.is_a?(Hash)
+          if config[:report_only]
+            ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
+          else
+            ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
+          end
+        elsif config.nil?
+          ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
         else
-          ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
+          config
         end
-      elsif config.nil?
-        ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
-      else
-        config
-      end
 
       @preserve_schemes = @config.preserve_schemes
       @script_nonce = @config.script_nonce
@@ -34,11 +35,12 @@ module SecureHeaders
     ##
     # Return the value of the CSP header
     def value
-      @value ||= if @config
-        build_value
-      else
-        DEFAULT_VALUE
-      end
+      @value ||=
+        if @config
+          build_value
+        else
+          DEFAULT_VALUE
+        end
     end
 
     private
