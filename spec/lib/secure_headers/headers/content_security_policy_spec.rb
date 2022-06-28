@@ -196,6 +196,11 @@ module SecureHeaders
         expect(csp.value).to eq("trusted-types blahblahpolicy")
       end
 
+      it "supports trusted-types directive with 'none'" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(none)})
+        expect(csp.value).to eq("trusted-types none")
+      end
+
       it "allows duplicate policy names in trusted-types directive" do
         csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy 'allow-duplicates')})
         expect(csp.value).to eq("trusted-types blahblahpolicy 'allow-duplicates'")
