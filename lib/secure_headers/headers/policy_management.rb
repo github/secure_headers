@@ -166,7 +166,8 @@ module SecureHeaders
 
     FETCH_SOURCES = ALL_DIRECTIVES - NON_FETCH_SOURCES - NON_SOURCE_LIST_SOURCES
 
-    STAR_REGEXP = Regexp.new(Regexp.escape(STAR))
+    DOMAIN_WILDCARD_REGEX = /(?<=\A|[^:])\*/
+    PORT_WILDCARD_REGEX = /:\*/
     HTTP_SCHEME_REGEX = %r{\Ahttps?://}
 
     WILDCARD_SOURCES = [

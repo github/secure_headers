@@ -56,6 +56,16 @@ module SecureHeaders
         expect(csp.value).to eq("default-src *.example.org")
       end
 
+      it "minifies overlapping port wildcards" do
+        csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org:* example.org:443 https://example.org:80))
+        expect(csp.value).to eq("default-src example.org example.org:*")
+      end
+
+      it "allows for port wildcards" do
+        csp = ContentSecurityPolicy.new(connect_src: %w(ws://localhost:*))
+        expect(csp.value).to eq("connect-src ws://localhost:*")
+      end
+
       it "removes http/s schemes from hosts" do
         csp = ContentSecurityPolicy.new(default_src: %w(https://example.org))
         expect(csp.value).to eq("default-src example.org")
@@ -102,7 +112,8 @@ module SecureHeaders
       end
 
       it "deduplicates any source expressions" do
-        csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org))
+        src = %w(example.org example.org http://example.org https://example.org)
+        csp = ContentSecurityPolicy.new(default_src: src)
         expect(csp.value).to eq("default-src example.org")
       end
 

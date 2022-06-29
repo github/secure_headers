@@ -156,10 +156,10 @@ module SecureHeaders
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
       sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
+      wild_sources = sources.select { |source| source =~ DOMAIN_WILDCARD_REGEX || source =~ PORT_WILDCARD_REGEX }
 
       if wild_sources.any?
-        schemes = sources.map { |source| [source, URI(source).scheme] }.to_h
+        schemes = sources.map { |source| [source, source_scheme(source)] }.to_h
         sources.reject do |source|
           !wild_sources.include?(source) &&
             wild_sources.any? { |pattern| schemes[pattern] == schemes[source] && File.fnmatch(pattern, source) }
@@ -213,6 +213,14 @@ module SecureHeaders
 
     def symbol_to_hyphen_case(sym)
       sym.to_s.tr("_", "-")
+    end
+
+    def source_scheme(source)
+      uri = URI(source.sub(PORT_WILDCARD_REGEX, ""))
+      # If host is nil the given source doesn't contain a scheme
+      # e.g. for `example.org:443` it would return `example.org` as the scheme
+      # which is of course incorrect
+      uri.scheme if uri.host
     end
   end
 end
