@@ -1,6 +1,6 @@
 ## 6.4.0
 
-Add support for trusted-types, require-trusted-types-for directive (@JackMc)
+- CSP: Add support for trusted-types, require-trusted-types-for directive (@JackMc): https://github.com/github/secure_headers/pull/486
 
 ## 6.3.4
 
