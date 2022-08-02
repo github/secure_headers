@@ -146,6 +146,11 @@ module SecureHeaders
         expect(csp.value).to eq("default-src 'self'; require-sri-for script style")
       end
 
+      it "allows style as a require-trusted-types-for source" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), require_trusted_types_for: %w(script))
+        expect(csp.value).to eq("default-src 'self'; require-trusted-types-for script")
+      end
+
       it "includes prefetch-src" do
         csp = ContentSecurityPolicy.new(default_src: %w('self'), prefetch_src: %w(foo.com))
         expect(csp.value).to eq("default-src 'self'; prefetch-src foo.com")
@@ -184,6 +189,21 @@ module SecureHeaders
       it "supports style-src-attr directive" do
         csp = ContentSecurityPolicy.new({style_src: %w('self'), style_src_attr: %w('self')})
         expect(csp.value).to eq("style-src 'self'; style-src-attr 'self'")
+      end
+
+      it "supports trusted-types directive" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy)})
+        expect(csp.value).to eq("trusted-types blahblahpolicy")
+      end
+
+      it "supports trusted-types directive with 'none'" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(none)})
+        expect(csp.value).to eq("trusted-types none")
+      end
+
+      it "allows duplicate policy names in trusted-types directive" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy 'allow-duplicates')})
+        expect(csp.value).to eq("trusted-types blahblahpolicy 'allow-duplicates'")
       end
     end
   end
