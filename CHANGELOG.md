@@ -1,3 +1,7 @@
+## 6.4.0
+
+Add support for trusted-types, require-trusted-types-for directive (@JackMc)
+
 ## 6.3.4
 
 - CSP: Do not deduplicate alternate schema source expressions (@keithamus): https://github.com/github/secure_headers/pull/478
