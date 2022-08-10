@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
     including content-security-policy, x-frame-options,
     strict-transport-security, etc.'
   gem.homepage      = "https://github.com/twitter/secureheaders"
-  gem.license       = "Apache-2.0"
+  gem.license       = "MIT"
   gem.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
