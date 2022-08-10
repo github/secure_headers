@@ -189,7 +189,7 @@ module SecureHeaders
     ].freeze
 
     REQUIRE_SRI_FOR_VALUES = Set.new(%w(script style))
-    REQUIRE_TRUSTED_TYPES_FOR_VALUES = Set.new(%w(script))
+    REQUIRE_TRUSTED_TYPES_FOR_VALUES = Set.new(%w('script'))
 
     module ClassMethods
       # Public: generate a header name, value array that is user-agent-aware.
@@ -393,7 +393,7 @@ module SecureHeaders
 
       # Private: validates that a require trusted types for expression:
       # 1. is an array of strings
-      # 2. is a subset of ["script"]
+      # 2. is a subset of ["'script'"]
       def validate_require_trusted_types_for_source_expression!(directive, require_trusted_types_for_expression)
         ensure_array_of_strings!(directive, require_trusted_types_for_expression)
         unless require_trusted_types_for_expression.to_set.subset?(REQUIRE_TRUSTED_TYPES_FOR_VALUES)
