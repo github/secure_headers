@@ -216,8 +216,7 @@ module SecureHeaders
     end
 
     def source_scheme(source)
-      match = source.match(/^([A-Za-z0-9\-\+.]+):\/\//)
-      match ? match[1] : nil
+      source.match(/^([A-Za-z0-9\-\+.]+):\/\//)&.values_at(1)
     end
   end
 end
