@@ -216,11 +216,8 @@ module SecureHeaders
     end
 
     def source_scheme(source)
-      uri = URI(source.sub(PORT_WILDCARD_REGEX, ""))
-      # If host is nil the given source doesn't contain a scheme
-      # e.g. for `example.org:443` it would return `example.org` as the scheme
-      # which is of course incorrect
-      uri.scheme if uri.host
+      match = source.match(/^([A-Za-z0-9\-\+.]+):\/\//)
+      match ? match[1] : nil
     end
   end
 end
