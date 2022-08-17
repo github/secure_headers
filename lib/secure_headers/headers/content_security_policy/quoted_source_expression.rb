@@ -36,7 +36,7 @@ module SecureHeaders
       end
 
       def self.parse(s)
-        maybe_parsed = self.maybe_parse(s)
+        maybe_parsed = self.try_parse(s)
         throw "Could not parse quoted source expression" if maybe_parsed.nil?
         maybe_parsed
       end

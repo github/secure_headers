@@ -2,7 +2,7 @@
 
 module SecureHeaders
   class ContentSecurityPolicy
-    class HostSourceExpression
+    class SchemeSourceExpression
       attr_reader :scheme
 
       def initialize(scheme)
@@ -32,7 +32,7 @@ module SecureHeaders
       end
 
       def self.parse(s)
-        maybe_parsed = self.maybe_parse(s)
+        maybe_parsed = self.try_parse(s)
         throw "Could not parse scheme source expression" if maybe_parsed.nil?
         maybe_parsed
       end
