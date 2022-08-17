@@ -27,7 +27,11 @@ module SecureHeaders
 
       # Example: *.example.com matches *.subdomain.example.com
       def matches_same_or_superset?(other_source)
-        # A conservative interpretation of https://w3c.github.io/webappsec-csp/#match-url-to-source-expression
+        return false unless other_source.is_a?(HostSourceExpression)
+        # A pared-down version of https://w3c.github.io/webappsec-csp/#match-url-to-source-expression
+        # It's:
+        # - okay to have some false negatives (i.e. incorrectly return `false`), since this is only used to optimize deduplication,
+        # - as long as we don't have false positives (i.e. incorrectly return `true`).
         return false unless @scheme.nil? || @scheme == other_source.scheme
         return false unless File.fnmatch(@host_pattern, other_source.host_pattern)
         return false unless @port_pattern.nil? || @port_pattern == "*" || @port_pattern = other_source.port_pattern

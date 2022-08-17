@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 require_relative "host_source_expression"
-require_relative "host_source_expression"
+require_relative "quoted_source_expression"
+require_relative "scheme_source_expression"
 
 module SecureHeaders
   class ContentSecurityPolicy
     def parse_source_expression(s)
-      return SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse(s) if s.start_with?("'")
-      
+      SecureHeaders::ContentSecurityPolicy::HostSourceExpression.try_parse(s) ||
+        SecureHeaders::ContentSecurityPolicy::SchemeSourceExpression.try_parse(s) ||
+        SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.parse(s)
     end
   end
 end
