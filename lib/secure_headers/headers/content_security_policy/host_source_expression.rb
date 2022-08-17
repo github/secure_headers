@@ -22,7 +22,7 @@ module SecureHeaders
 
       # The host or scheme can contain a wildcard
       def has_wildcard?
-        @host_pattern.start_with("*") || @port_pattern == "*"
+        @host_pattern.start_with?("*") || @port_pattern == "*"
       end
 
       # Example: *.example.com matches *.subdomain.example.com

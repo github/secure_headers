@@ -163,7 +163,7 @@ module SecureHeaders
       
       if wildcard_host_source_expressions.any?
         filtered = host_source_expressions.reject do |source|
-            wildcard_host_source_expressions.any? { |wilcard_source| wildcard_source.matches_same_or_superset?(source) }
+            wildcard_host_source_expressions.any? { |wildcard_source| wildcard_source.matches_same_or_superset?(source) }
         end
         filtered.map { |source| source.to_s }
       else
