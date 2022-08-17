@@ -10,7 +10,7 @@ module SecureHeaders
         @value = value
       end
 
-      def to_str
+      def to_s
         "#{value}"
       end
 
@@ -46,10 +46,10 @@ end
 
 kse = SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.parse("'self'")
 kse = SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.parse("'-self'")
-kse.to_str
+kse.to_s
 
 kse = SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.parse("'sha256-B2yPHKaXnvFWtRChIbabYmUBFZdVfKKXHbWtWidDVF8='")
 kse = SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.parse("'nonce-abcdefg'")
-kse.to_str
+kse.to_s
 kse = SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.parse("'wasm-unsafe-eval'")
-kse.to_str
+kse.to_s

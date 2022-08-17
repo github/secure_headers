@@ -12,7 +12,7 @@ module SecureHeaders
         @path = path
       end
 
-      def to_str
+      def to_s
         output = @host_pattern
         output = @scheme + "://" + output if @scheme
         output += ":" + @port_pattern if @port_pattern
@@ -54,7 +54,7 @@ module SecureHeaders
         puts "after_scheme: #{after_scheme}"
 
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
-        host_match = after_scheme.match(/\A(?<host_pattern>\*|(\*\.)?[[[:alpha:]][[:digit:]]\-][[[:alpha:]][[:digit:]]\-\.]*)(?<rest>.*)\z/)
+        host_match = after_scheme.match(/\A(?<host_pattern>(\*\.)?[[[:alpha:]][[:digit:]]\-][[[:alpha:]][[:digit:]]\-\.]*|\*)(?<rest>.*)\z/)
         host_pattern = host_match[:host_pattern]
         after_host = host_match[:rest]
         puts "host_pattern: #{host_pattern}"

@@ -17,8 +17,8 @@ end
 # SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjfl://*")
 # SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("aa.df://r")
 # s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("*")
-# s.to_str
+# s.to_s
 # nSecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjf")
 # s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("http://localhost:3434/fsd")
-# puts "\n\ns: #{s.to_str}\n\n"
+# puts "\n\ns: #{s.to_s}\n\n"
 # SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("https://w3c.github.io/webappsec-csp/#grammardef-scheme-part")

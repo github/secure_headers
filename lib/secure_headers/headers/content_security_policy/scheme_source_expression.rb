@@ -9,7 +9,7 @@ module SecureHeaders
         @scheme = scheme
       end
 
-      def to_str
+      def to_s
         @scheme + ":"
       end
 

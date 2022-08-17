@@ -161,14 +161,17 @@ module SecureHeaders
       # TODO: Split by source expression type.
       wildcard_host_source_expressions = host_source_expressions.select { |source| source.has_wildcard? }
       
-      if wildcard_host_source_expressions.any?
-        filtered = host_source_expressions.reject do |source|
-            wildcard_host_source_expressions.any? { |wildcard_source| wildcard_source.matches_same_or_superset?(source) }
-        end
-        filtered.map { |source| source.to_s }
-      else
-        sources
+      filtered = host_source_expressions.select do |source|
+        wildcard_host_source_expressions.none? { |wildcard_source| wildcard_source != source && wildcard_source.matches_same_or_superset?(source) }
       end
+
+      # if wildcard_host_source_expressions.any?
+      puts "--filtered---\n\n"
+      puts filtered
+      puts "---filtered2--\n\n"
+      filtered.map { |source| source.to_s }
+      puts "---filtered3--\n\n"
+      filtered.map { |source| source.to_s }
     end
 
     # Private: append a nonce to the script/style directories if script_nonce
