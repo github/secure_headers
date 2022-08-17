@@ -25,7 +25,7 @@ module SecureHeaders
       def self.try_parse(s)
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
         # Rather than validating against the spec, we are flexible here for now.
-        value_match = s.match(/\A(?<value>'[[[:alpha:]][[:digit:]]\-\+_=]+')\z/)
+        value_match = s.match(/\A(?<value>'[[[:alpha:]][[:digit:]]\+\/\-_=]+')\z/)
         return nil if value_match.nil?
         value = value_match[:value]
         new(
