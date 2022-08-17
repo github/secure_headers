@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative "source_expression"
+
 module SecureHeaders
   class ContentSecurityPolicy
-    class SchemeSourceExpression
+    class SchemeSourceExpression < SourceExpression
       attr_reader :scheme
 
       def initialize(scheme:)
@@ -11,10 +13,6 @@ module SecureHeaders
 
       def to_s
         @scheme + ":"
-      end
-
-      def has_wildcard?
-        false
       end
 
       def matches_same_or_superset?(other_source)
@@ -29,12 +27,6 @@ module SecureHeaders
         new(
           scheme: scheme
         )
-      end
-
-      def self.parse(s)
-        maybe_parsed = self.try_parse(s)
-        throw "Could not parse scheme source expression" if maybe_parsed.nil?
-        maybe_parsed
       end
     end
   end

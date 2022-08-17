@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+require_relative "source_expression"
+
 module SecureHeaders
   class ContentSecurityPolicy
     # Keyword, nonce, or hash source
-    class QuotedSourceExpression
+    class QuotedSourceExpression < SourceExpression
       attr_reader :value
 
       def initialize(value:)
@@ -12,10 +14,6 @@ module SecureHeaders
 
       def to_s
         "#{value}"
-      end
-
-      def has_wildcard?
-        false
       end
 
       # For now, we only return true for exact matches.
@@ -28,17 +26,17 @@ module SecureHeaders
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
         # Rather than validating against the spec, we are flexible here for now.
         value_match = s.match(/\A(?<value>'[[[:alpha:]][[:digit:]]\-\+_=]+')\z/)
+        puts "-----"
+        puts "-----"
+        puts s
+        puts value_match
+        puts "-----"
+        puts "-----"
         return nil if value_match.nil?
         value = value_match[:value]
         new(
           value: value
         )
-      end
-
-      def self.parse(s)
-        maybe_parsed = self.try_parse(s)
-        throw "Could not parse quoted source expression" if maybe_parsed.nil?
-        maybe_parsed
       end
     end
   end

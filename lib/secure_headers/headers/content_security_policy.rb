@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require_relative "policy_management"
 require_relative "content_security_policy_config"
-require_relative "content_security_policy/source_expression"
+require_relative "content_security_policy/parse_source_expression"
 
 module SecureHeaders
   class ContentSecurityPolicy

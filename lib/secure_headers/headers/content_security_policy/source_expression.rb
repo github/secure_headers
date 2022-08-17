@@ -1,24 +1,33 @@
 # frozen_string_literal: true
 
-require_relative "host_source_expression"
-require_relative "quoted_source_expression"
-require_relative "scheme_source_expression"
-
 module SecureHeaders
   class ContentSecurityPolicy
-    def parse_source_expression(s)
-      SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.try_parse(s) ||
-        SecureHeaders::ContentSecurityPolicy::SchemeSourceExpression.try_parse(s) ||
-        SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse(s)
+    class SourceExpression
+      def initialize(scheme:)
+        throw "Cannot instantiate directly"
+      end
+
+      def to_s
+        throw "Unimplemented"
+      end
+
+      def has_wildcard?
+        false
+      end
+
+      def matches_same_or_superset?(other_source)
+        false
+      end
+
+      def self.try_parse(s)
+        throw "Unimplemented"
+      end
+
+      def self.parse(s)
+        maybe_parsed = self.try_parse(s)
+        throw "Could not parse scheme source expression" if maybe_parsed.nil?
+        maybe_parsed
+      end
     end
   end
 end
-
-# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjfl://*")
-# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("aa.df://r")
-# s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("*")
-# s.to_s
-# nSecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjf")
-# s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("http://localhost:3434/fsd")
-# puts "\n\ns: #{s.to_s}\n\n"
-# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("https://w3c.github.io/webappsec-csp/#grammardef-scheme-part")
