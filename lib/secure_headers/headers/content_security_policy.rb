@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require_relative "policy_management"
 require_relative "content_security_policy_config"
+require_relative "csp_host_source_expression"
 
 module SecureHeaders
   class ContentSecurityPolicy
@@ -156,6 +157,7 @@ module SecureHeaders
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
       sources = sources.uniq
+      host_source_expressions = sources.map SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse
       wild_sources = sources.select { |source| source =~ DOMAIN_WILDCARD_REGEX || source =~ PORT_WILDCARD_REGEX }
 
       if wild_sources.any?
