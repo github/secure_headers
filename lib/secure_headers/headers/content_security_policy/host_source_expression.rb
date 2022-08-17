@@ -32,7 +32,7 @@ module SecureHeaders
         # It's:
         # - okay to have some false negatives (i.e. incorrectly return `false`), since this is only used to optimize deduplication,
         # - as long as we don't have false positives (i.e. incorrectly return `true`).
-        return false unless @scheme.nil? || @scheme == other_source.scheme
+        return false unless @scheme == other_source.scheme
         return false unless File.fnmatch(@host_pattern, other_source.host_pattern)
         return false unless @port_pattern.nil? || @port_pattern == "*" || @port_pattern = other_source.port_pattern
         # Based on https://w3c.github.io/webappsec-csp/#path-part-match without percent-decoding.

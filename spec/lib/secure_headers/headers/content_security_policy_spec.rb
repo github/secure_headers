@@ -117,14 +117,14 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org")
       end
 
-      it "does not deduplicate non-matching schema source expressions" do
-        csp = ContentSecurityPolicy.new(default_src: %w(*.example.org wss://example.example.org))
-        expect(csp.value).to eq("default-src *.example.org wss://example.example.org")
+      it "deduplicates host source expression with wildcards" do
+        csp = ContentSecurityPolicy.new(default_src: %w(http://*.example.org http://a.example.org http://*.example.org:*))
+        expect(csp.value).to eq("default-src *.example.org:*")
       end
 
-      it "does not deduplicate non-matching schema source expressions 2" do
-        csp = ContentSecurityPolicy.new(default_src: %w(http://*.example.org))
-        expect(csp.value).to eq("default-src *.example.org")
+      it "does not deduplicate non-matching host source expressions" do
+        csp = ContentSecurityPolicy.new(default_src: %w(*.example.org wss://example.example.org))
+        expect(csp.value).to eq("default-src *.example.org wss://example.example.org")
       end
 
       it "creates maximally strict sandbox policy when passed no sandbox token values" do
