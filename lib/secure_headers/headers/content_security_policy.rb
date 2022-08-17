@@ -114,7 +114,7 @@ module SecureHeaders
         [symbol_to_hyphen_case(directive), minified_source_list].join(" ").strip
       end
     end
-    
+
     # Private: Calculates a modified version version of source_list:
     # - where any expression containing a deprecated character (semicolon or newline) has been split by that
     # character, and
@@ -134,7 +134,7 @@ module SecureHeaders
           cleaned_source_list.append(expression)
         end
       end
-      cleaned_source_list.select{ | value | value != "" }
+      cleaned_source_list.select { |value| value != "" }
     end
 
     # If a directive contains *, all other values are omitted.
@@ -177,7 +177,7 @@ module SecureHeaders
       host_source_expressions = sources.map { |source| parse_source_expression(source) }
       # TODO: Split by source expression type.
       wildcard_host_source_expressions = host_source_expressions.select { |source| source.has_wildcard? }
-      
+
       filtered = host_source_expressions.select do |source|
         wildcard_host_source_expressions.none? { |wildcard_source| wildcard_source != source && wildcard_source.matches_same_or_superset?(source) }
       end
