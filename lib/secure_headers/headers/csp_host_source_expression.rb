@@ -23,6 +23,13 @@ module SecureHeaders
         @host_pattern.start_with("*") || @port_pattern == "*"
       end
 
+      # Example: *.example.com matches *.subdomain.example.com
+      def matches_superset?(other_source)
+        # https://w3c.github.io/webappsec-csp/#match-url-to-source-expression
+        return false unless self.@scheme != nil && self.@scheme !== other_source.@scheme
+        return false unless File.fnmatch(self.@host, other_source.@host)
+      end
+
       def self.parse(s)
         puts "--------"
         
@@ -49,7 +56,7 @@ module SecureHeaders
 
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
         # Loosely based on https://www.rfc-editor.org/rfc/rfc3986#section-3.3
-        path_match = after_port.match(/\A(?<path>\/[^;:]*)?\z/)
+        path_match = after_port.match(/\A(?<path>(\/[^;:]*)?)\z/)
         path = path_match[:path]
         puts "path: #{path}"
 
@@ -71,4 +78,4 @@ end
 # SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("url-aldkjf")
 # s = SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("http://localhost:3434/fsd")
 # puts "\n\ns: #{s.to_str}\n\n"
-# SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("https://w3c.github.io/webappsec-csp/#grammardef-scheme-part")
+SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("https://w3c.github.io/webappsec-csp/#grammardef-scheme-part")
