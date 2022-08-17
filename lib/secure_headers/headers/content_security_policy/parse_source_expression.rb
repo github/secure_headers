@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "host_source_expression"
+require_relative "path_reporting_endpoint"
 require_relative "quoted_source_expression"
 require_relative "scheme_source_expression"
 
@@ -9,6 +10,7 @@ module SecureHeaders
     def parse_source_expression(s)
       SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.try_parse(s) ||
         SecureHeaders::ContentSecurityPolicy::SchemeSourceExpression.try_parse(s) ||
+        SecureHeaders::ContentSecurityPolicy::PathReportingEndpoint.try_parse(s) ||
         SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse(s)
     end
   end

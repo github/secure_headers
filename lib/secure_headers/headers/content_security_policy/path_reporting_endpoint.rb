@@ -10,7 +10,7 @@ module SecureHeaders
     class PathReportingEndpoint < SourceExpression
       attr_reader :endpoint
 
-      def initialize(scheme:)
+      def initialize(endpoint:)
         @endpoint = endpoint
       end
 
@@ -21,10 +21,11 @@ module SecureHeaders
       def self.try_parse(s)
         endpoint_match = s.match(/\A(?<endpoint>\/.*)\z/)
         return nil if endpoint_match.nil?
-        endpoint = endpoint_match[:scheme]
+        endpoint = endpoint_match[:endpoint]
         new(
           endpoint: endpoint
         )
       end
+    end
   end
 end
