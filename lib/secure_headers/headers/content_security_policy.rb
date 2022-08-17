@@ -109,26 +109,31 @@ module SecureHeaders
     def build_source_list_directive(directive)
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
-        cleaned_source_list = []
-        semicolon_warned_yet = false
-        source_list.map do |entry|
-          if entry =~ /(\n|;)/
-            if !semicolon_warned_yet
-              Kernel.warn("#{directive} contains a #{$1} in #{source_list.join(" ").inspect} which will raise an error in future versions. It has been replaced with a blank space.")
-              semicolon_warned_yet = true
-            end
-            split_entry = entry.split(/\n|;/).select{ | value | value != "" }
-            cleaned_source_list.concat(split_entry)
-          else
-            cleaned_source_list.append(entry)
-          end
-        end
-
-        puts cleaned_source_list
-
+        cleaned_source_list = clean_deprecated_chars(source_list)
         minified_source_list = minify_source_list(directive, cleaned_source_list).join(" ")
         [symbol_to_hyphen_case(directive), minified_source_list].join(" ").strip
       end
+    end
+    
+    # Private: Calculates a modified version version of source_list where any
+    # expression containing a deprecated character has been split by that
+    # character.
+    def clean_deprecated_chars(source_list)
+      cleaned_source_list = []
+      semicolon_warned_yet = false
+      source_list.map do |expression|
+        if expression =~ /(\n|;)/
+          if !semicolon_warned_yet
+            Kernel.warn("#{directive} contains a #{$1} in #{source_list.join(" ").inspect} which will raise an error in future versions. It has been replaced with a blank space.")
+            semicolon_warned_yet = true
+          end
+          split_expression = expression.split(/\n|;/).select{ | value | value != "" }
+          cleaned_source_list.concat(split_expression)
+        else
+          cleaned_source_list.append(expression)
+        end
+      end
+      cleaned_source_list
     end
 
     # If a directive contains *, all other values are omitted.
@@ -175,13 +180,6 @@ module SecureHeaders
       filtered = host_source_expressions.select do |source|
         wildcard_host_source_expressions.none? { |wildcard_source| wildcard_source != source && wildcard_source.matches_same_or_superset?(source) }
       end
-
-      # if wildcard_host_source_expressions.any?
-      puts "--filtered---\n\n"
-      puts filtered
-      puts "---filtered2--\n\n"
-      filtered.map { |source| source.to_s }
-      puts "---filtered3--\n\n"
       filtered.map { |source| source.to_s }
     end
 
