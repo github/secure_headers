@@ -5,7 +5,7 @@ module SecureHeaders
     class SchemeSourceExpression
       attr_reader :scheme
 
-      def initialize(scheme)
+      def initialize(scheme:)
         @scheme = scheme
       end
 
