@@ -29,8 +29,8 @@ module SecureHeaders
       end
 
       it "deprecates and escapes semicolons in directive source lists" do
-        expect(Kernel).to receive(:warn).with(%(frame_ancestors contains a ; in "https://google.com;script-src https://*;example.com;" which will raise an error in future versions. It has been replaced with a blank space.))
-        expect(ContentSecurityPolicy.new(frame_ancestors: %w(https://google.com;script-src https://*;example.com;)).value).to eq("frame-ancestors google.com script-src * example.com")
+        expect(Kernel).to receive(:warn).with(%(frame_ancestors contains a ; in "https://google.com;script-src https://localhost;example.com;" which will raise an error in future versions. It has been replaced with a blank space.))
+        expect(ContentSecurityPolicy.new(frame_ancestors: %w(https://google.com;script-src https://localhost;example.com;)).value).to eq("frame-ancestors google.com script-src localhost example.com")
       end
 
       it "deprecates and escapes semicolons in directive source lists" do
