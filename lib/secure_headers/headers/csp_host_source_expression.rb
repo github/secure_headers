@@ -3,6 +3,9 @@
 module SecureHeaders
   class ContentSecurityPolicy
     class HostSourceExpression
+
+      attr_reader :scheme, :host_pattern, :port_pattern, :path
+
       def initialize(scheme: nil, host_pattern:, port_pattern: nil, path: nil)
         @scheme = scheme
         @host_pattern = host_pattern
@@ -25,9 +28,16 @@ module SecureHeaders
 
       # Example: *.example.com matches *.subdomain.example.com
       def matches_superset?(other_source)
-        # https://w3c.github.io/webappsec-csp/#match-url-to-source-expression
-        return false unless self.@scheme != nil && self.@scheme !== other_source.@scheme
-        return false unless File.fnmatch(self.@host, other_source.@host)
+        # A conservative interpretation of https://w3c.github.io/webappsec-csp/#match-url-to-source-expression
+        return false unless @scheme.nil? || @scheme == other_source.scheme
+        return false unless File.fnmatch(@host_pattern, other_source.host_pattern)
+        return false unless @port_pattern.nil? || @port_pattern == "*" || @port_pattern = other_source.port_pattern
+        # Based on https://w3c.github.io/webappsec-csp/#path-part-match without percent-decoding.
+        pathA = @path
+        pathB = other_source.path
+        pathA += "/" unless pathA.end_with?("/")
+        pathB += "/" unless pathB.end_with?("/")
+        pathB.start_with?(pathA)
       end
 
       def self.parse(s)
@@ -72,10 +82,10 @@ module SecureHeaders
 end
 
 # SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjfl://*")
-# SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("aa.df://r")
-# s = SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("*")
+# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("aa.df://r")
+# s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("*")
 # s.to_str
-# SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("url-aldkjf")
-# s = SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("http://localhost:3434/fsd")
+SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjf")
+# s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("http://localhost:3434/fsd")
 # puts "\n\ns: #{s.to_str}\n\n"
-SecureHeaders::ContentSecurityPolicy::SourceExpression.parse("https://w3c.github.io/webappsec-csp/#grammardef-scheme-part")
+# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("https://w3c.github.io/webappsec-csp/#grammardef-scheme-part")

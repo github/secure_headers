@@ -158,13 +158,11 @@ module SecureHeaders
     def dedup_source_list(sources)
       sources = sources.uniq
       host_source_expressions = sources.map SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse
-      wild_sources = sources.select { |source| source =~ DOMAIN_WILDCARD_REGEX || source =~ PORT_WILDCARD_REGEX }
-
-      if wild_sources.any?
-        schemes = sources.map { |source| [source, source_scheme(source)] }.to_h
-        sources.reject do |source|
-          !wild_sources.include?(source) &&
-            wild_sources.any? { |pattern| schemes[pattern] == schemes[source] && File.fnmatch(pattern, source) }
+      wildcard_host_source_expressions = host_source_expressions.select { |source| source.has_wildcard? }
+      
+      if wildcard_host_source_expressions.any?
+        host_source_expressions.reject do |source|
+            wildcard_host_source_expressions.any? { |wilcard_source| wildcard_source.matches_superset?(source) }
         end
       else
         sources
