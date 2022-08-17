@@ -58,7 +58,7 @@ module SecureHeaders
 
       it "minifies overlapping port wildcards" do
         csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org:* example.org:443 https://example.org:80))
-        expect(csp.value).to eq("default-src example.org example.org:*")
+        expect(csp.value).to eq("default-src example.org:*")
       end
 
       it "allows for port wildcards" do
