@@ -109,8 +109,10 @@ module SecureHeaders
     def build_source_list_directive(directive)
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
-        cleaned_source_list = clean_deprecated_chars(source_list)
+        cleaned_source_list = clean_deprecated_chars(directive, source_list)
+        puts "cleaned_source_list: #{cleaned_source_list}"
         minified_source_list = minify_source_list(directive, cleaned_source_list).join(" ")
+        puts "minified_source_list: #{minified_source_list}"
         [symbol_to_hyphen_case(directive), minified_source_list].join(" ").strip
       end
     end
@@ -118,7 +120,7 @@ module SecureHeaders
     # Private: Calculates a modified version version of source_list where any
     # expression containing a deprecated character has been split by that
     # character.
-    def clean_deprecated_chars(source_list)
+    def clean_deprecated_chars(directive, source_list)
       cleaned_source_list = []
       semicolon_warned_yet = false
       source_list.map do |expression|

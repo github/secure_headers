@@ -36,7 +36,7 @@ module SecureHeaders
         # - as long as we don't have false positives (i.e. incorrectly return `true`).
         return false unless @scheme == other_source.scheme
         return false unless File.fnmatch(@host_pattern, other_source.host_pattern)
-        return false unless @port_pattern.nil? || @port_pattern == "*" || @port_pattern = other_source.port_pattern
+        return false unless @port_pattern == "*" || @port_pattern == other_source.port_pattern
         # Based on https://w3c.github.io/webappsec-csp/#path-part-match without percent-decoding.
         pathA = @path
         pathB = other_source.path
@@ -46,30 +46,39 @@ module SecureHeaders
       end
 
       def self.try_parse(s)
+        puts "------hosty--"
+        puts "--------"
         
         # https://www.rfc-editor.org/rfc/rfc3986#section-3.1
         scheme_match = s.match(/\A((?<scheme>[[:alpha:]][[[:alpha:]][[:digit:]]\+\-\.]*):\/\/)?(?<rest>.*)\z/)
         return nil if scheme_match.nil?
         scheme = scheme_match[:scheme]
         after_scheme = scheme_match[:rest]
+        puts "scheme: #{scheme}"
+        puts "after_scheme: #{after_scheme}"
 
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
         host_match = after_scheme.match(/\A(?<host_pattern>(\*\.)?[[[:alpha:]][[:digit:]]\-][[[:alpha:]][[:digit:]]\-\.]*|\*)(?<rest>.*)\z/)
         return nil if host_match.nil?
         host_pattern = host_match[:host_pattern]
         after_host = host_match[:rest]
+        puts "host_pattern: #{host_pattern}"
+        puts "after_host: #{after_host}"
 
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
         port_match = after_host.match(/\A(:(?<port>[[:digit:]]+|\*))?(?<rest>.*)\z/)
         return nil if port_match.nil?
         port_pattern = port_match[:port]
         after_port = port_match[:rest]
+        puts "port_pattern: #{port_pattern}"
+        puts "after_port: #{after_port}"
 
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
         # Loosely based on https://www.rfc-editor.org/rfc/rfc3986#section-3.3
         path_match = after_port.match(/\A(?<path>(\/[^;,\n]*)?)\z/)
         return nil if path_match.nil?
         path = path_match[:path]
+        puts "path: #{path}"
 
         new(
           scheme: scheme,
