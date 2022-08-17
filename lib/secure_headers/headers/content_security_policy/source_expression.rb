@@ -25,7 +25,7 @@ module SecureHeaders
 
       def self.parse(s)
         maybe_parsed = self.try_parse(s)
-        throw "Could not parse scheme source expression" if maybe_parsed.nil?
+        throw "Could not parse source expression" if maybe_parsed.nil?
         maybe_parsed
       end
     end
