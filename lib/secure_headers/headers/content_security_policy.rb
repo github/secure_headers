@@ -110,9 +110,7 @@ module SecureHeaders
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
         cleaned_source_list = clean_deprecated_chars(directive, source_list)
-        puts "cleaned_source_list: #{cleaned_source_list}"
         minified_source_list = minify_source_list(directive, cleaned_source_list).join(" ")
-        puts "minified_source_list: #{minified_source_list}"
         [symbol_to_hyphen_case(directive), minified_source_list].join(" ").strip
       end
     end
