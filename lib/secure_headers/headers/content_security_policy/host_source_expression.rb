@@ -3,7 +3,6 @@
 module SecureHeaders
   class ContentSecurityPolicy
     class HostSourceExpression
-
       attr_reader :scheme, :host_pattern, :port_pattern, :path
 
       def initialize(scheme: nil, host_pattern:, port_pattern: nil, path: nil)
@@ -27,7 +26,7 @@ module SecureHeaders
       end
 
       # Example: *.example.com matches *.subdomain.example.com
-      def matches_superset?(other_source)
+      def matches_same_or_superset?(other_source)
         # A conservative interpretation of https://w3c.github.io/webappsec-csp/#match-url-to-source-expression
         return false unless @scheme.nil? || @scheme == other_source.scheme
         return false unless File.fnmatch(@host_pattern, other_source.host_pattern)
@@ -80,12 +79,3 @@ module SecureHeaders
     end
   end
 end
-
-# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjfl://*")
-# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("aa.df://r")
-# s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("*")
-# s.to_str
-# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("url-aldkjf")
-# s = SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("http://localhost:3434/fsd")
-# puts "\n\ns: #{s.to_str}\n\n"
-# SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse("https://w3c.github.io/webappsec-csp/#grammardef-scheme-part")

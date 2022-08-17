@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require_relative "policy_management"
 require_relative "content_security_policy_config"
-require_relative "csp_host_source_expression"
+require_relative "content_security_policy/source_expression"
 
 module SecureHeaders
   class ContentSecurityPolicy
@@ -157,12 +157,13 @@ module SecureHeaders
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
       sources = sources.uniq
-      host_source_expressions = sources.map { |source| SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse(source) }
+      host_source_expressions = sources.map { |source| parse_source_expression(source) }
+      # TODO: Split by source expression type.
       wildcard_host_source_expressions = host_source_expressions.select { |source| source.has_wildcard? }
       
       if wildcard_host_source_expressions.any?
         host_source_expressions.reject do |source|
-            wildcard_host_source_expressions.any? { |wilcard_source| wildcard_source.matches_superset?(source) }
+            wildcard_host_source_expressions.any? { |wilcard_source| wildcard_source.matches_same_or_superset?(source) }
         end
       else
         sources
