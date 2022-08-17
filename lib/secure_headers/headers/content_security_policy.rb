@@ -117,8 +117,8 @@ module SecureHeaders
               Kernel.warn("#{directive} contains a #{$1} in #{source_list.join(" ").inspect} which will raise an error in future versions. It has been replaced with a blank space.")
               semicolon_warned_yet = true
             end
-            split_entry = entry.split(/\n|;/)
-            cleaned_source_list.append(split_entry)
+            split_entry = entry.split(/\n|;/).select{ | value | value != "" }
+            cleaned_source_list.concat(split_entry)
           else
             cleaned_source_list.append(entry)
           end

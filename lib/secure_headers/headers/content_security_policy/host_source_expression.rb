@@ -75,7 +75,7 @@ module SecureHeaders
 
         # https://w3c.github.io/webappsec-csp/#grammardef-scheme-part
         # Loosely based on https://www.rfc-editor.org/rfc/rfc3986#section-3.3
-        path_match = after_port.match(/\A(?<path>(\/[^;:]*)?)\z/)
+        path_match = after_port.match(/\A(?<path>(\/[^;,\n]*)?)\z/)
         return nil if path_match.nil?
         path = path_match[:path]
         puts "path: #{path}"

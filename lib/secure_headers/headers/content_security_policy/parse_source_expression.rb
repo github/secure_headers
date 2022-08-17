@@ -8,6 +8,7 @@ require_relative "scheme_source_expression"
 module SecureHeaders
   class ContentSecurityPolicy
     def parse_source_expression(s)
+      puts ("parsing: #{s}")
       SecureHeaders::ContentSecurityPolicy::QuotedSourceExpression.try_parse(s) ||
         SecureHeaders::ContentSecurityPolicy::SchemeSourceExpression.try_parse(s) ||
         SecureHeaders::ContentSecurityPolicy::PathReportingEndpoint.try_parse(s) ||

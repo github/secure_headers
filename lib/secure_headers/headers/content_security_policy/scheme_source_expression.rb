@@ -8,10 +8,12 @@ module SecureHeaders
       attr_reader :scheme
 
       def initialize(scheme:)
+        puts "SCHEMESOURCE EXPRRR scheme #{scheme}"
         @scheme = scheme
       end
 
       def to_s
+        puts "SCHEMESOURCE EXPRRR schem2@@@e #{@scheme}"
         @scheme + ":"
       end
 
@@ -21,7 +23,8 @@ module SecureHeaders
       end
 
       def self.try_parse(s)
-        scheme_match = s.match(/\A((?<scheme>[[:alpha:]][[[:alpha:]][[:digit:]]\+\-\.]*):)?\z/)
+        scheme_match = s.match(/\A((?<scheme>[[:alpha:]][[[:alpha:]][[:digit:]]\+\-\.]*):)\z/)
+        puts("scheme_match #{scheme_match}\n\ns: #{s}")
         return nil if scheme_match.nil?
         scheme = scheme_match[:scheme]
         new(

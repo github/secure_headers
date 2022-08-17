@@ -19,7 +19,7 @@ module SecureHeaders
       end
 
       def self.try_parse(s)
-        endpoint_match = s.match(/\A(?<endpoint>\/.*)\z/)
+        endpoint_match = s.match(/\A(?<endpoint>\/[^;,\n]*)\z/)
         return nil if endpoint_match.nil?
         endpoint = endpoint_match[:endpoint]
         new(
