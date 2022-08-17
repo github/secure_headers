@@ -109,14 +109,25 @@ module SecureHeaders
     def build_source_list_directive(directive)
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
-        minified_source_list = minify_source_list(directive, source_list).join(" ")
-
-        if minified_source_list =~ /(\n|;)/
-          Kernel.warn("#{directive} contains a #{$1} in #{minified_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
+        cleaned_source_list = []
+        semicolon_warned_yet = false
+        source_list.map do |entry|
+          if entry =~ /(\n|;)/
+            if !semicolon_warned_yet
+              Kernel.warn("#{directive} contains a #{$1} in #{source_list.join(" ").inspect} which will raise an error in future versions. It has been replaced with a blank space.")
+              semicolon_warned_yet = true
+            end
+            split_entry = entry.split(/\n|;/)
+            cleaned_source_list.append(split_entry)
+          else
+            cleaned_source_list.append(entry)
+          end
         end
 
-        escaped_source_list = minified_source_list.gsub(/[\n;]/, " ")
-        [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
+        puts cleaned_source_list
+
+        minified_source_list = minify_source_list(directive, cleaned_source_list).join(" ")
+        [symbol_to_hyphen_case(directive), minified_source_list].join(" ").strip
       end
     end
 
