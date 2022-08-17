@@ -157,7 +157,7 @@ module SecureHeaders
     # e.g. *.github.com asdf.github.com becomes *.github.com
     def dedup_source_list(sources)
       sources = sources.uniq
-      host_source_expressions = sources.map SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse
+      host_source_expressions = sources.map { |source| SecureHeaders::ContentSecurityPolicy::HostSourceExpression.parse(source) }
       wildcard_host_source_expressions = host_source_expressions.select { |source| source.has_wildcard? }
       
       if wildcard_host_source_expressions.any?
