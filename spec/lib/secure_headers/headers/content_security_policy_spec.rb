@@ -101,6 +101,11 @@ module SecureHeaders
         expect(csp.value).to eq("default-src example.org; block-all-mixed-content")
       end
 
+      it "handles wildcard subdomain with wildcard port" do
+        csp = ContentSecurityPolicy.new(default_src: %w(https://*.example.org:*))
+        expect(csp.value).to eq("default-src *.example.org:*")
+      end
+
       it "deduplicates any source expressions" do
         csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org))
         expect(csp.value).to eq("default-src example.org")
