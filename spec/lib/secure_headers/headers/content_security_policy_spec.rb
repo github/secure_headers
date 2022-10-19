@@ -48,12 +48,12 @@ module SecureHeaders
         expect(csp.value).to eq("default-src * 'unsafe-inline' 'unsafe-eval' data: blob:")
       end
 
-      it "minifies source expressions based on overlapping wildcards" do
+      it "does not minify source expressions based on overlapping wildcards" do
         config = {
           default_src: %w(a.example.org b.example.org *.example.org https://*.example.org)
         }
         csp = ContentSecurityPolicy.new(config)
-        expect(csp.value).to eq("default-src *.example.org")
+        expect(csp.value).to eq("default-src a.example.org b.example.org *.example.org")
       end
 
       it "removes http/s schemes from hosts" do
@@ -106,8 +106,8 @@ module SecureHeaders
         expect(csp.value).to eq("default-src *.example.org:*")
       end
 
-      it "deduplicates any source expressions" do
-        csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org))
+      it "deduplicates source expressions that match exactly (after scheme stripping)" do
+        csp = ContentSecurityPolicy.new(default_src: %w(example.org https://example.org example.org))
         expect(csp.value).to eq("default-src example.org")
       end
 
