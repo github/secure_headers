@@ -1,3 +1,7 @@
+## 6.5.0
+
+- CSP: Remove source expression deduplication. (@lgarron) https://github.com/github/secure_headers/pull/499
+
 ## 6.4.0
 
 - CSP: Add support for trusted-types, require-trusted-types-for directive (@JackMc): https://github.com/github/secure_headers/pull/486
