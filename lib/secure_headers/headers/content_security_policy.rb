@@ -133,7 +133,7 @@ module SecureHeaders
         unless directive == REPORT_URI || @preserve_schemes
           source_list = strip_source_schemes(source_list)
         end
-        dedup_source_list(source_list)
+        source_list.uniq
       end
     end
 
@@ -148,24 +148,6 @@ module SecureHeaders
         source_list.reject { |value| value == NONE }
       else
         source_list
-      end
-    end
-
-    # Removes duplicates and sources that already match an existing wild card.
-    #
-    # e.g. *.github.com asdf.github.com becomes *.github.com
-    def dedup_source_list(sources)
-      sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
-
-      if wild_sources.any?
-        schemes = sources.map { |source| [source, URI(source).scheme] }.to_h
-        sources.reject do |source|
-          !wild_sources.include?(source) &&
-            wild_sources.any? { |pattern| schemes[pattern] == schemes[source] && File.fnmatch(pattern, source) }
-        end
-      else
-        sources
       end
     end
 
