@@ -80,7 +80,7 @@ module SecureHeaders
   class ContentSecurityPolicyConfig
     HEADER_NAME = "Content-Security-Policy".freeze
 
-    ATTRS = PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES
+    ATTRS = Set.new(PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES)
     def self.attrs
       ATTRS
     end

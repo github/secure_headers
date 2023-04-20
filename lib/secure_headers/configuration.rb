@@ -83,14 +83,11 @@ module SecureHeaders
       # can lead to modifying parent objects.
       def deep_copy(config)
         return unless config
-        config.each_with_object({}) do |(key, value), hash|
-          hash[key] =
-            if value.is_a?(Array)
-              value.dup
-            else
-              value
-            end
+        result = {}
+        config.each_pair do |key, value|
+          result[key] = Array === value ? value.dup : value
         end
+        result
       end
 
       # Private: Returns the internal default configuration. This should only
