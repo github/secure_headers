@@ -20,9 +20,9 @@ module SecureHeaders
           config
         end
 
-      @preserve_schemes = @config.preserve_schemes
-      @script_nonce = @config.script_nonce
-      @style_nonce = @config.style_nonce
+      @preserve_schemes = @config[:preserve_schemes]
+      @script_nonce = @config[:script_nonce]
+      @style_nonce = @config[:style_nonce]
     end
 
     ##

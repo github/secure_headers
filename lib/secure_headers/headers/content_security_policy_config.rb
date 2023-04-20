@@ -1,17 +1,6 @@
 # frozen_string_literal: true
 module SecureHeaders
   module DynamicConfig
-    def self.included(base)
-      base.attrs.each do |attr|
-        base.send(:define_method, attr) do
-          @config[attr]
-        end
-        base.send(:define_method, "#{attr}=") do |value|
-          write_attribute(attr, value)
-        end
-      end
-    end
-
     def initialize(hash)
       @config = {}
 
