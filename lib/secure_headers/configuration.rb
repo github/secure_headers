@@ -85,7 +85,13 @@ module SecureHeaders
         return unless config
         result = {}
         config.each_pair do |key, value|
-          result[key] = Array === value ? value.dup : value
+          result[key] =
+            case value
+            when Array
+              value.dup
+            else
+              value
+            end
         end
         result
       end
