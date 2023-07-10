@@ -30,7 +30,6 @@ module SecureHeaders
           default_src: %w(https: 'self'),
 
           base_uri: %w('self'),
-          block_all_mixed_content: true, # see [http://www.w3.org/TR/mixed-content/](http://www.w3.org/TR/mixed-content/)
           connect_src: %w(wss:),
           child_src: %w('self' *.twimg.com itunes.apple.com),
           font_src: %w('self' data:),
@@ -89,12 +88,6 @@ module SecureHeaders
       it "requires :preserve_schemes to be a truthy value" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(preserve_schemes: "steve")))
-        end.to raise_error(ContentSecurityPolicyConfigError)
-      end
-
-      it "requires :block_all_mixed_content to be a boolean value" do
-        expect do
-          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(block_all_mixed_content: "steve")))
         end.to raise_error(ContentSecurityPolicyConfigError)
       end
 
@@ -244,18 +237,18 @@ module SecureHeaders
         expect(csp.name).to eq(ContentSecurityPolicyReportOnlyConfig::HEADER_NAME)
       end
 
-      it "overrides the :block_all_mixed_content flag" do
+      it "overrides the :upgrade_insecure_requests flag" do
         Configuration.default do |config|
           config.csp = {
             default_src: %w(https:),
             script_src: %w('self'),
-            block_all_mixed_content: false
+            upgrade_insecure_requests: false
           }
         end
         default_policy = Configuration.dup
-        combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, block_all_mixed_content: true)
+        combined_config = ContentSecurityPolicy.combine_policies(default_policy.csp.to_h, upgrade_insecure_requests: true)
         csp = ContentSecurityPolicy.new(combined_config)
-        expect(csp.value).to eq("default-src https:; block-all-mixed-content; script-src 'self'")
+        expect(csp.value).to eq("default-src https:; script-src 'self'; upgrade-insecure-requests")
       end
 
       it "raises an error if appending to a OPT_OUT policy" do

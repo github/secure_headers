@@ -16,7 +16,6 @@ module SecureHeaders
 
     def initialize(hash)
       @base_uri = nil
-      @block_all_mixed_content = nil
       @child_src = nil
       @connect_src = nil
       @default_src = nil
