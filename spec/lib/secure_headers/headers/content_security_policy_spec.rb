@@ -92,13 +92,13 @@ module SecureHeaders
       end
 
       it "does add a boolean directive if the value is true" do
-        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], block_all_mixed_content: true, upgrade_insecure_requests: true)
-        expect(csp.value).to eq("default-src example.org; block-all-mixed-content; upgrade-insecure-requests")
+        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], upgrade_insecure_requests: true)
+        expect(csp.value).to eq("default-src example.org; upgrade-insecure-requests")
       end
 
       it "does not add a boolean directive if the value is false" do
-        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], block_all_mixed_content: true, upgrade_insecure_requests: false)
-        expect(csp.value).to eq("default-src example.org; block-all-mixed-content")
+        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], upgrade_insecure_requests: false)
+        expect(csp.value).to eq("default-src example.org")
       end
 
       it "handles wildcard subdomain with wildcard port" do

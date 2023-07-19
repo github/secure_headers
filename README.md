@@ -62,7 +62,6 @@ SecureHeaders::Configuration.default do |config|
     # directive values: these values will directly translate into source directives
     default_src: %w('none'),
     base_uri: %w('self'),
-    block_all_mixed_content: true, # see https://www.w3.org/TR/mixed-content/
     child_src: %w('self'), # if child-src isn't supported, the value for frame-src will be set.
     connect_src: %w(wss:),
     font_src: %w('self' data:),
@@ -91,6 +90,9 @@ SecureHeaders::Configuration.default do |config|
   })
 end
 ```
+
+### Deprecated Configuration Values
+* `block_all_mixed_content` - this value is deprecated in favor of `upgrade_insecure_requests`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content for more information.
 
 ## Default values
 
