@@ -3,6 +3,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "benchmark-ips"
+
 group :test do
   gem "coveralls"
   gem "json"
