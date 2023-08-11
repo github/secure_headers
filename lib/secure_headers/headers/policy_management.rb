@@ -71,7 +71,6 @@ module SecureHeaders
 
     # All the directives currently under consideration for CSP level 3.
     # https://w3c.github.io/webappsec/specs/CSP2/
-    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
     MANIFEST_SRC = :manifest_src
     NAVIGATE_TO = :navigate_to
     PREFETCH_SRC = :prefetch_src
@@ -85,7 +84,6 @@ module SecureHeaders
 
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
-      BLOCK_ALL_MIXED_CONTENT,
       MANIFEST_SRC,
       NAVIGATE_TO,
       PREFETCH_SRC,
@@ -118,7 +116,6 @@ module SecureHeaders
 
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                  => :source_list,
-      BLOCK_ALL_MIXED_CONTENT   => :boolean,
       CHILD_SRC                 => :source_list,
       CONNECT_SRC               => :source_list,
       DEFAULT_SRC               => :source_list,
@@ -241,7 +238,7 @@ module SecureHeaders
       #
       # raises an error if the original config is OPT_OUT
       #
-      # 1. for non-source-list values (report_only, block_all_mixed_content, upgrade_insecure_requests),
+      # 1. for non-source-list values (report_only, upgrade_insecure_requests),
       # additions will overwrite the original value.
       # 2. if a value in additions does not exist in the original config, the
       # default-src value is included to match original behavior.
