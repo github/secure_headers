@@ -43,6 +43,9 @@ module SecureHeaders
       def override(name, &block)
         @overrides ||= {}
         raise "Provide a configuration block" unless block_given?
+        if named_append_or_override_exists?(name)
+          raise AlreadyConfiguredError, "Configuration already exists"
+        end
         @overrides[name] = block
       end
 
@@ -59,6 +62,9 @@ module SecureHeaders
       def named_append(name, &block)
         @appends ||= {}
         raise "Provide a configuration block" unless block_given?
+        if named_append_or_override_exists?(name)
+          raise AlreadyConfiguredError, "Configuration already exists"
+        end
         @appends[name] = block
       end
 
@@ -68,17 +74,26 @@ module SecureHeaders
 
       private
 
+      def named_append_or_override_exists?(name)
+        (defined?(@appends) && @appends.key?(name)) ||
+          (defined?(@overrides) && @overrides.key?(name))
+      end
+
       # Public: perform a basic deep dup. The shallow copy provided by dup/clone
       # can lead to modifying parent objects.
       def deep_copy(config)
         return unless config
-        config.each_with_object({}) do |(key, value), hash|
-          hash[key] = if value.is_a?(Array)
-            value.dup
-          else
-            value
-          end
+        result = {}
+        config.each_pair do |key, value|
+          result[key] =
+            case value
+            when Array
+              value.dup
+            else
+              value
+            end
         end
+        result
       end
 
       # Private: Returns the internal default configuration. This should only
@@ -126,7 +141,9 @@ module SecureHeaders
     # The list of attributes that must respond to a `make_header` method
     HEADERABLE_ATTRIBUTES = (CONFIG_ATTRIBUTES - [:cookies]).freeze
 
-    attr_accessor(*CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.keys)
+    attr_writer(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.reject { |key| [:csp, :csp_report_only].include?(key) }.keys))
+
+    attr_reader(*(CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.keys))
 
     @script_hashes = nil
     @style_hashes = nil

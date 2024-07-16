@@ -1,3 +1,39 @@
+## 6.5.0
+
+- CSP: Remove source expression deduplication. (@lgarron) https://github.com/github/secure_headers/pull/499
+
+## 6.4.0
+
+- CSP: Add support for trusted-types, require-trusted-types-for directive (@JackMc): https://github.com/github/secure_headers/pull/486
+
+## 6.3.4
+
+- CSP: Do not deduplicate alternate schema source expressions (@keithamus): https://github.com/github/secure_headers/pull/478
+
+## 6.3.3
+
+Fix hash generation for indented helper methods (@rahearn)
+
+## 6.3.2
+
+Add support for style-src-attr, style-src-elem, script-src-attr, and script-src-elem directives (@ggalmazor)
+
+## 6.3.1
+
+Fixes deprecation warnings when running under ruby 2.7
+
+## 6.3.0
+
+Fixes newline injection issue
+
+## 6.2.0
+
+Fixes semicolon injection issue reported by @mvgijssel see https://github.com/twitter/secure_headers/issues/418
+
+## 6.1.2
+
+Adds the ability to specify `SameSite=none` with the same configurability as `Strict`/`Lax` in order to disable Chrome's soon-to-be-lax-by-default state.
+
 ## 6.1.1
 
 Adds the ability to disable the automatically-appended `'unsafe-inline'` value when nonces are used #404 (@will)
@@ -360,7 +396,7 @@ Adds `upgrade-insecure-requests` support for requests from Firefox and Chrome (a
 
 ## 3.0.0
 
-secure_headers 3.0.0 is a near-complete, not-entirely-backward-compatible rewrite. Please see the [upgrade guide](https://github.com/twitter/secureheaders/blob/master/docs/upgrading-to-3-0.md) for an in-depth explanation of the changes and the suggested upgrade path.
+secure_headers 3.0.0 is a near-complete, not-entirely-backward-compatible rewrite. Please see the [upgrade guide](https://github.com/twitter/secureheaders/blob/main/docs/upgrading-to-3-0.md) for an in-depth explanation of the changes and the suggested upgrade path.
 
 ## 2.5.1 - 2016-02-16 18:11:11 UTC - Remove noisy deprecation warning
 

@@ -54,7 +54,7 @@ Code  | Result
 
 #### Nonce
 
-You can use a view helper to automatically add nonces to script tags:
+You can use a view helper to automatically add nonces to script tags. Currently, using a nonce helper or calling `content_security_policy_nonce` will populate all configured CSP headers, including report-only and enforced policies. 
 
 ```erb
 <%= nonced_javascript_tag do %>
@@ -120,9 +120,7 @@ You can clear the browser cache after the logout request by using the following.
 class ApplicationController < ActionController::Base
   # Configuration override to send the Clear-Site-Data header.
   SecureHeaders::Configuration.override(:clear_browser_cache) do |config|
-    config.clear_site_data = [
-      SecureHeaders::ClearSiteData::ALL_TYPES
-    ]
+    config.clear_site_data = SecureHeaders::ClearSiteData::ALL_TYPES
   end
 
 

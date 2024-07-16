@@ -1,9 +1,9 @@
-# Secure Headers [![Build Status](https://travis-ci.org/twitter/secure_headers.svg?branch=master)](http://travis-ci.org/twitter/secure_headers) [![Code Climate](https://codeclimate.com/github/twitter/secureheaders.svg)](https://codeclimate.com/github/twitter/secureheaders) [![Coverage Status](https://coveralls.io/repos/twitter/secureheaders/badge.svg)](https://coveralls.io/r/twitter/secureheaders)
+# Secure Headers ![Build + Test](https://github.com/github/secure_headers/workflows/Build%20+%20Test/badge.svg?branch=main)
 
-**master represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
+**main branch represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
 
 The gem will automatically apply several headers that are related to security.  This includes:
-- Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
+- Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](https://www.w3.org/TR/CSP2/)
   - https://csp.withgoogle.com
   - https://csp.withgoogle.com/docs/strict-csp.html
   - https://csp-evaluator.withgoogle.com
@@ -57,11 +57,11 @@ SecureHeaders::Configuration.default do |config|
   config.csp = {
     # "meta" values. these will shape the header, but the values are not included in the header.
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
+    disable_nonce_backwards_compatibility: true, # default: false. If false, `unsafe-inline` will be added automatically when using nonces. If true, it won't. See #403 for why you'd want this.
 
     # directive values: these values will directly translate into source directives
     default_src: %w('none'),
     base_uri: %w('self'),
-    block_all_mixed_content: true, # see http://www.w3.org/TR/mixed-content/
     child_src: %w('self'), # if child-src isn't supported, the value for frame-src will be set.
     connect_src: %w(wss:),
     font_src: %w('self' data:),
@@ -74,7 +74,11 @@ SecureHeaders::Configuration.default do |config|
     sandbox: true, # true and [] will set a maximally restrictive setting
     plugin_types: %w(application/x-shockwave-flash),
     script_src: %w('self'),
+    script_src_elem: %w('self'),
+    script_src_attr: %w('self'),
     style_src: %w('unsafe-inline'),
+    style_src_elem: %w('unsafe-inline'),
+    style_src_attr: %w('unsafe-inline'),
     worker_src: %w('self'),
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
     report_uri: %w(https://report-uri.io/example-csp)
@@ -86,6 +90,9 @@ SecureHeaders::Configuration.default do |config|
   })
 end
 ```
+
+### Deprecated Configuration Values
+* `block_all_mixed_content` - this value is deprecated in favor of `upgrade_insecure_requests`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content for more information.
 
 ## Default values
 
@@ -116,24 +123,58 @@ SecureHeaders::Configuration.override(:api) do |config|
 end
 ```
 
-However, I would consider these headers anyways depending on your load and bandwidth requirements. 
+However, I would consider these headers anyways depending on your load and bandwidth requirements.
+
+## Acknowledgements
+
+This project originated within the Security team at Twitter. An archived fork from the point of transition is here: https://github.com/twitter-archive/secure_headers.
+
+Contributors include:
+* Neil Matatall @oreoshake
+* Chris Aniszczyk
+* Artur Dryomov
+* Bjørn Mæland
+* Arthur Chiu
+* Jonathan Viney
+* Jeffrey Horn
+* David Collazo
+* Brendon Murphy
+* William Makley
+* Reed Loden
+* Noah Kantrowitz
+* Wyatt Anderson
+* Salimane Adjao Moustapha
+* Francois Chagnon
+* Jeff Hodges
+* Ian Melven
+* Darío Javier Cravero
+* Logan Hasson
+* Raul E Rangel
+* Steve Agalloco
+* Nate Collings
+* Josh Kalderimis
+* Alex Kwiatkowski
+* Julich Mera
+* Jesse Storimer
+* Tom Daniels
+* Kolja Dummann
+* Jean-Philippe Doyle
+* Blake Hitchcock
+* vanderhoorn
+* orthographic-pedant
+* Narsimham Chelluri
+
+If you've made a contribution and see your name missing from the list, make a PR and add it!
 
 ## Similar libraries
 
 * Rack [rack-secure_headers](https://github.com/frodsan/rack-secure_headers)
 * Node.js (express) [helmet](https://github.com/helmetjs/helmet) and [hood](https://github.com/seanmonstar/hood)
 * Node.js (hapi) [blankie](https://github.com/nlf/blankie)
-* J2EE Servlet >= 3.0 [headlines](https://github.com/sourceclear/headlines)
 * ASP.NET - [NWebsec](https://github.com/NWebsec/NWebsec/wiki)
-* Python - [django-csp](https://github.com/mozilla/django-csp) + [commonware](https://github.com/jsocol/commonware/); [django-security](https://github.com/sdelements/django-security)
+* Python - [django-csp](https://github.com/mozilla/django-csp) + [commonware](https://github.com/jsocol/commonware/); [django-security](https://github.com/sdelements/django-security), [secure](https://github.com/TypeError/secure)
 * Go - [secureheader](https://github.com/kr/secureheader)
 * Elixir [secure_headers](https://github.com/anotherhale/secure_headers)
 * Dropwizard [dropwizard-web-security](https://github.com/palantir/dropwizard-web-security)
 * Ember.js [ember-cli-content-security-policy](https://github.com/rwjblue/ember-cli-content-security-policy/)
 * PHP [secure-headers](https://github.com/BePsvPT/secure-headers)
-
-## License
-
-Copyright 2013-2014 Twitter, Inc and other contributors.
-
-Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0

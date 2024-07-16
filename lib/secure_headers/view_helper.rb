@@ -21,7 +21,7 @@ module SecureHeaders
     def nonced_stylesheet_link_tag(*args, &block)
       opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:style))
 
-      stylesheet_link_tag(*args, opts, &block)
+      stylesheet_link_tag(*args, **opts, &block)
     end
 
     # Public: create a script tag using the content security policy nonce.
@@ -39,7 +39,7 @@ module SecureHeaders
     def nonced_javascript_include_tag(*args, &block)
       opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:script))
 
-      javascript_include_tag(*args, opts, &block)
+      javascript_include_tag(*args, **opts, &block)
     end
 
     # Public: create a script Webpacker pack tag using the content security policy nonce.
@@ -49,7 +49,7 @@ module SecureHeaders
     def nonced_javascript_pack_tag(*args, &block)
       opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:script))
 
-      javascript_pack_tag(*args, opts, &block)
+      javascript_pack_tag(*args, **opts, &block)
     end
 
     # Public: create a stylesheet Webpacker link tag using the content security policy nonce.
@@ -59,7 +59,7 @@ module SecureHeaders
     def nonced_stylesheet_pack_tag(*args, &block)
       opts = extract_options(args).merge(nonce: _content_security_policy_nonce(:style))
 
-      stylesheet_pack_tag(*args, opts, &block)
+      stylesheet_pack_tag(*args, **opts, &block)
     end
 
     # Public: use the content security policy nonce for this request directly.
@@ -147,12 +147,13 @@ module SecureHeaders
 
     def nonced_tag(type, content_or_options, block)
       options = {}
-      content = if block
-        options = content_or_options
-        capture(&block)
-      else
-        content_or_options.html_safe # :'(
-      end
+      content =
+        if block
+          options = content_or_options
+          capture(&block)
+        else
+          content_or_options.html_safe # :'(
+        end
       content_tag type, content, options.merge(nonce: _content_security_policy_nonce(type))
     end
 

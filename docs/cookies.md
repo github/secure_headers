@@ -25,7 +25,7 @@ Boolean-based configuration is intended to globally enable or disable a specific
 ```ruby
 config.cookies = {
   secure: true, # mark all cookies as Secure
-  httponly: OPT_OUT, # do not mark any cookies as HttpOnly
+  httponly: SecureHeaders::OPT_OUT, # do not mark any cookies as HttpOnly
 }
 ```
 
@@ -52,13 +52,14 @@ config.cookies = {
 }
 ```
 
-`Strict` and `Lax` enforcement modes can also be specified using a Hash.
+`Strict`, `Lax`, and `None` enforcement modes can also be specified using a Hash.
 
 ```ruby
 config.cookies = {
   samesite: {
-    strict: { only: ['_rails_session'] },
-    lax: { only: ['_guest'] }
+    strict: { only: ['session_id_duplicate'] },
+    lax: { only: ['_guest', '_rails_session', 'device_id'] },
+    none: { only: ['_tracking', 'saml_cookie', 'session_id'] },
   }
 }
 ```
