@@ -17,7 +17,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
       - name: Install Bundler
         run: |
-          if [[ ${{ matrix.ruby }} == '2.6' or  ${{ matrix.ruby }} == '2.7' ]]; then
+          if [[ ${{ matrix.ruby }} == '2.6' || ${{ matrix.ruby }} == '2.7' ]]; then
             gem install bundler -v 2.4.22
           else
             gem install bundler
