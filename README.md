@@ -105,7 +105,7 @@ X-Content-Type-Options: nosniff
 X-Download-Options: noopen
 X-Frame-Options: sameorigin
 X-Permitted-Cross-Domain-Policies: none
-X-Xss-Protection: 1; mode=block
+X-Xss-Protection: 0
 ```
 
 ## API configurations

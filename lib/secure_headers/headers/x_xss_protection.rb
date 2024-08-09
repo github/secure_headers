@@ -3,7 +3,7 @@ module SecureHeaders
   class XXssProtectionConfigError < StandardError; end
   class XXssProtection
     HEADER_NAME = "X-XSS-Protection".freeze
-    DEFAULT_VALUE = "1; mode=block"
+    DEFAULT_VALUE = "0".freeze
     VALID_X_XSS_HEADER = /\A[01](; mode=block)?(; report=.*)?\z/
 
     class << self
