@@ -1,6 +1,9 @@
 name: Build + Test
 on: [pull_request, push]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build + Test
@@ -12,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Ruby ${{ matrix.ruby }}
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1.190.0 tag
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
