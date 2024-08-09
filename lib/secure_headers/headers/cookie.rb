@@ -80,9 +80,9 @@ module SecureHeaders
     end
 
     def conditionally_flag?(configuration)
-      if(Array(configuration[:only]).any? && (Array(configuration[:only]) & parsed_cookie.keys).any?)
+      if (Array(configuration[:only]).any? && (Array(configuration[:only]) & parsed_cookie.keys).any?)
         true
-      elsif(Array(configuration[:except]).any? && (Array(configuration[:except]) & parsed_cookie.keys).none?)
+      elsif (Array(configuration[:except]).any? && (Array(configuration[:except]) & parsed_cookie.keys).none?)
         true
       else
         false

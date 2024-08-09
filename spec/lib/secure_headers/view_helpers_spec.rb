@@ -6,7 +6,7 @@ class Message < ERB
   include SecureHeaders::ViewHelpers
 
   def self.template
-<<-TEMPLATE
+    <<-TEMPLATE
 <% hashed_javascript_tag(raise_error_on_unrecognized_hash = true) do %>
   console.log(1)
 <% end %>
@@ -62,9 +62,10 @@ TEMPLATE
   end
 
   def content_tag(type, content = nil, options = nil, &block)
-    content = if block_given?
-      capture(block)
-    end
+    content =
+      if block_given?
+        capture(block)
+      end
 
     if options.is_a?(Hash)
       options = options.map { |k, v| " #{k}=#{v}" }

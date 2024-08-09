@@ -7,21 +7,22 @@ module SecureHeaders
     include PolicyManagement
 
     def initialize(config = nil)
-      @config = if config.is_a?(Hash)
-        if config[:report_only]
-          ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
+      @config =
+        if config.is_a?(Hash)
+          if config[:report_only]
+            ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
+          else
+            ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
+          end
+        elsif config.nil?
+          ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
         else
-          ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
+          config
         end
-      elsif config.nil?
-        ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
-      else
-        config
-      end
 
-      @preserve_schemes = @config.preserve_schemes
-      @script_nonce = @config.script_nonce
-      @style_nonce = @config.style_nonce
+      @preserve_schemes = @config[:preserve_schemes]
+      @script_nonce = @config[:script_nonce]
+      @style_nonce = @config[:style_nonce]
     end
 
     ##
@@ -34,11 +35,12 @@ module SecureHeaders
     ##
     # Return the value of the CSP header
     def value
-      @value ||= if @config
-        build_value
-      else
-        DEFAULT_VALUE
-      end
+      @value ||=
+        if @config
+          build_value
+        else
+          DEFAULT_VALUE
+        end
     end
 
     private
@@ -51,7 +53,9 @@ module SecureHeaders
     def build_value
       directives.map do |directive_name|
         case DIRECTIVE_VALUE_TYPES[directive_name]
-        when :source_list, :require_sri_for_list # require_sri is a simple set of strings that don't need to deal with symbol casing
+        when :source_list,
+             :require_sri_for_list, # require_sri is a simple set of strings that don't need to deal with symbol casing
+             :require_trusted_types_for_list
           build_source_list_directive(directive_name)
         when :boolean
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
@@ -129,7 +133,7 @@ module SecureHeaders
         unless directive == REPORT_URI || @preserve_schemes
           source_list = strip_source_schemes(source_list)
         end
-        dedup_source_list(source_list)
+        source_list.uniq
       end
     end
 
@@ -144,23 +148,6 @@ module SecureHeaders
         source_list.reject { |value| value == NONE }
       else
         source_list
-      end
-    end
-
-    # Removes duplicates and sources that already match an existing wild card.
-    #
-    # e.g. *.github.com asdf.github.com becomes *.github.com
-    def dedup_source_list(sources)
-      sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
-
-      if wild_sources.any?
-        sources.reject do |source|
-          !wild_sources.include?(source) &&
-            wild_sources.any? { |pattern| File.fnmatch(pattern, source) }
-        end
-      else
-        sources
       end
     end
 

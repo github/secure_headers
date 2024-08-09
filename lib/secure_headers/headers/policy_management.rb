@@ -71,7 +71,6 @@ module SecureHeaders
 
     # All the directives currently under consideration for CSP level 3.
     # https://w3c.github.io/webappsec/specs/CSP2/
-    BLOCK_ALL_MIXED_CONTENT = :block_all_mixed_content
     MANIFEST_SRC = :manifest_src
     NAVIGATE_TO = :navigate_to
     PREFETCH_SRC = :prefetch_src
@@ -85,7 +84,6 @@ module SecureHeaders
 
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
-      BLOCK_ALL_MIXED_CONTENT,
       MANIFEST_SRC,
       NAVIGATE_TO,
       PREFETCH_SRC,
@@ -98,7 +96,19 @@ module SecureHeaders
       STYLE_SRC_ATTR
     ].flatten.freeze
 
-    ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0).uniq.sort
+    # Experimental directives - these vary greatly in support
+    # See MDN for details.
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/trusted-types
+    TRUSTED_TYPES = :trusted_types
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/require-trusted-types-for
+    REQUIRE_TRUSTED_TYPES_FOR = :require_trusted_types_for
+
+    DIRECTIVES_EXPERIMENTAL = [
+      TRUSTED_TYPES,
+      REQUIRE_TRUSTED_TYPES_FOR,
+    ].flatten.freeze
+
+    ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_EXPERIMENTAL).uniq.sort
 
     # Think of default-src and report-uri as the beginning and end respectively,
     # everything else is in between.
@@ -106,7 +116,6 @@ module SecureHeaders
 
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                  => :source_list,
-      BLOCK_ALL_MIXED_CONTENT   => :boolean,
       CHILD_SRC                 => :source_list,
       CONNECT_SRC               => :source_list,
       DEFAULT_SRC               => :source_list,
@@ -121,6 +130,7 @@ module SecureHeaders
       OBJECT_SRC                => :source_list,
       PLUGIN_TYPES              => :media_type_list,
       REQUIRE_SRI_FOR           => :require_sri_for_list,
+      REQUIRE_TRUSTED_TYPES_FOR => :require_trusted_types_for_list,
       REPORT_URI                => :source_list,
       PREFETCH_SRC              => :source_list,
       SANDBOX                   => :sandbox_list,
@@ -130,6 +140,7 @@ module SecureHeaders
       STYLE_SRC                 => :source_list,
       STYLE_SRC_ELEM            => :source_list,
       STYLE_SRC_ATTR            => :source_list,
+      TRUSTED_TYPES             => :source_list,
       WORKER_SRC                => :source_list,
       UPGRADE_INSECURE_REQUESTS => :boolean,
     }.freeze
@@ -175,6 +186,7 @@ module SecureHeaders
     ].freeze
 
     REQUIRE_SRI_FOR_VALUES = Set.new(%w(script style))
+    REQUIRE_TRUSTED_TYPES_FOR_VALUES = Set.new(%w('script'))
 
     module ClassMethods
       # Public: generate a header name, value array that is user-agent-aware.
@@ -226,7 +238,7 @@ module SecureHeaders
       #
       # raises an error if the original config is OPT_OUT
       #
-      # 1. for non-source-list values (report_only, block_all_mixed_content, upgrade_insecure_requests),
+      # 1. for non-source-list values (report_only, upgrade_insecure_requests),
       # additions will overwrite the original value.
       # 2. if a value in additions does not exist in the original config, the
       # default-src value is included to match original behavior.
@@ -270,7 +282,8 @@ module SecureHeaders
         source_list?(directive) ||
           sandbox_list?(directive) ||
           media_type_list?(directive) ||
-          require_sri_for_list?(directive)
+          require_sri_for_list?(directive) ||
+          require_trusted_types_for_list?(directive)
       end
 
       # For each directive in additions that does not exist in the original config,
@@ -278,11 +291,12 @@ module SecureHeaders
       def populate_fetch_source_with_default!(original, additions)
         # in case we would be appending to an empty directive, fill it with the default-src value
         additions.each_key do |directive|
-          directive = if directive.to_s.end_with?("_nonce")
-            directive.to_s.gsub(/_nonce/, "_src").to_sym
-          else
-            directive
-          end
+          directive =
+            if directive.to_s.end_with?("_nonce")
+              directive.to_s.gsub(/_nonce/, "_src").to_sym
+            else
+              directive
+            end
           # Don't set a default if directive has an existing value
           next if original[directive]
           if FETCH_SOURCES.include?(directive)
@@ -307,6 +321,10 @@ module SecureHeaders
         DIRECTIVE_VALUE_TYPES[directive] == :require_sri_for_list
       end
 
+      def require_trusted_types_for_list?(directive)
+        DIRECTIVE_VALUE_TYPES[directive] == :require_trusted_types_for_list
+      end
+
       # Private: Validates that the configuration has a valid type, or that it is a valid
       # source expression.
       def validate_directive!(directive, value)
@@ -324,6 +342,8 @@ module SecureHeaders
           validate_media_type_expression!(directive, value)
         when :require_sri_for_list
           validate_require_sri_source_expression!(directive, value)
+        when :require_trusted_types_for_list
+          validate_require_trusted_types_for_source_expression!(directive, value)
         else
           raise ContentSecurityPolicyConfigError.new("Unknown directive #{directive}")
         end
@@ -365,6 +385,16 @@ module SecureHeaders
         ensure_array_of_strings!(directive, require_sri_for_expression)
         unless require_sri_for_expression.to_set.subset?(REQUIRE_SRI_FOR_VALUES)
           raise ContentSecurityPolicyConfigError.new(%(require-sri for must be a subset of #{REQUIRE_SRI_FOR_VALUES.to_a} but was #{require_sri_for_expression}))
+        end
+      end
+
+      # Private: validates that a require trusted types for expression:
+      # 1. is an array of strings
+      # 2. is a subset of ["'script'"]
+      def validate_require_trusted_types_for_source_expression!(directive, require_trusted_types_for_expression)
+        ensure_array_of_strings!(directive, require_trusted_types_for_expression)
+        unless require_trusted_types_for_expression.to_set.subset?(REQUIRE_TRUSTED_TYPES_FOR_VALUES)
+          raise ContentSecurityPolicyConfigError.new(%(require-trusted-types-for for must be a subset of #{REQUIRE_TRUSTED_TYPES_FOR_VALUES.to_a} but was #{require_trusted_types_for_expression}))
         end
       end
 

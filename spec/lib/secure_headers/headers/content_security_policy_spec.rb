@@ -48,12 +48,12 @@ module SecureHeaders
         expect(csp.value).to eq("default-src * 'unsafe-inline' 'unsafe-eval' data: blob:")
       end
 
-      it "minifies source expressions based on overlapping wildcards" do
+      it "does not minify source expressions based on overlapping wildcards" do
         config = {
           default_src: %w(a.example.org b.example.org *.example.org https://*.example.org)
         }
         csp = ContentSecurityPolicy.new(config)
-        expect(csp.value).to eq("default-src *.example.org")
+        expect(csp.value).to eq("default-src a.example.org b.example.org *.example.org")
       end
 
       it "removes http/s schemes from hosts" do
@@ -92,18 +92,28 @@ module SecureHeaders
       end
 
       it "does add a boolean directive if the value is true" do
-        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], block_all_mixed_content: true, upgrade_insecure_requests: true)
-        expect(csp.value).to eq("default-src example.org; block-all-mixed-content; upgrade-insecure-requests")
+        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], upgrade_insecure_requests: true)
+        expect(csp.value).to eq("default-src example.org; upgrade-insecure-requests")
       end
 
       it "does not add a boolean directive if the value is false" do
-        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], block_all_mixed_content: true, upgrade_insecure_requests: false)
-        expect(csp.value).to eq("default-src example.org; block-all-mixed-content")
+        csp = ContentSecurityPolicy.new(default_src: ["https://example.org"], upgrade_insecure_requests: false)
+        expect(csp.value).to eq("default-src example.org")
       end
 
-      it "deduplicates any source expressions" do
-        csp = ContentSecurityPolicy.new(default_src: %w(example.org example.org example.org))
+      it "handles wildcard subdomain with wildcard port" do
+        csp = ContentSecurityPolicy.new(default_src: %w(https://*.example.org:*))
+        expect(csp.value).to eq("default-src *.example.org:*")
+      end
+
+      it "deduplicates source expressions that match exactly (after scheme stripping)" do
+        csp = ContentSecurityPolicy.new(default_src: %w(example.org https://example.org example.org))
         expect(csp.value).to eq("default-src example.org")
+      end
+
+      it "does not deduplicate non-matching schema source expressions" do
+        csp = ContentSecurityPolicy.new(default_src: %w(*.example.org wss://example.example.org))
+        expect(csp.value).to eq("default-src *.example.org wss://example.example.org")
       end
 
       it "creates maximally strict sandbox policy when passed no sandbox token values" do
@@ -139,6 +149,11 @@ module SecureHeaders
       it "allows script and style as a require-sri-src" do
         csp = ContentSecurityPolicy.new(default_src: %w('self'), require_sri_for: %w(script style))
         expect(csp.value).to eq("default-src 'self'; require-sri-for script style")
+      end
+
+      it "allows style as a require-trusted-types-for source" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), require_trusted_types_for: %w(script))
+        expect(csp.value).to eq("default-src 'self'; require-trusted-types-for script")
       end
 
       it "includes prefetch-src" do
@@ -179,6 +194,21 @@ module SecureHeaders
       it "supports style-src-attr directive" do
         csp = ContentSecurityPolicy.new({style_src: %w('self'), style_src_attr: %w('self')})
         expect(csp.value).to eq("style-src 'self'; style-src-attr 'self'")
+      end
+
+      it "supports trusted-types directive" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy)})
+        expect(csp.value).to eq("trusted-types blahblahpolicy")
+      end
+
+      it "supports trusted-types directive with 'none'" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w('none')})
+        expect(csp.value).to eq("trusted-types 'none'")
+      end
+
+      it "allows duplicate policy names in trusted-types directive" do
+        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy 'allow-duplicates')})
+        expect(csp.value).to eq("trusted-types blahblahpolicy 'allow-duplicates'")
       end
     end
   end

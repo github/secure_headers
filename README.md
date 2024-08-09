@@ -3,7 +3,7 @@
 **main branch represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
 
 The gem will automatically apply several headers that are related to security.  This includes:
-- Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](http://www.w3.org/TR/CSP2/)
+- Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](https://www.w3.org/TR/CSP2/)
   - https://csp.withgoogle.com
   - https://csp.withgoogle.com/docs/strict-csp.html
   - https://csp-evaluator.withgoogle.com
@@ -62,7 +62,6 @@ SecureHeaders::Configuration.default do |config|
     # directive values: these values will directly translate into source directives
     default_src: %w('none'),
     base_uri: %w('self'),
-    block_all_mixed_content: true, # see http://www.w3.org/TR/mixed-content/
     child_src: %w('self'), # if child-src isn't supported, the value for frame-src will be set.
     connect_src: %w(wss:),
     font_src: %w('self' data:),
@@ -91,6 +90,9 @@ SecureHeaders::Configuration.default do |config|
   })
 end
 ```
+
+### Deprecated Configuration Values
+* `block_all_mixed_content` - this value is deprecated in favor of `upgrade_insecure_requests`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content for more information.
 
 ## Default values
 
