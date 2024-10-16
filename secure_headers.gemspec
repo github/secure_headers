@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.description   = 'Add easily configured security headers to responses
     including content-security-policy, x-frame-options,
     strict-transport-security, etc.'
-  gem.homepage      = "https://github.com/twitter/secureheaders"
+  gem.homepage      = "https://github.com/github/secure_headers"
   gem.license       = "MIT"
   gem.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
