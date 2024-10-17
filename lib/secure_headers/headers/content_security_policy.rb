@@ -46,8 +46,8 @@ module SecureHeaders
     private
 
     # Private: converts the config object into a string representing a policy.
-    # Places default-src at the first directive and report-uri as the last. All
-    # others are presented in alphabetical order.
+    # Places default-src at the first directive, report-uri second to last and report-to as the
+    # last. All others are presented in alphabetical order.
     #
     # Returns a content security policy header value.
     def build_value
@@ -130,7 +130,7 @@ module SecureHeaders
         source_list = populate_nonces(directive, source_list)
         source_list = reject_all_values_if_none(source_list)
 
-        unless directive == REPORT_URI || @preserve_schemes
+        unless [REPORT_URI, REPORT_TO].include?(directive) || @preserve_schemes
           source_list = strip_source_schemes(source_list)
         end
         source_list.uniq
@@ -185,6 +185,7 @@ module SecureHeaders
         DEFAULT_SRC,
         BODY_DIRECTIVES,
         REPORT_URI,
+        REPORT_TO
       ].flatten
     end
 

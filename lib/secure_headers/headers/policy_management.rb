@@ -81,6 +81,7 @@ module SecureHeaders
     SCRIPT_SRC_ATTR = :script_src_attr
     STYLE_SRC_ELEM = :style_src_elem
     STYLE_SRC_ATTR = :style_src_attr
+    REPORT_TO = :report_to
 
     DIRECTIVES_3_0 = [
       DIRECTIVES_2_0,
@@ -93,7 +94,8 @@ module SecureHeaders
       SCRIPT_SRC_ELEM,
       SCRIPT_SRC_ATTR,
       STYLE_SRC_ELEM,
-      STYLE_SRC_ATTR
+      STYLE_SRC_ATTR,
+      REPORT_TO
     ].flatten.freeze
 
     # Experimental directives - these vary greatly in support
@@ -110,9 +112,9 @@ module SecureHeaders
 
     ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_EXPERIMENTAL).uniq.sort
 
-    # Think of default-src and report-uri as the beginning and end respectively,
+    # Think of default-src as the beginning, report-uri and report-to as the end,
     # everything else is in between.
-    BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
+    BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI, REPORT_TO]
 
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                  => :source_list,
@@ -131,6 +133,7 @@ module SecureHeaders
       PLUGIN_TYPES              => :media_type_list,
       REQUIRE_SRI_FOR           => :require_sri_for_list,
       REQUIRE_TRUSTED_TYPES_FOR => :require_trusted_types_for_list,
+      REPORT_TO                 => :source_list,
       REPORT_URI                => :source_list,
       PREFETCH_SRC              => :source_list,
       SANDBOX                   => :sandbox_list,

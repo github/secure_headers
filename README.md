@@ -81,12 +81,14 @@ SecureHeaders::Configuration.default do |config|
     style_src_attr: %w('unsafe-inline'),
     worker_src: %w('self'),
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
-    report_uri: %w(https://report-uri.io/example-csp)
+    report_uri: %w(https://report-uri.io/example-csp),
+    report_to: %w(example-csp)
   }
   # This is available only from 3.5.0; use the `report_only: true` setting for 3.4.1 and below.
   config.csp_report_only = config.csp.merge({
     img_src: %w(somewhereelse.com),
-    report_uri: %w(https://report-uri.io/example-csp-report-only)
+    report_uri: %w(https://report-uri.io/example-csp-report-only),
+    report_to: %w(example-csp-report-only)
   })
 end
 ```
