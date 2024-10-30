@@ -3,7 +3,7 @@ module SecureHeaders
   class STSConfigError < StandardError; end
 
   class StrictTransportSecurity
-    HEADER_NAME = "Strict-Transport-Security".freeze
+    HEADER_NAME = "strict-transport-security".freeze
     HSTS_MAX_AGE = "631138519"
     DEFAULT_VALUE = "max-age=" + HSTS_MAX_AGE
     VALID_STS_HEADER = /\Amax-age=\d+(; includeSubdomains)?(; preload)?\z/i

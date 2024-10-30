@@ -26,8 +26,8 @@ module SecureHeaders
     end
 
     ##
-    # Returns the name to use for the header. Either "Content-Security-Policy" or
-    # "Content-Security-Policy-Report-Only"
+    # Returns the name to use for the header. Either "content-security-policy" or
+    # "content-security-policy-report-only"
     def name
       @config.class.const_get(:HEADER_NAME)
     end

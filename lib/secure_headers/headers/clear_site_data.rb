@@ -2,7 +2,7 @@
 module SecureHeaders
   class ClearSiteDataConfigError < StandardError; end
   class ClearSiteData
-    HEADER_NAME = "Clear-Site-Data".freeze
+    HEADER_NAME = "clear-site-data".freeze
 
     # Valid `types`
     CACHE = "cache".freeze
@@ -12,7 +12,7 @@ module SecureHeaders
     ALL_TYPES = [CACHE, COOKIES, STORAGE, EXECUTION_CONTEXTS]
 
     class << self
-      # Public: make an Clear-Site-Data header name, value pair
+      # Public: make an clear-site-data header name, value pair
       #
       # Returns nil if not configured, returns header name and value if configured.
       def make_header(config = nil, user_agent = nil)
@@ -39,8 +39,8 @@ module SecureHeaders
         end
       end
 
-      # Public: Transform a Clear-Site-Data config (an Array of Strings) into a
-      # String that can be used as the value for the Clear-Site-Data header.
+      # Public: Transform a clear-site-data config (an Array of Strings) into a
+      # String that can be used as the value for the clear-site-data header.
       #
       # types - An Array of String of types of data to clear.
       #

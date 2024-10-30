@@ -2,11 +2,11 @@
 module SecureHeaders
   class XDOConfigError < StandardError; end
   class XDownloadOptions
-    HEADER_NAME = "X-Download-Options".freeze
+    HEADER_NAME = "x-download-options".freeze
     DEFAULT_VALUE = "noopen"
 
     class << self
-      # Public: generate an X-Download-Options header.
+      # Public: generate an x-download-options header.
       #
       # Returns a default header if no configuration is provided, or a
       # header name and value based on the config.

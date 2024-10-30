@@ -3,7 +3,7 @@ module SecureHeaders
   class XContentTypeOptionsConfigError < StandardError; end
 
   class XContentTypeOptions
-    HEADER_NAME = "X-Content-Type-Options".freeze
+    HEADER_NAME = "x-content-type-options".freeze
     DEFAULT_VALUE = "nosniff"
 
     class << self
