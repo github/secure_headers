@@ -16,6 +16,7 @@ The gem will automatically apply several headers that are related to security.  
 - Referrer-Policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
 - Expect-CT - Only use certificates that are present in the certificate transparency logs. [Expect-CT draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
 - Clear-Site-Data - Clearing browser data for origin. [Clear-Site-Data specification](https://w3c.github.io/webappsec-clear-site-data/).
+- Reporting-Endpoints - [Reporting-Endpoints header specification](https://w3c.github.io/reporting/#header)
 
 It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes. This is on default but can be turned off by using `config.cookies = SecureHeaders::OPT_OUT`.
 
@@ -54,6 +55,7 @@ SecureHeaders::Configuration.default do |config|
   config.x_download_options = "noopen"
   config.x_permitted_cross_domain_policies = "none"
   config.referrer_policy = %w(origin-when-cross-origin strict-origin-when-cross-origin)
+  config.reporting_endpoints = {'example-csp': 'https://report-uri.io/example-csp'}
   config.csp = {
     # "meta" values. these will shape the header, but the values are not included in the header.
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
@@ -81,12 +83,14 @@ SecureHeaders::Configuration.default do |config|
     style_src_attr: %w('unsafe-inline'),
     worker_src: %w('self'),
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
-    report_uri: %w(https://report-uri.io/example-csp)
+    report_uri: %w(https://report-uri.io/example-csp),
+    report_to: %w(example-csp)
   }
   # This is available only from 3.5.0; use the `report_only: true` setting for 3.4.1 and below.
   config.csp_report_only = config.csp.merge({
     img_src: %w(somewhereelse.com),
-    report_uri: %w(https://report-uri.io/example-csp-report-only)
+    report_uri: %w(https://report-uri.io/example-csp-report-only),
+    report_to: %w(example-csp-report-only)
   })
 end
 ```
@@ -96,7 +100,7 @@ end
 
 ## Default values
 
-All headers except for PublicKeyPins and ClearSiteData have a default value. The default set of headers is:
+All headers except for PublicKeyPins, ClearSiteData and ReportingEndpoints have a default value. The default set of headers is:
 
 ```
 Content-Security-Policy: default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'
