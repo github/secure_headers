@@ -9,6 +9,22 @@ module SecureHeaders
 
     let(:request) { Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on") }
 
+    it "has a HEADER_NAME with no capital letters" do
+      # Iterate through all headerable attributes
+      Configuration::HEADERABLE_ATTRIBUTES.each do |attr|
+        klass = Configuration::CONFIG_ATTRIBUTES_TO_HEADER_CLASSES[attr]
+        next if [SecureHeaders::ContentSecurityPolicy].include? klass
+        expect(klass::HEADER_NAME).to eq(klass::HEADER_NAME.downcase)
+      end
+
+      # Now to iterate through the CSP and CSP-Report-Only classes, since they're registered differently
+      klass = SecureHeaders::ContentSecurityPolicyConfig
+      expect(klass::HEADER_NAME).to eq(klass::HEADER_NAME.downcase)
+
+      klass = SecureHeaders::ContentSecurityPolicyReportOnlyConfig
+      expect(klass::HEADER_NAME).to eq(klass::HEADER_NAME.downcase)
+    end
+
     it "raises a NotYetConfiguredError if default has not been set" do
       expect do
         SecureHeaders.header_hash_for(request)
