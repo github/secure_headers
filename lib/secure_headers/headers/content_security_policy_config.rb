@@ -78,7 +78,7 @@ module SecureHeaders
 
   class ContentSecurityPolicyConfigError < StandardError; end
   class ContentSecurityPolicyConfig
-    HEADER_NAME = "Content-Security-Policy".freeze
+    HEADER_NAME = "content-security-policy".freeze
 
     ATTRS = Set.new(PolicyManagement::ALL_DIRECTIVES + PolicyManagement::META_CONFIGS + PolicyManagement::NONCES)
     def self.attrs
@@ -107,7 +107,7 @@ module SecureHeaders
   end
 
   class ContentSecurityPolicyReportOnlyConfig < ContentSecurityPolicyConfig
-    HEADER_NAME = "Content-Security-Policy-Report-Only".freeze
+    HEADER_NAME = "content-security-policy-report-only".freeze
 
     def report_only?
       true
