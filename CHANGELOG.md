@@ -62,11 +62,11 @@ NOTE: this version is a breaking change due to the removal of HPKP. Remove the H
 
 ## 5.0.2
 
-- Updates `referrer-policy` header to support multiple policy values
+- Updates `Referrer-Policy` header to support multiple policy values
 
 ## 5.0.1
 
-- Updates `expect-ct` header to use a comma separator between directives, as specified in the most current spec.
+- Updates `Expect-CT` header to use a comma separator between directives, as specified in the most current spec.
 
 ## 5.0.0
 
@@ -90,7 +90,7 @@ Fix support for the sandbox attribute of CSP. `true` and `[]` represent the maxi
 
 ## 3.7.0
 
-Adds support for the `expect-ct` header (@jacobbednarz: https://github.com/twitter/secureheaders/pull/322)
+Adds support for the `Expect-CT` header (@jacobbednarz: https://github.com/twitter/secureheaders/pull/322)
 
 ## 3.6.7
 
@@ -335,7 +335,7 @@ console.log(1)
 ```
 
 ```
-content-security-policy: ...
+Content-Security-Policy: ...
  script-src 'sha256-yktKiAsZWmc8WpOyhnmhQoDf9G2dAZvuBBC+V0LGQhg=' ... ;
  style-src 'sha256-SLp6LO3rrKDJwsG9uJUxZapb4Wp2Zhj6Bu3l+d9rnAY=' 'sha256-HSGHqlRoKmHAGTAJ2Rq0piXX4CnEbOl1ArNd6ejp2TE=' ...;
 ```
@@ -552,15 +552,15 @@ Fixes an issue where view helpers (for nonces, hashes, etc) weren't available in
 
 This release contains support for more csp level 2 features such as the new directives, the script hash integration, and more.
 
-It also sets a new header by default: `x-permitted-cross-domain-policies`
+It also sets a new header by default: `X-Permitted-Cross-Domain-Policies`
 
 Support for hpkp is not included in this release as the implementations are still very unstable.
 
 :rocket:
 
-## v.2.0.0.pre2 - 2014-12-06 01:55:42 UTC - Adds x-permitted-cross-domain-policies support by default
+## v.2.0.0.pre2 - 2014-12-06 01:55:42 UTC - Adds X-Permitted-Cross-Domain-Policies support by default
 
-The only change between this and the first pre release is that the x-permitted-cross-domain-policies support is included.
+The only change between this and the first pre release is that the X-Permitted-Cross-Domain-Policies support is included.
 
 ## v1.4.0 - 2014-12-06 01:54:48 UTC - Deprecate features in preparation for 2.0
 
@@ -572,7 +572,7 @@ This release is intended to be ready for CSP level 2. Mainly, this means there i
 
 ## v1.3.4 - 2014-10-13 22:05:44 UTC -
 
-* Adds x-download-options support
+* Adds X-Download-Options support
 * Adds support for X-XSS-Protection reporting
 * Defers loading of rails engine for faster boot times
 
