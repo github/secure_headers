@@ -92,7 +92,7 @@ end
 ```
 
 ### Deprecated Configuration Values
-* `block_all_mixed_content` - this value is deprecated in favor of `upgrade_insecure_requests`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/content-security-policy/block-all-mixed-content for more information.
+* `block_all_mixed_content` - this value is deprecated in favor of `upgrade_insecure_requests`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content for more information.
 
 ## Default values
 
@@ -101,11 +101,11 @@ All headers except for PublicKeyPins and ClearSiteData have a default value. The
 ```
 content-security-policy: default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'
 strict-transport-security: max-age=631138519
-X-Content-Type-Options: nosniff
+x-content-type-options: nosniff
 x-download-options: noopen
-X-Frame-Options: sameorigin
+x-frame-options: sameorigin
 x-permitted-cross-domain-policies: none
-X-Xss-Protection: 0
+x-xss-protection: 0
 ```
 
 ## API configurations
