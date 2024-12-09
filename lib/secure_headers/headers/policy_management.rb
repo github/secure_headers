@@ -98,9 +98,9 @@ module SecureHeaders
 
     # Experimental directives - these vary greatly in support
     # See MDN for details.
-    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/trusted-types
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/content-security-policy/trusted-types
     TRUSTED_TYPES = :trusted_types
-    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/require-trusted-types-for
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/content-security-policy/require-trusted-types-for
     REQUIRE_TRUSTED_TYPES_FOR = :require_trusted_types_for
 
     DIRECTIVES_EXPERIMENTAL = [

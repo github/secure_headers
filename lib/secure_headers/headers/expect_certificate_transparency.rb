@@ -3,14 +3,14 @@ module SecureHeaders
   class ExpectCertificateTransparencyConfigError < StandardError; end
 
   class ExpectCertificateTransparency
-    HEADER_NAME = "Expect-CT".freeze
+    HEADER_NAME = "expect-ct".freeze
     INVALID_CONFIGURATION_ERROR = "config must be a hash.".freeze
     INVALID_ENFORCE_VALUE_ERROR = "enforce must be a boolean".freeze
     REQUIRED_MAX_AGE_ERROR      = "max-age is a required directive.".freeze
     INVALID_MAX_AGE_ERROR       = "max-age must be a number.".freeze
 
     class << self
-      # Public: Generate a Expect-CT header.
+      # Public: Generate a expect-ct header.
       #
       # Returns nil if not configured, returns header name and value if
       # configured.

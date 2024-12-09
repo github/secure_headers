@@ -91,7 +91,7 @@ body {
 
 ```
 
-Content-Security-Policy: ...
+content-security-policy: ...
   script-src 'nonce-/jRAxuLJsDXAxqhNBB7gg7h55KETtDQBXe4ZL+xIXwI=' ...;
   style-src 'nonce-/jRAxuLJsDXAxqhNBB7gg7h55KETtDQBXe4ZL+xIXwI=' ...;
 ```
@@ -118,13 +118,13 @@ You can clear the browser cache after the logout request by using the following.
 
 ``` ruby
 class ApplicationController < ActionController::Base
-  # Configuration override to send the Clear-Site-Data header.
+  # Configuration override to send the clear-site-data header.
   SecureHeaders::Configuration.override(:clear_browser_cache) do |config|
     config.clear_site_data = SecureHeaders::ClearSiteData::ALL_TYPES
   end
 
 
-  # Clears the browser's cache for browsers supporting the Clear-Site-Data
+  # Clears the browser's cache for browsers supporting the clear-site-data
   # header.
   #
   # Returns nothing.

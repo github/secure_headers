@@ -2,12 +2,12 @@
 module SecureHeaders
   class XPCDPConfigError < StandardError; end
   class XPermittedCrossDomainPolicies
-    HEADER_NAME = "X-Permitted-Cross-Domain-Policies".freeze
+    HEADER_NAME = "x-permitted-cross-domain-policies".freeze
     DEFAULT_VALUE = "none"
     VALID_POLICIES = %w(all none master-only by-content-type by-ftp-filename)
 
     class << self
-      # Public: generate an X-Permitted-Cross-Domain-Policies header.
+      # Public: generate an x-permitted-cross-domain-policies header.
       #
       # Returns a default header if no configuration is provided, or a
       # header name and value based on the config.
