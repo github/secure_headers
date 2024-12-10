@@ -71,6 +71,11 @@ module SecureHeaders
         expect(csp.value).to eq("default-src https:; report-uri https://example.org")
       end
 
+      it "does not remove schemes from report-to values" do
+        csp = ContentSecurityPolicy.new(default_src: %w(https:), report_to: %w(https://example.org))
+        expect(csp.value).to eq("default-src https:; report-to https://example.org")
+      end
+
       it "does not remove schemes when :preserve_schemes is true" do
         csp = ContentSecurityPolicy.new(default_src: %w(https://example.org), preserve_schemes: true)
         expect(csp.value).to eq("default-src https://example.org")

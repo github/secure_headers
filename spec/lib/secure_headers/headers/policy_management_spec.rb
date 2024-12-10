@@ -55,6 +55,7 @@ module SecureHeaders
           style_src_attr: %w(example.com),
           trusted_types: %w(abcpolicy),
 
+          report_to: %w(https://example.com/uri-directive),
           report_uri: %w(https://example.com/uri-directive),
         }
 
