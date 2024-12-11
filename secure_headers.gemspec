@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
     strict-transport-security, etc.'
   gem.homepage      = "https://github.com/github/secure_headers"
   gem.license       = "MIT"
-  gem.files         = Dir["lib/**/*", "spec/**/*", "bin/**/*", "docs/**/*", "*.md"] + ["LICENSE", "Gemfile", "Guardfile", "Rakefile", ".rspec", ".rubocop.yml", ".gitignore", "secure_headers.gemspec"]
+  gem.files         = Dir["bin/**/*", "lib/**/*", "spec/**/*"] + ["README.md", "Gemfile", "Guardfile", "Rakefile", ".rspec", ".rubocop.yml", "secure_headers.gemspec"]
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
