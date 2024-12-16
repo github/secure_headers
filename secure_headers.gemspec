@@ -14,10 +14,20 @@ Gem::Specification.new do |gem|
     including content-security-policy, x-frame-options,
     strict-transport-security, etc.'
   gem.homepage      = "https://github.com/github/secure_headers"
+  gem.metadata      = {
+    "bug_tracker_uri"   => "https://github.com/github/secure_headers/issues",
+    "changelog_uri"     => "https://github.com/github/secure_headers/blob/master/CHANGELOG.md",
+    "documentation_uri" => "https://rubydoc.info/gems/secure_headers",
+    "homepage_uri"      => gem.homepage,
+    "source_code_uri"   => "https://github.com/github/secure_headers",
+    "rubygems_mfa_required" => "true",
+  }
   gem.license       = "MIT"
-  gem.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
-  gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
-  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
+
+  gem.files         = Dir["bin/**/*", "lib/**/*", "README.md", "CHANGELOG.md", "LICENSE", "Gemfile", "secure_headers.gemspec"]
   gem.require_paths = ["lib"]
+
+  gem.extra_rdoc_files = Dir["README.md", "CHANGELOG.md", "LICENSE"]
+
   gem.add_development_dependency "rake"
 end
