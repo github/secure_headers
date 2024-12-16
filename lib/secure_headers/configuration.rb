@@ -131,6 +131,7 @@ module SecureHeaders
       csp: ContentSecurityPolicy,
       csp_report_only: ContentSecurityPolicy,
       cookies: Cookie,
+      reporting_endpoints: ReportingEndpoints,
     }.freeze
 
     CONFIG_ATTRIBUTES = CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.keys.freeze
@@ -167,6 +168,7 @@ module SecureHeaders
       @x_permitted_cross_domain_policies = nil
       @x_xss_protection = nil
       @expect_certificate_transparency = nil
+      @reporting_endpoints = nil
 
       self.referrer_policy = OPT_OUT
       self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
@@ -192,6 +194,7 @@ module SecureHeaders
       copy.clear_site_data = @clear_site_data
       copy.expect_certificate_transparency = @expect_certificate_transparency
       copy.referrer_policy = @referrer_policy
+      copy.reporting_endpoints = @reporting_endpoints
       copy
     end
 
