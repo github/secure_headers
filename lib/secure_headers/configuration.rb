@@ -256,7 +256,7 @@ module SecureHeaders
       end
     end
 
-    # Configures the Content-Security-Policy-Report-Only header. `new_csp` cannot
+    # Configures the content-security-policy-report-only header. `new_csp` cannot
     # contain `report_only: false` or an error will be raised.
     #
     # NOTE: if csp has not been configured/has the default value when

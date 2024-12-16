@@ -4,11 +4,11 @@ if defined?(Rails::Railtie)
   module SecureHeaders
     class Railtie < Rails::Railtie
       isolate_namespace SecureHeaders if defined? isolate_namespace # rails 3.0
-      conflicting_headers = ["X-Frame-Options", "X-XSS-Protection",
-                             "X-Permitted-Cross-Domain-Policies", "X-Download-Options",
-                             "X-Content-Type-Options", "Strict-Transport-Security",
-                             "Content-Security-Policy", "Content-Security-Policy-Report-Only",
-                             "Public-Key-Pins", "Public-Key-Pins-Report-Only", "Referrer-Policy"]
+      conflicting_headers = ["x-frame-options", "x-xss-protection",
+                             "x-permitted-cross-domain-policies", "x-download-options",
+                             "x-content-type-options", "strict-transport-security",
+                             "content-security-policy", "content-security-policy-report-only",
+                             "public-key-pins", "public-key-pins-report-only", "referrer-policy"]
 
       initializer "secure_headers.middleware" do
         Rails.application.config.middleware.insert_before 0, SecureHeaders::Middleware

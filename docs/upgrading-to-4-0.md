@@ -15,7 +15,7 @@ The default CSP has changed to be more universal without sacrificing too much se
 
 Previously, the default CSP was:
 
-`Content-Security-Policy: default-src 'self'`
+`content-security-policy: default-src 'self'`
 
 The new default policy is:
 
