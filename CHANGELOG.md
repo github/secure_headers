@@ -70,7 +70,7 @@ NOTE: this version is a breaking change due to the removal of HPKP. Remove the H
 
 ## 5.0.0
 
-Well this is a little embarassing. 4.0 was supposed to set the secure/httponly/samesite=lax attributes on cookies by default but it didn't. Now it does. - See the [upgrading to 5.0](docs/upgrading-to-5-0.md) guide.
+Well this is a little embarrassing. 4.0 was supposed to set the secure/httponly/samesite=lax attributes on cookies by default but it didn't. Now it does. - See the [upgrading to 5.0](docs/upgrading-to-5-0.md) guide.
 
 ## 4.0.1
 
@@ -194,7 +194,7 @@ end
 
 ## 3.4.0 the frame-src/child-src transition for Firefox.
 
-Handle the `child-src`/`frame-src` transition semi-intelligently across versions. I think the code best descibes the behavior here:
+Handle the `child-src`/`frame-src` transition semi-intelligently across versions. I think the code best describes the behavior here:
 
 ```ruby
 if supported_directives.include?(:child_src)

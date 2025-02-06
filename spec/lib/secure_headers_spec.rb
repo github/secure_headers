@@ -226,7 +226,7 @@ module SecureHeaders
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'none'; script-src 'self'")
         end
 
-        it "overrides non-existant directives" do
+        it "overrides non-existent directives" do
           Configuration.default do |config|
             config.csp = {
               default_src: %w(https:),
