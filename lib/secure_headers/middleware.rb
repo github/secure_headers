@@ -20,14 +20,12 @@ module SecureHeaders
 
     # inspired by https://github.com/tobmatth/rack-ssl-enforcer/blob/6c014/lib/rack/ssl-enforcer.rb#L183-L194
     def flag_cookies!(headers, config)
-      if cookies = headers["Set-Cookie"]
-        # Support Rails 2.3 / Rack 1.1 arrays as headers
-        cookies = cookies.split("\n") unless cookies.is_a?(Array)
+      cookies = headers["Set-Cookie"]
+      return unless cookies
 
-        headers["Set-Cookie"] = cookies.map do |cookie|
-          SecureHeaders::Cookie.new(cookie, config).to_s
-        end.join("\n")
-      end
+      cookies_array = cookies.is_a?(Array) ? cookies : cookies.split("\n")
+      secured_cookies = cookies_array.map { |cookie| SecureHeaders::Cookie.new(cookie, config).to_s }
+      headers["Set-Cookie"] = cookies.is_a?(Array) ? secured_cookies : secured_cookies.join("\n")
     end
 
     # disable Secure cookies for non-https requests
