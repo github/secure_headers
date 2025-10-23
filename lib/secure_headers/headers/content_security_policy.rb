@@ -59,12 +59,19 @@ module SecureHeaders
           build_source_list_directive(directive_name)
         when :boolean
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
+        when :string
+          build_string_directive(directive_name)
         when :sandbox_list
           build_sandbox_list_directive(directive_name)
         when :media_type_list
           build_media_type_list_directive(directive_name)
         end
       end.compact.join("; ")
+    end
+
+    def build_string_directive(directive)
+      return unless string_value = @config.directive_value(directive)
+      [symbol_to_hyphen_case(directive), string_value].join(" ")
     end
 
     def build_sandbox_list_directive(directive)
@@ -179,11 +186,12 @@ module SecureHeaders
     end
 
     # Private: return the list of directives,
-    # starting with default-src and ending with report-uri.
+    # starting with default-src and ending with report-to and report-uri.
     def directives
       [
         DEFAULT_SRC,
         BODY_DIRECTIVES,
+        REPORT_TO,
         REPORT_URI,
       ].flatten
     end

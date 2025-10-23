@@ -128,6 +128,7 @@ module SecureHeaders
       referrer_policy: ReferrerPolicy,
       clear_site_data: ClearSiteData,
       expect_certificate_transparency: ExpectCertificateTransparency,
+      reporting_endpoints: ReportingEndpoints,
       csp: ContentSecurityPolicy,
       csp_report_only: ContentSecurityPolicy,
       cookies: Cookie,

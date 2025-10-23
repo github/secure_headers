@@ -71,6 +71,21 @@ module SecureHeaders
         expect(csp.value).to eq("default-src https:; report-uri https://example.org")
       end
 
+      it "includes report-to directive with string value" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), script_src: %w('self'), report_to: 'default')
+        expect(csp.value).to eq("default-src 'self'; script-src 'self'; report-to default")
+      end
+
+      it "includes both report-to and report-uri when both are specified" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), script_src: %w('self'), report_to: 'default', report_uri: %w(https://example.org))
+        expect(csp.value).to eq("default-src 'self'; script-src 'self'; report-to default; report-uri https://example.org")
+      end
+
+      it "positions report-to before report-uri" do
+        csp = ContentSecurityPolicy.new(default_src: %w('self'), script_src: %w('self'), report_to: 'endpoint', report_uri: %w(/report))
+        expect(csp.value).to match(/report-to endpoint.*report-uri/)
+      end
+
       it "does not remove schemes when :preserve_schemes is true" do
         csp = ContentSecurityPolicy.new(default_src: %w(https://example.org), preserve_schemes: true)
         expect(csp.value).to eq("default-src https://example.org")

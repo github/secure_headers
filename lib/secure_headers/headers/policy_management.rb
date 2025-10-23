@@ -38,6 +38,7 @@ module SecureHeaders
     SANDBOX = :sandbox
     SCRIPT_SRC = :script_src
     STYLE_SRC = :style_src
+    REPORT_TO = :report_to
     REPORT_URI = :report_uri
 
     DIRECTIVES_1_0 = [
@@ -87,6 +88,7 @@ module SecureHeaders
       MANIFEST_SRC,
       NAVIGATE_TO,
       PREFETCH_SRC,
+      REPORT_TO,
       REQUIRE_SRI_FOR,
       WORKER_SRC,
       UPGRADE_INSECURE_REQUESTS,
@@ -110,9 +112,9 @@ module SecureHeaders
 
     ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_EXPERIMENTAL).uniq.sort
 
-    # Think of default-src and report-uri as the beginning and end respectively,
+    # Think of default-src as the beginning and report-to/report-uri as the end,
     # everything else is in between.
-    BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
+    BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_TO, REPORT_URI]
 
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                  => :source_list,
@@ -131,6 +133,7 @@ module SecureHeaders
       PLUGIN_TYPES              => :media_type_list,
       REQUIRE_SRI_FOR           => :require_sri_for_list,
       REQUIRE_TRUSTED_TYPES_FOR => :require_trusted_types_for_list,
+      REPORT_TO                 => :string,
       REPORT_URI                => :source_list,
       PREFETCH_SRC              => :source_list,
       SANDBOX                   => :sandbox_list,
@@ -158,6 +161,7 @@ module SecureHeaders
       FORM_ACTION,
       FRAME_ANCESTORS,
       NAVIGATE_TO,
+      REPORT_TO,
       REPORT_URI,
     ]
 
@@ -335,6 +339,10 @@ module SecureHeaders
         when :boolean
           unless boolean?(value)
             raise ContentSecurityPolicyConfigError.new("#{directive} must be a boolean. Found #{value.class} value")
+          end
+        when :string
+          unless value.is_a?(String)
+            raise ContentSecurityPolicyConfigError.new("#{directive} must be a string. Found #{value.class} value")
           end
         when :sandbox_list
           validate_sandbox_expression!(directive, value)
