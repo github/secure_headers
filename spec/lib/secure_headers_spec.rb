@@ -670,4 +670,3 @@ module SecureHeaders
     end
   end
 end
-

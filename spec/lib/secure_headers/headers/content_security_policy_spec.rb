@@ -220,30 +220,29 @@ module SecureHeaders
       end
 
       it "supports report-to directive with endpoint name" do
-        csp = ContentSecurityPolicy.new({default_src: %w('self'), report_to: "csp-endpoint"})
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_to: "csp-endpoint" })
         expect(csp.value).to eq("default-src 'self'; report-to csp-endpoint")
       end
 
       it "includes report-to before report-uri in alphabetical order" do
-        csp = ContentSecurityPolicy.new({default_src: %w('self'), report_uri: %w(/csp_report), report_to: "csp-endpoint"})
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_uri: %w(/csp_report), report_to: "csp-endpoint" })
         expect(csp.value).to eq("default-src 'self'; report-to csp-endpoint; report-uri /csp_report")
       end
 
       it "does not add report-to if the endpoint name is empty" do
-        csp = ContentSecurityPolicy.new({default_src: %w('self'), report_to: ""})
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_to: "" })
         expect(csp.value).to eq("default-src 'self'")
       end
 
       it "does not add report-to if not provided" do
-        csp = ContentSecurityPolicy.new({default_src: %w('self')})
+        csp = ContentSecurityPolicy.new({ default_src: %w('self') })
         expect(csp.value).not_to include("report-to")
       end
 
       it "supports report-to without report-uri" do
-        csp = ContentSecurityPolicy.new({default_src: %w('self'), report_to: "reporting-endpoint-name"})
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_to: "reporting-endpoint-name" })
         expect(csp.value).to eq("default-src 'self'; report-to reporting-endpoint-name")
       end
     end
   end
 end
-

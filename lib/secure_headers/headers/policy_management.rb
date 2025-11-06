@@ -131,11 +131,11 @@ module SecureHeaders
       NAVIGATE_TO               => :source_list,
       OBJECT_SRC                => :source_list,
       PLUGIN_TYPES              => :media_type_list,
+      PREFETCH_SRC              => :source_list,
+      REPORT_TO                 => :report_to_endpoint,
+      REPORT_URI                => :source_list,
       REQUIRE_SRI_FOR           => :require_sri_for_list,
       REQUIRE_TRUSTED_TYPES_FOR => :require_trusted_types_for_list,
-      REPORT_URI                => :source_list,
-      REPORT_TO                 => :report_to_endpoint,
-      PREFETCH_SRC              => :source_list,
       SANDBOX                   => :sandbox_list,
       SCRIPT_SRC                => :source_list,
       SCRIPT_SRC_ELEM           => :source_list,
@@ -161,8 +161,8 @@ module SecureHeaders
       FORM_ACTION,
       FRAME_ANCESTORS,
       NAVIGATE_TO,
-      REPORT_URI,
       REPORT_TO,
+      REPORT_URI,
     ]
 
     FETCH_SOURCES = ALL_DIRECTIVES - NON_FETCH_SOURCES - NON_SOURCE_LIST_SOURCES
