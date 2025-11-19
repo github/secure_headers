@@ -62,7 +62,7 @@ module SecureHeaders
 
       context "cookies should not be flagged" do
         it "does not flags cookies as secure" do
-          Configuration.default { |config| config.cookies = { secure: OPT_OUT, httponly: OPT_OUT, samesite: OPT_OUT }  }
+          Configuration.default { |config| config.cookies = { secure: OPT_OUT, httponly: OPT_OUT, samesite: OPT_OUT } }
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
           expect(env["Set-Cookie"]).to eq("foo=bar")
