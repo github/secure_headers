@@ -11,6 +11,7 @@ require "secure_headers/headers/x_permitted_cross_domain_policies"
 require "secure_headers/headers/referrer_policy"
 require "secure_headers/headers/clear_site_data"
 require "secure_headers/headers/expect_certificate_transparency"
+require "secure_headers/headers/reporting_endpoints"
 require "secure_headers/middleware"
 require "secure_headers/railtie"
 require "secure_headers/view_helper"
@@ -208,7 +209,7 @@ module SecureHeaders
 
     def config_and_target(request, target)
       config = config_for(request)
-      target = guess_target(config) unless target
+      target ||= guess_target(config)
       raise_on_unknown_target(target)
       [config, target]
     end

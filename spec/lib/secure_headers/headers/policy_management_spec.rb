@@ -8,7 +8,7 @@ module SecureHeaders
       Configuration.default
     end
 
-    let (:default_opts) do
+    let(:default_opts) do
       {
         default_src: %w(https:),
         img_src: %w(https: data:),

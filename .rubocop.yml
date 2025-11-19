@@ -1,4 +1,5 @@
 inherit_gem:
   rubocop-github:
     - config/default.yml
-require: rubocop-performance
+plugins:
+  - rubocop-performance

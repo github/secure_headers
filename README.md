@@ -16,6 +16,7 @@ The gem will automatically apply several headers that are related to security.  
 - referrer-policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
 - expect-ct - Only use certificates that are present in the certificate transparency logs. [expect-ct draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
 - clear-site-data - Clearing browser data for origin. [clear-site-data specification](https://w3c.github.io/webappsec-clear-site-data/).
+- reporting-endpoints - Configure endpoints for the W3C Reporting API. [Reporting API specification](https://w3c.github.io/reporting/).
 
 It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes. This is on default but can be turned off by using `config.cookies = SecureHeaders::OPT_OUT`.
 
@@ -54,6 +55,9 @@ SecureHeaders::Configuration.default do |config|
   config.x_download_options = "noopen"
   config.x_permitted_cross_domain_policies = "none"
   config.referrer_policy = %w(origin-when-cross-origin strict-origin-when-cross-origin)
+  config.reporting_endpoints = {
+    default: "https://report-uri.io/example-reporting"
+  }
   config.csp = {
     # "meta" values. these will shape the header, but the values are not included in the header.
     preserve_schemes: true, # default: false. Schemes are removed from host sources to save bytes and discourage mixed content.
@@ -81,7 +85,8 @@ SecureHeaders::Configuration.default do |config|
     style_src_attr: %w('unsafe-inline'),
     worker_src: %w('self'),
     upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
-    report_uri: %w(https://report-uri.io/example-csp)
+    report_to: 'default', # W3C Reporting API endpoint name (modern browsers)
+    report_uri: %w(https://report-uri.io/example-csp) # Legacy reporting (older browsers)
   }
   # This is available only from 3.5.0; use the `report_only: true` setting for 3.4.1 and below.
   config.csp_report_only = config.csp.merge({
@@ -107,6 +112,59 @@ x-frame-options: sameorigin
 x-permitted-cross-domain-policies: none
 x-xss-protection: 0
 ```
+
+## W3C Reporting API
+
+The [W3C Reporting API](https://w3c.github.io/reporting/) provides a standardized way to receive browser reports about security violations, deprecations, and other issues. To use it, you need to configure two things:
+
+### 1. Reporting-Endpoints Header
+
+Define named endpoints where reports should be sent:
+
+```ruby
+SecureHeaders::Configuration.default do |config|
+  config.reporting_endpoints = {
+    default: "https://example.com/reports",
+    csp_endpoint: "https://example.com/csp-reports"
+  }
+end
+```
+
+This generates the header:
+```
+Reporting-Endpoints: default="https://example.com/reports", csp_endpoint="https://example.com/csp-reports"
+```
+
+### 2. CSP report-to Directive
+
+Reference the endpoint name in your CSP configuration using the `report_to` directive:
+
+```ruby
+config.csp = {
+  default_src: %w('self'),
+  script_src: %w('self'),
+  report_to: 'default' # References the 'default' endpoint
+}
+```
+
+### Browser Compatibility
+
+For maximum browser compatibility, use both modern (`report_to`) and legacy (`report_uri`) reporting:
+
+```ruby
+config.reporting_endpoints = {
+  default: "https://example.com/reports"
+}
+
+config.csp = {
+  default_src: %w('self'),
+  script_src: %w('self'),
+  report_to: 'default',                              # Modern browsers (W3C Reporting API)
+  report_uri: %w(https://example.com/reports)        # Legacy browsers
+}
+```
+
+**Note:** Modern browsers using the Reporting API will send reports in a different format than legacy `report-uri`. Your reporting endpoint should be able to handle both formats.
 
 ## API configurations
 
