@@ -208,7 +208,7 @@ module SecureHeaders
 
     def config_and_target(request, target)
       config = config_for(request)
-      target = guess_target(config) unless target
+      target ||= guess_target(config)
       raise_on_unknown_target(target)
       [config, target]
     end
