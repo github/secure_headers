@@ -29,7 +29,7 @@ Gem::Specification.new do |gem|
 
   gem.extra_rdoc_files = Dir["README.md", "CHANGELOG.md", "LICENSE"]
 
-  gem.add_dependency "cgi", "~> 0.5.0"
+  gem.add_dependency "cgi", ">= 0.1"
 
   gem.add_development_dependency "rake"
 end
