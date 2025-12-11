@@ -22,7 +22,9 @@ module SecureHeaders
       configuration = Configuration.dup
       expect(original_configuration).not_to be(configuration)
       Configuration::CONFIG_ATTRIBUTES.each do |attr|
-        expect(original_configuration.send(attr)).to eq(configuration.send(attr))
+        # rubocop:disable GitHub/AvoidObjectSendWithDynamicMethod
+        expect(original_configuration.public_send(attr)).to eq(configuration.public_send(attr))
+        # rubocop:enable GitHub/AvoidObjectSendWithDynamicMethod
       end
     end
 
