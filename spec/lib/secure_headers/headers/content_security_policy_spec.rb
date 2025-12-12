@@ -3,7 +3,7 @@ require "spec_helper"
 
 module SecureHeaders
   describe ContentSecurityPolicy do
-    let (:default_opts) do
+    let(:default_opts) do
       {
         default_src: %w(https:),
         img_src: %w(https: data:),
