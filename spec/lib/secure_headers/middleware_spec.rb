@@ -42,7 +42,7 @@ module SecureHeaders
       end
       context "cookies should be flagged" do
         it "flags cookies as secure" do
-          Configuration.default { |config| config.cookies = {secure: true, httponly: OPT_OUT, samesite: OPT_OUT} }
+          Configuration.default { |config| config.cookies = { secure: true, httponly: OPT_OUT, samesite: OPT_OUT } }
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
           expect(env["Set-Cookie"]).to eq("foo=bar; secure")
@@ -62,7 +62,7 @@ module SecureHeaders
 
       context "cookies should not be flagged" do
         it "does not flags cookies as secure" do
-          Configuration.default { |config| config.cookies = {secure: OPT_OUT, httponly: OPT_OUT, samesite: OPT_OUT}  }
+          Configuration.default { |config| config.cookies = { secure: OPT_OUT, httponly: OPT_OUT, samesite: OPT_OUT }  }
           request = Rack::Request.new("HTTPS" => "on")
           _, env = cookie_middleware.call request.env
           expect(env["Set-Cookie"]).to eq("foo=bar")
@@ -75,7 +75,7 @@ module SecureHeaders
         reset_config
       end
       it "flags cookies from configuration" do
-        Configuration.default { |config| config.cookies = { secure: true, httponly: true, samesite: { lax: true} } }
+        Configuration.default { |config| config.cookies = { secure: true, httponly: true, samesite: { lax: true } } }
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
 
@@ -85,7 +85,7 @@ module SecureHeaders
       it "flags cookies with a combination of SameSite configurations" do
         cookie_middleware = Middleware.new(lambda { |env| [200, env.merge("Set-Cookie" => ["_session=foobar", "_guest=true"]), "app"] })
 
-        Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } }, httponly: OPT_OUT, secure: OPT_OUT} }
+        Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } }, httponly: OPT_OUT, secure: OPT_OUT } }
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
 
