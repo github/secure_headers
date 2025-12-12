@@ -35,7 +35,7 @@ module SecureHeaders
 
       # Public: create a named configuration that overrides the default config.
       #
-      # name - use an idenfier for the override config.
+      # name - use an identifier for the override config.
       # base - override another existing config, or override the default config
       # if no value is supplied.
       #

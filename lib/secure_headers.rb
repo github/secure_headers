@@ -178,7 +178,7 @@ module SecureHeaders
       content_security_policy_nonce(request, ContentSecurityPolicy::STYLE_SRC)
     end
 
-    # Public: Retreives the config for a given header type:
+    # Public: Retrieves the config for a given header type:
     #
     # Checks to see if there is an override for this request, then
     # Checks to see if a named override is used for this request, then
