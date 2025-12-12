@@ -167,47 +167,47 @@ module SecureHeaders
       end
 
       it "supports strict-dynamic" do
-        csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456})
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456 })
         expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456' 'unsafe-inline'")
       end
 
       it "supports strict-dynamic and opting out of the appended 'unsafe-inline'" do
-        csp = ContentSecurityPolicy.new({default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456, disable_nonce_backwards_compatibility: true })
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), script_src: [ContentSecurityPolicy::STRICT_DYNAMIC], script_nonce: 123456, disable_nonce_backwards_compatibility: true })
         expect(csp.value).to eq("default-src 'self'; script-src 'strict-dynamic' 'nonce-123456'")
       end
 
       it "supports script-src-elem directive" do
-        csp = ContentSecurityPolicy.new({script_src: %w('self'), script_src_elem: %w('self')})
+        csp = ContentSecurityPolicy.new({ script_src: %w('self'), script_src_elem: %w('self') })
         expect(csp.value).to eq("script-src 'self'; script-src-elem 'self'")
       end
 
       it "supports script-src-attr directive" do
-        csp = ContentSecurityPolicy.new({script_src: %w('self'), script_src_attr: %w('self')})
+        csp = ContentSecurityPolicy.new({ script_src: %w('self'), script_src_attr: %w('self') })
         expect(csp.value).to eq("script-src 'self'; script-src-attr 'self'")
       end
 
       it "supports style-src-elem directive" do
-        csp = ContentSecurityPolicy.new({style_src: %w('self'), style_src_elem: %w('self')})
+        csp = ContentSecurityPolicy.new({ style_src: %w('self'), style_src_elem: %w('self') })
         expect(csp.value).to eq("style-src 'self'; style-src-elem 'self'")
       end
 
       it "supports style-src-attr directive" do
-        csp = ContentSecurityPolicy.new({style_src: %w('self'), style_src_attr: %w('self')})
+        csp = ContentSecurityPolicy.new({ style_src: %w('self'), style_src_attr: %w('self') })
         expect(csp.value).to eq("style-src 'self'; style-src-attr 'self'")
       end
 
       it "supports trusted-types directive" do
-        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy)})
+        csp = ContentSecurityPolicy.new({ trusted_types: %w(blahblahpolicy) })
         expect(csp.value).to eq("trusted-types blahblahpolicy")
       end
 
       it "supports trusted-types directive with 'none'" do
-        csp = ContentSecurityPolicy.new({trusted_types: %w('none')})
+        csp = ContentSecurityPolicy.new({ trusted_types: %w('none') })
         expect(csp.value).to eq("trusted-types 'none'")
       end
 
       it "allows duplicate policy names in trusted-types directive" do
-        csp = ContentSecurityPolicy.new({trusted_types: %w(blahblahpolicy 'allow-duplicates')})
+        csp = ContentSecurityPolicy.new({ trusted_types: %w(blahblahpolicy 'allow-duplicates') })
         expect(csp.value).to eq("trusted-types blahblahpolicy 'allow-duplicates'")
       end
     end
