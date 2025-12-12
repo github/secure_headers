@@ -7,9 +7,6 @@ AllCops:
   TargetRubyVersion: 2.6
 
 # Disable cops that are not consistently available across all Ruby versions
-Style/OrAssignment:
-  Enabled: false
-
 Layout/SpaceInsideHashLiteralBraces:
   Enabled: false
 
