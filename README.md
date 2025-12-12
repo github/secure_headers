@@ -1,4 +1,4 @@
-# Secure Headers ![Build + Test](https://github.com/github/secure_headers/workflows/Build%20+%20Test/badge.svg?branch=main)
+# Secure Headers [![Build + Test](https://github.com/github/secure_headers/actions/workflows/build.yml/badge.svg)](https://github.com/github/secure_headers/actions/workflows/build.yml)
 
 **main branch represents 7.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), [upgrading to 6.x doc](docs/upgrading-to-6-0.md) or [upgrading to 7.x doc](docs/upgrading-to-7-0.md) for instructions on how to upgrade. Bug fixes should go in the `6.x` branch for now.
 
