@@ -7,10 +7,8 @@ module SecureHeaders
   class CookiesConfigError < StandardError; end
   class Cookie
 
-    class << self
-      def validate_config!(config)
-        CookiesConfig.new(config).validate!
-      end
+    def self.validate_config!(config)
+      CookiesConfig.new(config).validate!
     end
 
     attr_reader :raw_cookie, :config
