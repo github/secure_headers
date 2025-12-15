@@ -172,24 +172,6 @@ module SecureHeaders
       end
     end
 
-
-    # Removes duplicates and sources that already match an existing wild card.
-    #
-    # e.g. *.github.com asdf.github.com becomes *.github.com
-    def dedup_source_list(sources)
-      sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
-
-      if wild_sources.any?
-        sources.reject do |source|
-          !wild_sources.include?(source) &&
-            wild_sources.any? { |pattern| File.fnmatch(pattern, source) }
-        end
-      else
-        sources
-      end
-    end
-
     # Private: append a nonce to the script/style directories if script_nonce
     # or style_nonce are provided.
     def populate_nonces(directive, source_list)
