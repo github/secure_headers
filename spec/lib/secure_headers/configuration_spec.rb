@@ -22,7 +22,9 @@ module SecureHeaders
       configuration = Configuration.dup
       expect(original_configuration).not_to be(configuration)
       Configuration::CONFIG_ATTRIBUTES.each do |attr|
-        expect(original_configuration.send(attr)).to eq(configuration.send(attr))
+        # rubocop:disable GitHub/AvoidObjectSendWithDynamicMethod
+        expect(original_configuration.public_send(attr)).to eq(configuration.public_send(attr))
+        # rubocop:enable GitHub/AvoidObjectSendWithDynamicMethod
       end
     end
 
@@ -97,7 +99,7 @@ module SecureHeaders
     end
 
     it "gives cookies a default config" do
-      expect(Configuration.default.cookies).to eq({httponly: true, secure: true, samesite: {lax: true}})
+      expect(Configuration.default.cookies).to eq({ httponly: true, secure: true, samesite: { lax: true } })
     end
 
     it "allows OPT_OUT" do
@@ -111,11 +113,11 @@ module SecureHeaders
 
     it "allows me to be explicit too" do
       Configuration.default do |config|
-        config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
+        config.cookies = { httponly: true, secure: true, samesite: { lax: false } }
       end
 
       config = Configuration.dup
-      expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
+      expect(config.cookies).to eq({ httponly: true, secure: true, samesite: { lax: false } })
     end
   end
 end
