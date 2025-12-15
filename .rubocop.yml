@@ -1,4 +1,11 @@
 inherit_gem:
   rubocop-github:
     - config/default.yml
-require: rubocop-performance
+plugins: rubocop-performance
+
+AllCops:
+  TargetRubyVersion: 2.6
+
+# Disable cops that are not consistently available across all Ruby versions
+Lint/RedundantCopDisableDirective:
+  Enabled: false

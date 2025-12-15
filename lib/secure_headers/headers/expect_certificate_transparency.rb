@@ -3,37 +3,35 @@ module SecureHeaders
   class ExpectCertificateTransparencyConfigError < StandardError; end
 
   class ExpectCertificateTransparency
-    HEADER_NAME = "Expect-CT".freeze
+    HEADER_NAME = "expect-ct".freeze
     INVALID_CONFIGURATION_ERROR = "config must be a hash.".freeze
     INVALID_ENFORCE_VALUE_ERROR = "enforce must be a boolean".freeze
     REQUIRED_MAX_AGE_ERROR      = "max-age is a required directive.".freeze
     INVALID_MAX_AGE_ERROR       = "max-age must be a number.".freeze
 
-    class << self
-      # Public: Generate a Expect-CT header.
-      #
-      # Returns nil if not configured, returns header name and value if
-      # configured.
-      def make_header(config, use_agent = nil)
-        return if config.nil? || config == OPT_OUT
+    # Public: Generate a expect-ct header.
+    #
+    # Returns nil if not configured, returns header name and value if
+    # configured.
+    def self.make_header(config, use_agent = nil)
+      return if config.nil? || config == OPT_OUT
 
-        header = new(config)
-        [HEADER_NAME, header.value]
+      header = new(config)
+      [HEADER_NAME, header.value]
+    end
+
+    def self.validate_config!(config)
+      return if config.nil? || config == OPT_OUT
+      raise ExpectCertificateTransparencyConfigError.new(INVALID_CONFIGURATION_ERROR) unless config.is_a? Hash
+
+      unless [true, false, nil].include?(config[:enforce])
+        raise ExpectCertificateTransparencyConfigError.new(INVALID_ENFORCE_VALUE_ERROR)
       end
 
-      def validate_config!(config)
-        return if config.nil? || config == OPT_OUT
-        raise ExpectCertificateTransparencyConfigError.new(INVALID_CONFIGURATION_ERROR) unless config.is_a? Hash
-
-        unless [true, false, nil].include?(config[:enforce])
-          raise ExpectCertificateTransparencyConfigError.new(INVALID_ENFORCE_VALUE_ERROR)
-        end
-
-        if !config[:max_age]
-          raise ExpectCertificateTransparencyConfigError.new(REQUIRED_MAX_AGE_ERROR)
-        elsif config[:max_age].to_s !~ /\A\d+\z/
-          raise ExpectCertificateTransparencyConfigError.new(INVALID_MAX_AGE_ERROR)
-        end
+      if !config[:max_age]
+        raise ExpectCertificateTransparencyConfigError.new(REQUIRED_MAX_AGE_ERROR)
+      elsif config[:max_age].to_s !~ /\A\d+\z/
+        raise ExpectCertificateTransparencyConfigError.new(INVALID_MAX_AGE_ERROR)
       end
     end
 

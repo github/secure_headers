@@ -9,15 +9,27 @@ Gem::Specification.new do |gem|
   gem.version       = SecureHeaders::VERSION
   gem.authors       = ["Neil Matatall"]
   gem.email         = ["neil.matatall@gmail.com"]
-  gem.description   = "Manages application of security headers with many safe defaults."
-  gem.summary       = 'Add easily configured security headers to responses
+  gem.summary       = "Manages application of security headers with many safe defaults."
+  gem.description   = 'Add easily configured security headers to responses
     including content-security-policy, x-frame-options,
     strict-transport-security, etc.'
-  gem.homepage      = "https://github.com/twitter/secureheaders"
-  gem.license       = "Apache Public License 2.0"
-  gem.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
-  gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
-  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
+  gem.homepage      = "https://github.com/github/secure_headers"
+  gem.metadata      = {
+    "bug_tracker_uri"   => "https://github.com/github/secure_headers/issues",
+    "changelog_uri"     => "https://github.com/github/secure_headers/blob/master/CHANGELOG.md",
+    "documentation_uri" => "https://rubydoc.info/gems/secure_headers",
+    "homepage_uri"      => gem.homepage,
+    "source_code_uri"   => "https://github.com/github/secure_headers",
+    "rubygems_mfa_required" => "true",
+  }
+  gem.license       = "MIT"
+
+  gem.files         = Dir["bin/**/*", "lib/**/*", "README.md", "CHANGELOG.md", "LICENSE", "Gemfile", "secure_headers.gemspec"]
   gem.require_paths = ["lib"]
+
+  gem.extra_rdoc_files = Dir["README.md", "CHANGELOG.md", "LICENSE"]
+
+  gem.add_dependency "cgi", ">= 0.1"
+
   gem.add_development_dependency "rake"
 end

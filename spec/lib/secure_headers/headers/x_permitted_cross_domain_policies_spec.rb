@@ -37,7 +37,7 @@ module SecureHeaders
       end
     end
 
-    context "invlaid configuration values" do
+    context "invalid configuration values" do
       it "doesn't accept invalid values" do
         expect do
           XPermittedCrossDomainPolicies.validate_config!("open")
