@@ -13,7 +13,7 @@ jobs:
         ruby: [ '2.7', '3.0', '3.1', '3.2', '3.4', '4.0' ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Ruby ${{ matrix.ruby }}
       uses: ruby/setup-ruby@d697be2f83c6234b20877c3b5eac7a7f342f0d0c #v1.269.0 tag
       with:
