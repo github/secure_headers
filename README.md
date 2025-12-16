@@ -125,6 +125,27 @@ end
 
 However, I would consider these headers anyways depending on your load and bandwidth requirements.
 
+## Disabling secure_headers
+
+If you want to disable `secure_headers` entirely (e.g., for specific environments or deployment scenarios), you can use `Configuration.disable!`:
+
+```ruby
+if ENV["ENABLE_STRICT_HEADERS"]
+  SecureHeaders::Configuration.default do |config|
+    # your configuration here
+  end
+else
+  SecureHeaders::Configuration.disable!
+end
+```
+
+When disabled, no security headers will be set by the gem. This is useful when:
+- You're gradually rolling out secure_headers across different customers or deployments
+- You need to migrate existing custom headers to secure_headers
+- You want environment-specific control over security headers
+
+Note: When `disable!` is used, you don't need to configure a default configuration. The gem will not raise a `NotYetConfiguredError`.
+
 ## Acknowledgements
 
 This project originated within the Security team at Twitter. An archived fork from the point of transition is here: https://github.com/twitter-archive/secure_headers.
