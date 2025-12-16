@@ -123,5 +123,33 @@ module SecureHeaders
         expect(env["Set-Cookie"]).to eq("foo=bar; secure")
       end
     end
+
+    context "when disabled" do
+      before(:each) do
+        reset_config
+        Configuration.disable!
+      end
+
+      it "does not set any headers" do
+        _, env = middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+
+        # Verify no security headers are set by checking all configured header classes
+        Configuration::HEADERABLE_ATTRIBUTES.each do |attr|
+          klass = Configuration::CONFIG_ATTRIBUTES_TO_HEADER_CLASSES[attr]
+          # Handle CSP specially since it has multiple classes
+          if attr == :csp
+            expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
+            expect(env[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to be_nil
+          elsif klass.const_defined?(:HEADER_NAME)
+            expect(env[klass::HEADER_NAME]).to be_nil
+          end
+        end
+      end
+
+      it "does not flag cookies" do
+        _, env = cookie_middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+        expect(env["Set-Cookie"]).to eq("foo=bar")
+      end
+    end
   end
 end
