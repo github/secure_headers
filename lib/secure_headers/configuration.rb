@@ -35,7 +35,7 @@ module SecureHeaders
 
       # Public: create a named configuration that overrides the default config.
       #
-      # name - use an idenfier for the override config.
+      # name - use an identifier for the override config.
       # base - override another existing config, or override the default config
       # if no value is supplied.
       #
@@ -83,13 +83,17 @@ module SecureHeaders
       # can lead to modifying parent objects.
       def deep_copy(config)
         return unless config
-        config.each_with_object({}) do |(key, value), hash|
-          hash[key] = if value.is_a?(Array)
-            value.dup
-          else
-            value
-          end
+        result = {}
+        config.each_pair do |key, value|
+          result[key] =
+            case value
+            when Array
+              value.dup
+            else
+              value
+            end
         end
+        result
       end
 
       # Private: Returns the internal default configuration. This should only
@@ -252,7 +256,7 @@ module SecureHeaders
       end
     end
 
-    # Configures the Content-Security-Policy-Report-Only header. `new_csp` cannot
+    # Configures the content-security-policy-report-only header. `new_csp` cannot
     # contain `report_only: false` or an error will be raised.
     #
     # NOTE: if csp has not been configured/has the default value when

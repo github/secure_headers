@@ -7,10 +7,8 @@ module SecureHeaders
   class CookiesConfigError < StandardError; end
   class Cookie
 
-    class << self
-      def validate_config!(config)
-        CookiesConfig.new(config).validate!
-      end
+    def self.validate_config!(config)
+      CookiesConfig.new(config).validate!
     end
 
     attr_reader :raw_cookie, :config
@@ -80,9 +78,9 @@ module SecureHeaders
     end
 
     def conditionally_flag?(configuration)
-      if(Array(configuration[:only]).any? && (Array(configuration[:only]) & parsed_cookie.keys).any?)
+      if (Array(configuration[:only]).any? && (Array(configuration[:only]) & parsed_cookie.keys).any?)
         true
-      elsif(Array(configuration[:except]).any? && (Array(configuration[:except]) & parsed_cookie.keys).none?)
+      elsif (Array(configuration[:except]).any? && (Array(configuration[:except]) & parsed_cookie.keys).none?)
         true
       else
         false

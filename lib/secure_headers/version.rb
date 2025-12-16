@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module SecureHeaders
-  VERSION = "6.3.3"
+  VERSION = "7.1.0"
 end

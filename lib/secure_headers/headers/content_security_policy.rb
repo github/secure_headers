@@ -7,26 +7,27 @@ module SecureHeaders
     include PolicyManagement
 
     def initialize(config = nil)
-      @config = if config.is_a?(Hash)
-        if config[:report_only]
-          ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
+      @config =
+        if config.is_a?(Hash)
+          if config[:report_only]
+            ContentSecurityPolicyReportOnlyConfig.new(config || DEFAULT_CONFIG)
+          else
+            ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
+          end
+        elsif config.nil?
+          ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
         else
-          ContentSecurityPolicyConfig.new(config || DEFAULT_CONFIG)
+          config
         end
-      elsif config.nil?
-        ContentSecurityPolicyConfig.new(DEFAULT_CONFIG)
-      else
-        config
-      end
 
-      @preserve_schemes = @config.preserve_schemes
-      @script_nonce = @config.script_nonce
-      @style_nonce = @config.style_nonce
+      @preserve_schemes = @config[:preserve_schemes]
+      @script_nonce = @config[:script_nonce]
+      @style_nonce = @config[:style_nonce]
     end
 
     ##
-    # Returns the name to use for the header. Either "Content-Security-Policy" or
-    # "Content-Security-Policy-Report-Only"
+    # Returns the name to use for the header. Either "content-security-policy" or
+    # "content-security-policy-report-only"
     def name
       @config.class.const_get(:HEADER_NAME)
     end
@@ -34,11 +35,12 @@ module SecureHeaders
     ##
     # Return the value of the CSP header
     def value
-      @value ||= if @config
-        build_value
-      else
-        DEFAULT_VALUE
-      end
+      @value ||=
+        if @config
+          build_value
+        else
+          DEFAULT_VALUE
+        end
     end
 
     private
@@ -51,7 +53,9 @@ module SecureHeaders
     def build_value
       directives.map do |directive_name|
         case DIRECTIVE_VALUE_TYPES[directive_name]
-        when :source_list, :require_sri_for_list # require_sri is a simple set of strings that don't need to deal with symbol casing
+        when :source_list,
+             :require_sri_for_list, # require_sri is a simple set of strings that don't need to deal with symbol casing
+             :require_trusted_types_for_list
           build_source_list_directive(directive_name)
         when :boolean
           symbol_to_hyphen_case(directive_name) if @config.directive_value(directive_name)
@@ -75,7 +79,7 @@ module SecureHeaders
       end
 
       # A maximally strict sandbox policy is just the `sandbox` directive,
-      # whith no configuraiton values.
+      # with no configuration values.
       if max_strict_policy
         symbol_to_hyphen_case(directive)
       elsif sandbox_list && sandbox_list.any?
@@ -116,7 +120,7 @@ module SecureHeaders
     end
 
     # If a directive contains *, all other values are omitted.
-    # If a directive contains 'none' but has other values, 'none' is ommitted.
+    # If a directive contains 'none' but has other values, 'none' is omitted.
     # Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
     def minify_source_list(directive, source_list)
       source_list = source_list.compact
@@ -125,11 +129,12 @@ module SecureHeaders
       else
         source_list = populate_nonces(directive, source_list)
         source_list = reject_all_values_if_none(source_list)
+        source_list = normalize_uri_paths(source_list)
 
         unless directive == REPORT_URI || @preserve_schemes
           source_list = strip_source_schemes(source_list)
         end
-        dedup_source_list(source_list)
+        source_list.uniq
       end
     end
 
@@ -147,20 +152,23 @@ module SecureHeaders
       end
     end
 
-    # Removes duplicates and sources that already match an existing wild card.
-    #
-    # e.g. *.github.com asdf.github.com becomes *.github.com
-    def dedup_source_list(sources)
-      sources = sources.uniq
-      wild_sources = sources.select { |source| source =~ STAR_REGEXP }
-
-      if wild_sources.any?
-        sources.reject do |source|
-          !wild_sources.include?(source) &&
-            wild_sources.any? { |pattern| File.fnmatch(pattern, source) }
+    def normalize_uri_paths(source_list)
+      source_list.map do |source|
+        # Normalize domains ending in a single / as without omitting the slash accomplishes the same.
+        # https://www.w3.org/TR/CSP3/#match-paths § 6.6.2.10 Step 2
+        begin
+          uri = URI(source)
+          if uri.path == "/"
+            next source.chomp("/")
+          end
+        rescue URI::InvalidURIError
         end
-      else
-        sources
+
+        if source.chomp("/").include?("/")
+          source
+        else
+          source.chomp("/")
+        end
       end
     end
 

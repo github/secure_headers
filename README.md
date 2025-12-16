@@ -1,6 +1,6 @@
-# Secure Headers ![Build + Test](https://github.com/github/secure_headers/workflows/Build%20+%20Test/badge.svg?branch=main)
+# Secure Headers [![Build + Test](https://github.com/github/secure_headers/actions/workflows/build.yml/badge.svg)](https://github.com/github/secure_headers/actions/workflows/build.yml)
 
-**main branch represents 6.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), or [upgrading to 6.x doc](docs/upgrading-to-6-0.md) for instructions on how to upgrade. Bug fixes should go in the 5.x branch for now.
+**main branch represents 7.x line**. See the [upgrading to 4.x doc](docs/upgrading-to-4-0.md), [upgrading to 5.x doc](docs/upgrading-to-5-0.md), [upgrading to 6.x doc](docs/upgrading-to-6-0.md) or [upgrading to 7.x doc](docs/upgrading-to-7-0.md) for instructions on how to upgrade. Bug fixes should go in the `6.x` branch for now.
 
 The gem will automatically apply several headers that are related to security.  This includes:
 - Content Security Policy (CSP) - Helps detect/prevent XSS, mixed-content, and other classes of attack.  [CSP 2 Specification](https://www.w3.org/TR/CSP2/)
@@ -11,11 +11,11 @@ The gem will automatically apply several headers that are related to security.  
 - X-Frame-Options (XFO) - Prevents your content from being framed and potentially clickjacked. [X-Frame-Options Specification](https://tools.ietf.org/html/rfc7034)
 - X-XSS-Protection - [Cross site scripting heuristic filter for IE/Chrome](https://msdn.microsoft.com/en-us/library/dd565647\(v=vs.85\).aspx)
 - X-Content-Type-Options - [Prevent content type sniffing](https://msdn.microsoft.com/library/gg622941\(v=vs.85\).aspx)
-- X-Download-Options - [Prevent file downloads opening](https://msdn.microsoft.com/library/jj542450(v=vs.85).aspx)
-- X-Permitted-Cross-Domain-Policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
-- Referrer-Policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
-- Expect-CT - Only use certificates that are present in the certificate transparency logs. [Expect-CT draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
-- Clear-Site-Data - Clearing browser data for origin. [Clear-Site-Data specification](https://w3c.github.io/webappsec-clear-site-data/).
+- x-download-options - [Prevent file downloads opening](https://msdn.microsoft.com/library/jj542450(v=vs.85).aspx)
+- x-permitted-cross-domain-policies - [Restrict Adobe Flash Player's access to data](https://www.adobe.com/devnet/adobe-media-server/articles/cross-domain-xml-for-streaming.html)
+- referrer-policy - [Referrer Policy draft](https://w3c.github.io/webappsec-referrer-policy/)
+- expect-ct - Only use certificates that are present in the certificate transparency logs. [expect-ct draft specification](https://datatracker.ietf.org/doc/draft-stark-expect-ct/).
+- clear-site-data - Clearing browser data for origin. [clear-site-data specification](https://w3c.github.io/webappsec-clear-site-data/).
 
 It can also mark all http cookies with the Secure, HttpOnly and SameSite attributes. This is on default but can be turned off by using `config.cookies = SecureHeaders::OPT_OUT`.
 
@@ -62,7 +62,6 @@ SecureHeaders::Configuration.default do |config|
     # directive values: these values will directly translate into source directives
     default_src: %w('none'),
     base_uri: %w('self'),
-    block_all_mixed_content: true, # see https://www.w3.org/TR/mixed-content/
     child_src: %w('self'), # if child-src isn't supported, the value for frame-src will be set.
     connect_src: %w(wss:),
     font_src: %w('self' data:),
@@ -92,18 +91,21 @@ SecureHeaders::Configuration.default do |config|
 end
 ```
 
+### Deprecated Configuration Values
+* `block_all_mixed_content` - this value is deprecated in favor of `upgrade_insecure_requests`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content for more information.
+
 ## Default values
 
 All headers except for PublicKeyPins and ClearSiteData have a default value. The default set of headers is:
 
 ```
-Content-Security-Policy: default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'
-Strict-Transport-Security: max-age=631138519
-X-Content-Type-Options: nosniff
-X-Download-Options: noopen
-X-Frame-Options: sameorigin
-X-Permitted-Cross-Domain-Policies: none
-X-Xss-Protection: 1; mode=block
+content-security-policy: default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'
+strict-transport-security: max-age=631138519
+x-content-type-options: nosniff
+x-download-options: noopen
+x-frame-options: sameorigin
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
 ```
 
 ## API configurations

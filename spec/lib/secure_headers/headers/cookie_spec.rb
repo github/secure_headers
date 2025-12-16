@@ -35,7 +35,7 @@ module SecureHeaders
 
       context "when configured with a Hash" do
         it "flags cookies as Secure when whitelisted" do
-          cookie = Cookie.new(raw_cookie, secure: { only: ["_session"]}, httponly: OPT_OUT, samesite: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, secure: { only: ["_session"] }, httponly: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest; secure")
         end
 
@@ -56,7 +56,7 @@ module SecureHeaders
 
       context "when configured with a Hash" do
         it "flags cookies as HttpOnly when whitelisted" do
-          cookie = Cookie.new(raw_cookie, httponly: { only: ["_session"]}, secure: OPT_OUT, samesite: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, httponly: { only: ["_session"] }, secure: OPT_OUT, samesite: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest; HttpOnly")
         end
 
@@ -75,7 +75,7 @@ module SecureHeaders
         end
 
         it "flags SameSite=#{flag} when configured with a boolean" do
-          cookie = Cookie.new(raw_cookie, samesite: { flag.downcase.to_sym => true}, secure: OPT_OUT, httponly: OPT_OUT)
+          cookie = Cookie.new(raw_cookie, samesite: { flag.downcase.to_sym => true }, secure: OPT_OUT, httponly: OPT_OUT)
           expect(cookie.to_s).to eq("_session=thisisatest; SameSite=#{flag}")
         end
 
@@ -86,7 +86,7 @@ module SecureHeaders
       end
 
       it "flags SameSite=Strict when configured with a boolean" do
-        cookie = Cookie.new(raw_cookie, {samesite: { strict: true}, secure: OPT_OUT, httponly: OPT_OUT})
+        cookie = Cookie.new(raw_cookie, { samesite: { strict: true }, secure: OPT_OUT, httponly: OPT_OUT })
         expect(cookie.to_s).to eq("_session=thisisatest; SameSite=Strict")
       end
 
@@ -146,7 +146,7 @@ module SecureHeaders
       (cookie_options - [flag]).each do |other_flag|
         it "raises an exception when SameSite #{flag} and #{other_flag} enforcement modes are configured with booleans" do
           expect do
-            Cookie.validate_config!(samesite: { flag => true, other_flag => true})
+            Cookie.validate_config!(samesite: { flag => true, other_flag => true })
           end.to raise_error(CookiesConfigError)
         end
       end
