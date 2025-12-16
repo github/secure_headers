@@ -61,7 +61,7 @@ module SecureHeaders
           default_src: %w(a.example.org b.example.org *.example.org https://*.example.org c.example.org/)
         }
         csp = ContentSecurityPolicy.new(config)
-        expect(csp.value).to eq("default-src a.example.org b.example.org *.example.org")
+        expect(csp.value).to eq("default-src a.example.org b.example.org *.example.org c.example.org")
       end
 
       it "removes http/s schemes from hosts" do
