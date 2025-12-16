@@ -14,12 +14,7 @@ module SecureHeaders
       # Returns nothing
       def disable!
         @disabled = true
-        # Create a NOOP config that opts out of all headers
-        @noop_config = new do |config|
-          CONFIG_ATTRIBUTES.each do |attr|
-            config.instance_variable_set("@#{attr}", OPT_OUT)
-          end
-        end.freeze
+        @noop_config = create_noop_config.freeze
       end
 
       # Public: Check if secure_headers is disabled
@@ -41,11 +36,7 @@ module SecureHeaders
 
         # Define a built-in override that clears all configuration options and
         # results in no security headers being set.
-        override(NOOP_OVERRIDE) do |config|
-          CONFIG_ATTRIBUTES.each do |attr|
-            config.instance_variable_set("@#{attr}", OPT_OUT)
-          end
-        end
+        override(NOOP_OVERRIDE, &method(:create_noop_config_block))
 
         new_config = new(&block).freeze
         new_config.validate_config!
@@ -135,6 +126,18 @@ module SecureHeaders
           deep_copy(value)
         else
           value
+        end
+      end
+
+      # Private: Creates a NOOP configuration that opts out of all headers
+      def create_noop_config
+        new(&method(:create_noop_config_block))
+      end
+
+      # Private: Block for creating NOOP configuration
+      def create_noop_config_block(config)
+        CONFIG_ATTRIBUTES.each do |attr|
+          config.instance_variable_set("@#{attr}", OPT_OUT)
         end
       end
     end
