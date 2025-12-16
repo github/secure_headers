@@ -1,0 +1,45 @@
+
+=== 1.0.3 / 2009-07-25
+
+* Fixed Growl.installed? returns false when binary cannot be found [#1]
+
+=== 1.0.2 / 2009-04-19
+
+* Added new gemspec
+* Removed capitalized gemspec name causing build issues
+
+=== 1.0.1 / 2009-04-19
+
+* Changed url for ticketing system
+
+=== 1.0.0 / 2009-04-13
+
+* Added new examples
+* Added growlnotify install docs [#3]
+* Changed; Growl#notify now normalizes the :icon option key [#2] (checkout README)
+
+=== 0.0.6 / 2009-04-09
+
+* Added #notify_{ok,info,warning,error} and images
+* Added examples and updated docs
+* Refactored Growl::Base.switch
+
+=== 0.0.5 / 2009-04-08
+
+* Now returning nil when trying to instantiate Growl when not installed
+
+=== 0.0.4 / 2009-04-08
+
+* We dont want visionmedia-Growl, shesh :p, fixed to lowercase
+
+=== 0.0.3 / 2009-04-08
+
+* Added #Growl hash support
+
+=== 0.0.2 / 2009-04-08
+
+* Github build me!!!
+
+=== 0.0.1 / 2009-04-08
+
+* Initial release

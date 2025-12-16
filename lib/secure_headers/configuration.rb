@@ -9,6 +9,26 @@ module SecureHeaders
     class NotYetConfiguredError < StandardError; end
     class IllegalPolicyModificationError < StandardError; end
     class << self
+      # Public: Disable secure_headers entirely. When disabled, no headers will be set.
+      #
+      # Returns nothing
+      def disable!
+        @disabled = true
+        # Create a NOOP config that opts out of all headers
+        @noop_config = new do |config|
+          CONFIG_ATTRIBUTES.each do |attr|
+            config.instance_variable_set("@#{attr}", OPT_OUT)
+          end
+        end.freeze
+      end
+
+      # Public: Check if secure_headers is disabled
+      #
+      # Returns boolean
+      def disabled?
+        defined?(@disabled) && @disabled
+      end
+
       # Public: Set the global default configuration.
       #
       # Optionally supply a block to override the defaults set by this library.
@@ -101,6 +121,7 @@ module SecureHeaders
       # of ensuring that the default config is never mutated and is dup(ed)
       # before it is used in a request.
       def default_config
+        return @noop_config if disabled?
         unless defined?(@default_config)
           raise NotYetConfiguredError, "Default policy not yet configured"
         end

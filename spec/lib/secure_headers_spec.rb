@@ -112,6 +112,12 @@ module SecureHeaders
         expect(hash.count).to eq(0)
       end
 
+      it "allows you to disable secure_headers entirely via Configuration.disable!" do
+        Configuration.disable!
+        hash = SecureHeaders.header_hash_for(request)
+        expect(hash.count).to eq(0)
+      end
+
       it "allows you to override x-frame-options settings" do
         Configuration.default
         SecureHeaders.override_x_frame_options(request, XFrameOptions::DENY)

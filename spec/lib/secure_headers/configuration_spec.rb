@@ -119,5 +119,25 @@ module SecureHeaders
       config = Configuration.dup
       expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
     end
+
+    describe ".disable!" do
+      it "disables secure_headers completely" do
+        Configuration.disable!
+        expect(Configuration.disabled?).to be true
+      end
+
+      it "returns a noop config when disabled" do
+        Configuration.disable!
+        config = Configuration.send(:default_config)
+        Configuration::CONFIG_ATTRIBUTES.each do |attr|
+          expect(config.instance_variable_get("@#{attr}")).to eq(OPT_OUT)
+        end
+      end
+
+      it "does not raise NotYetConfiguredError when disabled without default config" do
+        Configuration.disable!
+        expect { Configuration.send(:default_config) }.not_to raise_error
+      end
+    end
   end
 end

@@ -1,0 +1,116 @@
+Lint/DuplicateMagicComment: # new in 1.37
+  Enabled: false
+Style/OperatorMethodCall: # new in 1.37
+  Enabled: false
+Style/RedundantStringEscape: # new in 1.37
+  Enabled: false
+Gemspec/DevelopmentDependencies: # new in 1.44
+  Enabled: false
+Lint/DuplicateMatchPattern: # new in 1.50
+  Enabled: false
+Lint/ItWithoutArgumentsInBlock: # new in 1.59
+  Enabled: false
+Lint/LiteralAssignmentInCondition: # new in 1.58
+  Enabled: false
+Lint/MixedCaseRange: # new in 1.53
+  Enabled: false
+Lint/RedundantRegexpQuantifiers: # new in 1.53
+  Enabled: false
+Lint/UselessRescue: # new in 1.43
+  Enabled: false
+Metrics/CollectionLiteralLength: # new in 1.47
+  Enabled: false
+Style/ArrayIntersect: # new in 1.40
+  Enabled: false
+Style/ComparableClamp: # new in 1.44
+  Enabled: false
+Style/ConcatArrayLiterals: # new in 1.41
+  Enabled: false
+Style/DataInheritance: # new in 1.49
+  Enabled: false
+Style/DirEmpty: # new in 1.48
+  Enabled: false
+Style/ExactRegexpMatch: # new in 1.51
+  Enabled: false
+Style/FileEmpty: # new in 1.48
+  Enabled: false
+Style/MapIntoArray: # new in 1.63
+  Enabled: false
+Style/MapToSet: # new in 1.42
+  Enabled: false
+Style/MinMaxComparison: # new in 1.42
+  Enabled: false
+Style/RedundantArrayConstructor: # new in 1.52
+  Enabled: false
+Style/RedundantConstantBase: # new in 1.40
+  Enabled: false
+Style/RedundantCurrentDirectoryInPath: # new in 1.53
+  Enabled: false
+Style/RedundantDoubleSplatHashBraces: # new in 1.41
+  Enabled: false
+Style/RedundantEach: # new in 1.38
+  Enabled: false
+Style/RedundantFilterChain: # new in 1.52
+  Enabled: false
+Style/RedundantHeredocDelimiterQuotes: # new in 1.45
+  Enabled: false
+Style/RedundantLineContinuation: # new in 1.49
+  Enabled: false
+Style/RedundantRegexpArgument: # new in 1.53
+  Enabled: false
+Style/RedundantRegexpConstructor: # new in 1.52
+  Enabled: false
+Style/ReturnNilInPredicateMethodDefinition: # new in 1.53
+  Enabled: false
+Style/SingleLineDoEndBlock: # new in 1.57
+  Enabled: false
+Style/SuperWithArgsParentheses: # new in 1.58
+  Enabled: false
+Style/YAMLFileRead: # new in 1.53
+  Enabled: false
+Performance/MapMethodChain: # new in 1.19
+  Enabled: false
+Gemspec/AddRuntimeDependency: # new in 1.65
+  Enabled: false
+Lint/ConstantReassignment: # new in 1.70
+  Enabled: false
+Lint/DuplicateSetElement: # new in 1.67
+  Enabled: false
+Lint/HashNewWithKeywordArgumentsAsDefault: # new in 1.69
+  Enabled: false
+Lint/NumericOperationWithConstantResult: # new in 1.69
+  Enabled: false
+Lint/SharedMutableDefault: # new in 1.70
+  Enabled: false
+Lint/UnescapedBracketInRegexp: # new in 1.68
+  Enabled: false
+Lint/UselessDefined: # new in 1.69
+  Enabled: false
+Lint/UselessNumericOperation: # new in 1.66
+  Enabled: false
+Style/AmbiguousEndlessMethodDefinition: # new in 1.68
+  Enabled: false
+Style/BitwisePredicate: # new in 1.68
+  Enabled: false
+Style/CombinableDefined: # new in 1.68
+  Enabled: false
+Style/DigChain: # new in 1.69
+  Enabled: false
+Style/FileNull: # new in 1.69
+  Enabled: false
+Style/FileTouch: # new in 1.69
+  Enabled: false
+Style/ItAssignment: # new in 1.70
+  Enabled: false
+Style/KeywordArgumentsMerging: # new in 1.68
+  Enabled: false
+Style/RedundantInterpolationUnfreeze: # new in 1.66
+  Enabled: false
+Style/SafeNavigationChainLength: # new in 1.68
+  Enabled: false
+Style/SendWithLiteralMethodName: # new in 1.64
+  Enabled: false
+Style/SuperArguments: # new in 1.64
+  Enabled: false
+Performance/StringBytesize: # new in 1.23
+  Enabled: false

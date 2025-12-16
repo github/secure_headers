@@ -1,0 +1,102 @@
+Rails/ActionControllerFlashBeforeRender: # new in 2.16
+  Enabled: false
+Rails/ActionOrder: # new in 2.17
+  Enabled: false
+Rails/ActiveSupportOnLoad: # new in 2.16
+  Enabled: false
+Rails/FreezeTime: # new in 2.16
+  Enabled: false
+Rails/IgnoredColumnsAssignment: # new in 2.17
+  Enabled: false
+Rails/RootPathnameMethods: # new in 2.16
+  Enabled: false
+Rails/ToSWithArgument: # new in 2.16
+  Enabled: false
+Rails/TopLevelHashWithIndifferentAccess: # new in 2.16
+  Enabled: false
+Rails/WhereMissing: # new in 2.16
+  Enabled: false
+Rails/WhereNotWithMultipleConditions: # new in 2.17
+  Enabled: false
+Gemspec/DevelopmentDependencies: # new in 1.44
+  Enabled: false
+Lint/DuplicateMatchPattern: # new in 1.50
+  Enabled: false
+Lint/ItWithoutArgumentsInBlock: # new in 1.59
+  Enabled: false
+Lint/LiteralAssignmentInCondition: # new in 1.58
+  Enabled: false
+Lint/MixedCaseRange: # new in 1.53
+  Enabled: false
+Lint/RedundantRegexpQuantifiers: # new in 1.53
+  Enabled: false
+Lint/UselessRescue: # new in 1.43
+  Enabled: false
+Metrics/CollectionLiteralLength: # new in 1.47
+  Enabled: false
+Style/ArrayIntersect: # new in 1.40
+  Enabled: false
+Style/ComparableClamp: # new in 1.44
+  Enabled: false
+Style/ConcatArrayLiterals: # new in 1.41
+  Enabled: false
+Style/DataInheritance: # new in 1.49
+  Enabled: false
+Style/DirEmpty: # new in 1.48
+  Enabled: false
+Style/ExactRegexpMatch: # new in 1.51
+  Enabled: false
+Style/FileEmpty: # new in 1.48
+  Enabled: false
+Style/MapIntoArray: # new in 1.63
+  Enabled: false
+Style/MapToSet: # new in 1.42
+  Enabled: false
+Style/MinMaxComparison: # new in 1.42
+  Enabled: false
+Style/RedundantArrayConstructor: # new in 1.52
+  Enabled: false
+Style/RedundantConstantBase: # new in 1.40
+  Enabled: false
+Style/RedundantCurrentDirectoryInPath: # new in 1.53
+  Enabled: false
+Style/RedundantDoubleSplatHashBraces: # new in 1.41
+  Enabled: false
+Style/RedundantEach: # new in 1.38
+  Enabled: false
+Style/RedundantFilterChain: # new in 1.52
+  Enabled: false
+Style/RedundantHeredocDelimiterQuotes: # new in 1.45
+  Enabled: false
+Style/RedundantLineContinuation: # new in 1.49
+  Enabled: false
+Style/RedundantRegexpArgument: # new in 1.53
+  Enabled: false
+Style/RedundantRegexpConstructor: # new in 1.52
+  Enabled: false
+Style/ReturnNilInPredicateMethodDefinition: # new in 1.53
+  Enabled: false
+Style/SingleLineDoEndBlock: # new in 1.57
+  Enabled: false
+Style/SuperWithArgsParentheses: # new in 1.58
+  Enabled: false
+Style/YAMLFileRead: # new in 1.53
+  Enabled: false
+Performance/MapMethodChain: # new in 1.19
+  Enabled: false
+Rails/DangerousColumnNames: # new in 2.21
+  Enabled: false
+Rails/EnvLocal: # new in 2.22
+  Enabled: false
+Rails/RedundantActiveRecordAllMethod: # new in 2.21
+  Enabled: false
+Rails/ResponseParsedBody: # new in 2.18
+  Enabled: false
+Rails/ThreeStateBooleanColumn: # new in 2.19
+  Enabled: false
+Rails/UnusedRenderContent: # new in 2.21
+  Enabled: false
+Rails/EnumSyntax: # new in 2.26
+  Enabled: false
+Rails/WhereRange: # new in 2.25
+  Enabled: false

@@ -123,5 +123,34 @@ module SecureHeaders
         expect(env["Set-Cookie"]).to eq("foo=bar; secure")
       end
     end
+
+    context "when disabled" do
+      before(:each) do
+        reset_config
+        Configuration.disable!
+      end
+
+      it "does not set any headers" do
+        _, env = middleware.call(Rack::MockRequest.env_for("https://looocalhost", {}))
+
+        # Check individual header classes that have HEADER_NAME
+        expect(env[XFrameOptions::HEADER_NAME]).to be_nil
+        expect(env[XContentTypeOptions::HEADER_NAME]).to be_nil
+        expect(env[XDownloadOptions::HEADER_NAME]).to be_nil
+        expect(env[XPermittedCrossDomainPolicies::HEADER_NAME]).to be_nil
+        expect(env[XXssProtection::HEADER_NAME]).to be_nil
+        expect(env[StrictTransportSecurity::HEADER_NAME]).to be_nil
+        expect(env[ReferrerPolicy::HEADER_NAME]).to be_nil
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
+        expect(env[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to be_nil
+        expect(env[ClearSiteData::HEADER_NAME]).to be_nil
+        expect(env[ExpectCertificateTransparency::HEADER_NAME]).to be_nil
+      end
+
+      it "does not flag cookies" do
+        _, env = cookie_middleware.call(Rack::MockRequest.env_for("https://looocalhost", {}))
+        expect(env["Set-Cookie"]).to eq("foo=bar")
+      end
+    end
   end
 end

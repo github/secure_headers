@@ -1,0 +1,111 @@
+
+= Growl
+
+Ruby growlnotify 'bindings'.
+
+== Examples
+
+  notification = Growl.new
+  notification.message = 'Hello World'
+  notification.sticky!
+  notification.icon = :jpeg
+  notification.run if Growl.installed?
+
+  # OR
+
+  Growl.notify {
+    self.message = 'Hello World'
+    self.icon = :jpeg
+    sticky!
+  }
+
+  # OR
+
+  Growl.notify do |n|
+    n.message = 'Hello World'
+    n.icon = :jpeg
+    n.stick!
+  end
+
+  # OR
+
+  Growl.notify 'Foo', :icon => :jpeg, :title => 'Growl'
+
+  # OR
+
+  include Growl
+  notify 'Email received', :sticky => true
+
+  # Convenience methods
+
+  notify_ok 'Deployment successful'
+  notify_info 'Email received'
+  notify_warning 'Merge required'
+  notify_error 'Failed to send email', :sticky => true
+
+== Normaized Icons
+
+The :icon option key is automatically normalized when you use any of the Growl#notify
+methods, this removes the need to explicitly use :appIcon, :image, etc.
+
+  notify 'App icon', :icon => :Safari
+  notify 'Jpeg icon', :icon => :jpeg 
+  notify 'Image icon', :icon => 'path/to/image.png' 
+  notify 'Icns icon', :icon => 'path/to/icon.icns'
+  notify 'Path extname icon', :icon => 'foo.rb' 
+
+== Features
+
+* Check availability with Growl.installed?
+* Check dependencies with Growl.version
+* Use images, icon paths, application icons, or file format icons
+* Sticky a notification making it appear until explicitly closed 
+* Set notification priority 
+* Convenience methods such as notify_ok, notify_warning, notify_error, and notify_info
+* Etc (consult growlnotify --help)
+
+== Installing growlnotify
+
+Visit http://growl.info/documentation.php for installation help. 
+
+== Known Issues
+
+It seems that growlnotify will essentially ignore or block excessive usage
+of the notifications at random. To prevent this you may need to do something like
+below if you are calling many in sequence:
+
+  notify 'Something'; sleep 0.2
+  notify_ok 'Updated'; sleep 0.2
+  notify_info 'You have new mail'; sleep 0.2
+  notify_warning 'Merged required'; sleep 0.2
+  notify_error 'Oh Noes!'; sleep 0.2
+
+== Contribute
+
+Fork / send a pull request or submit a ticket at:
+http://github.com/visionmedia/growl/issues
+
+== License:
+
+(The MIT License)
+
+Copyright (c) 2009 TJ Holowaychuk <tj@vision-media.ca>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, an d/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
