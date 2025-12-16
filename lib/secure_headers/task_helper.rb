@@ -29,8 +29,8 @@ module SecureHeaders
 
     def dynamic_content?(filename, inline_script)
       !!(
-        (is_mustache?(filename) && inline_script =~ /\{\{.*\}\}/) ||
-        (is_erb?(filename) && inline_script =~ /<%.*%>/)
+        (is_mustache?(filename) && inline_script =~ /\{\{.*?\}\}/) ||
+        (is_erb?(filename) && inline_script =~ /<%.*?%>/)
         )
     end
 
