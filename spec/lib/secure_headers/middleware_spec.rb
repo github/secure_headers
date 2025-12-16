@@ -133,18 +133,17 @@ module SecureHeaders
       it "does not set any headers" do
         _, env = middleware.call(Rack::MockRequest.env_for("https://looocalhost", {}))
 
-        # Check individual header classes that have HEADER_NAME
-        expect(env[XFrameOptions::HEADER_NAME]).to be_nil
-        expect(env[XContentTypeOptions::HEADER_NAME]).to be_nil
-        expect(env[XDownloadOptions::HEADER_NAME]).to be_nil
-        expect(env[XPermittedCrossDomainPolicies::HEADER_NAME]).to be_nil
-        expect(env[XXssProtection::HEADER_NAME]).to be_nil
-        expect(env[StrictTransportSecurity::HEADER_NAME]).to be_nil
-        expect(env[ReferrerPolicy::HEADER_NAME]).to be_nil
-        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
-        expect(env[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to be_nil
-        expect(env[ClearSiteData::HEADER_NAME]).to be_nil
-        expect(env[ExpectCertificateTransparency::HEADER_NAME]).to be_nil
+        # Verify no security headers are set by checking all configured header classes
+        Configuration::HEADERABLE_ATTRIBUTES.each do |attr|
+          klass = Configuration::CONFIG_ATTRIBUTES_TO_HEADER_CLASSES[attr]
+          # Handle CSP specially since it has multiple classes
+          if attr == :csp
+            expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
+            expect(env[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to be_nil
+          elsif klass.const_defined?(:HEADER_NAME)
+            expect(env[klass::HEADER_NAME]).to be_nil
+          end
+        end
       end
 
       it "does not flag cookies" do

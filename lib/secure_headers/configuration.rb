@@ -135,6 +135,7 @@ module SecureHeaders
       end
 
       # Private: Block for creating NOOP configuration
+      # Used by both create_noop_config and the NOOP_OVERRIDE mechanism
       def create_noop_config_block(config)
         CONFIG_ATTRIBUTES.each do |attr|
           config.instance_variable_set("@#{attr}", OPT_OUT)
