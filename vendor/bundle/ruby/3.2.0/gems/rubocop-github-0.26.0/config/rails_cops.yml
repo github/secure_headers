@@ -1,0 +1,50 @@
+GitHub/RailsControllerRenderActionSymbol:
+  Enabled: pending
+  Include:
+    - 'app/controllers/**/*.rb'
+
+GitHub/RailsControllerRenderLiteral:
+  Enabled: pending
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/guides/rails-render-literal.md
+  Include:
+    - 'app/controllers/**/*.rb'
+
+GitHub/RailsControllerRenderPathsExist:
+  Enabled: pending
+  ViewPath:
+    - 'app/views'
+  Include:
+    - 'app/controllers/**/*.rb'
+
+GitHub/RailsControllerRenderShorthand:
+  Enabled: pending
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/guides/rails-controller-render-shorthand.md
+  Include:
+    - 'app/controllers/**/*.rb'
+
+GitHub/RailsRenderObjectCollection:
+  Enabled: pending
+
+GitHub/RailsViewRenderLiteral:
+  Enabled: pending
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/guides/rails-render-literal.md
+  Include:
+    - 'app/helpers/**/*.rb'
+    - 'app/view_models/**/*.rb'
+    - 'app/views/**/*.erb'
+
+GitHub/RailsViewRenderPathsExist:
+  Enabled: pending
+  ViewPath:
+    - 'app/views'
+  Include:
+    - 'app/helpers/**/*.rb'
+    - 'app/view_models/**/*.rb'
+    - 'app/views/**/*.erb'
+
+GitHub/RailsViewRenderShorthand:
+  Enabled: pending
+  Include:
+    - 'app/helpers/**/*.rb'
+    - 'app/view_models/**/*.rb'
+    - 'app/views/**/*.erb'

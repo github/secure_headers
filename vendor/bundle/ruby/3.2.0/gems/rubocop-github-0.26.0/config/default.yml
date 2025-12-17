@@ -1,0 +1,1709 @@
+inherit_from:
+  - ./default_pending.yml
+
+require:
+  - rubocop-github
+
+plugins:
+  - rubocop-performance:
+      plugin_class_name: RuboCop::Performance::Plugin
+
+Bundler/DuplicatedGem:
+  Enabled: true
+
+Bundler/GemComment:
+  Enabled: false
+
+Bundler/GemFilename:
+  Enabled: false
+
+Bundler/GemVersion:
+  Enabled: false
+
+Bundler/InsecureProtocolSource:
+  Enabled: false
+
+Bundler/OrderedGems:
+  Enabled: true
+
+Gemspec/DependencyVersion:
+  Enabled: false
+
+Gemspec/DeprecatedAttributeAssignment:
+  Enabled: false
+
+Gemspec/DuplicatedAssignment:
+  Enabled: false
+
+Gemspec/OrderedDependencies:
+  Enabled: false
+
+Gemspec/RequireMFA:
+  Enabled: false
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
+
+Gemspec/RubyVersionGlobalsUsage:
+  Enabled: false
+
+GitHub/AvoidObjectSendWithDynamicMethod:
+  Enabled: true
+
+GitHub/InsecureHashAlgorithm:
+  Enabled: true
+
+Layout/AccessModifierIndentation:
+  Enabled: false
+
+Layout/ArgumentAlignment:
+  Enabled: false
+
+Layout/ArrayAlignment:
+  Enabled: false
+
+Layout/AssignmentIndentation:
+  Enabled: false
+
+Layout/BeginEndAlignment:
+  Enabled: false
+
+Layout/BlockAlignment:
+  Enabled: true
+
+Layout/BlockEndNewline:
+  Enabled: true
+
+Layout/CaseIndentation:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#indent-when-as-start-of-case
+  EnforcedStyle: end
+
+Layout/ClassStructure:
+  Enabled: false
+
+Layout/ClosingHeredocIndentation:
+  Enabled: false
+
+Layout/ClosingParenthesisIndentation:
+  Enabled: false
+
+Layout/CommentIndentation:
+  Enabled: false
+
+Layout/ConditionPosition:
+  Enabled: true
+
+Layout/DefEndAlignment:
+  Enabled: true
+
+Layout/DotPosition:
+  Enabled: false
+
+Layout/ElseAlignment:
+  Enabled: false
+
+Layout/EmptyComment:
+  Enabled: false
+
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+
+Layout/EmptyLineAfterMagicComment:
+  Enabled: false
+
+Layout/EmptyLineAfterMultilineCondition:
+  Enabled: false
+
+Layout/EmptyLineBetweenDefs:
+  Enabled: false
+
+Layout/EmptyLines:
+  Enabled: false
+
+Layout/EmptyLinesAroundAccessModifier:
+  Enabled: false
+
+Layout/EmptyLinesAroundArguments:
+  Enabled: false
+
+Layout/EmptyLinesAroundAttributeAccessor:
+  Enabled: false
+
+Layout/EmptyLinesAroundBeginBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundBlockBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundClassBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  Enabled: false
+
+Layout/EmptyLinesAroundMethodBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: false
+
+Layout/EndAlignment:
+  Enabled: false
+
+Layout/EndOfLine:
+  Enabled: true
+
+Layout/ExtraSpacing:
+  Enabled: false
+
+Layout/FirstArgumentIndentation:
+  Enabled: false
+
+Layout/FirstArrayElementIndentation:
+  Enabled: false
+
+Layout/FirstArrayElementLineBreak:
+  Enabled: false
+
+Layout/FirstHashElementIndentation:
+  Enabled: false
+
+Layout/FirstHashElementLineBreak:
+  Enabled: false
+
+Layout/FirstMethodArgumentLineBreak:
+  Enabled: false
+
+Layout/FirstMethodParameterLineBreak:
+  Enabled: false
+
+Layout/FirstParameterIndentation:
+  Enabled: false
+
+Layout/HashAlignment:
+  Enabled: false
+
+Layout/HeredocArgumentClosingParenthesis:
+  Enabled: false
+
+Layout/HeredocIndentation:
+  Enabled: false
+
+Layout/IndentationConsistency:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#indentation
+
+Layout/IndentationStyle:
+  EnforcedStyle: spaces
+  IndentationWidth: 2
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#default-indentation
+
+Layout/IndentationWidth:
+  Width: 2
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#default-indentation
+
+Layout/InitialIndentation:
+  Enabled: true
+
+Layout/LeadingCommentSpace:
+  Enabled: false
+
+Layout/LeadingEmptyLines:
+  Enabled: false
+
+Layout/LineContinuationLeadingSpace:
+  Enabled: false
+
+Layout/LineContinuationSpacing:
+  Enabled: false
+
+Layout/LineEndStringConcatenationIndentation:
+  Enabled: false
+
+Layout/LineLength:
+  Enabled: false
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#line-length
+
+Layout/MultilineArrayBraceLayout:
+  Enabled: false
+
+Layout/MultilineArrayLineBreaks:
+  Enabled: false
+
+Layout/MultilineAssignmentLayout:
+  Enabled: false
+
+Layout/MultilineBlockLayout:
+  Enabled: false
+
+Layout/MultilineHashBraceLayout:
+  Enabled: false
+
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: false
+
+Layout/MultilineMethodArgumentLineBreaks:
+  Enabled: false
+
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  Enabled: false
+
+Layout/MultilineMethodDefinitionBraceLayout:
+  Enabled: false
+
+Layout/MultilineOperationIndentation:
+  Enabled: false
+
+Layout/ParameterAlignment:
+  Enabled: false
+
+Layout/RedundantLineBreak:
+  Enabled: false
+
+Layout/RescueEnsureAlignment:
+  Enabled: false
+
+Layout/SingleLineBlockChain:
+  Enabled: false
+
+Layout/SpaceAfterColon:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#spaces-operators
+
+Layout/SpaceAfterComma:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#spaces-operators
+
+Layout/SpaceAfterMethodName:
+  Enabled: true
+
+Layout/SpaceAfterNot:
+  Enabled: true
+
+Layout/SpaceAfterSemicolon:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#spaces-operators
+
+Layout/SpaceAroundBlockParameters:
+  Enabled: true
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#spaces-around-equals
+
+Layout/SpaceAroundKeyword:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#spaces-operators
+
+Layout/SpaceAroundMethodCallOperator:
+  Enabled: false
+
+Layout/SpaceAroundOperators:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#spaces-operators
+  Exclude:
+  - "**/*.erb"
+
+Layout/SpaceBeforeBlockBraces:
+  Enabled: true
+
+Layout/SpaceBeforeBrackets:
+  Enabled: false
+
+Layout/SpaceBeforeComma:
+  Enabled: false
+
+Layout/SpaceBeforeComment:
+  Enabled: false
+
+Layout/SpaceBeforeFirstArg:
+  Enabled: false
+
+Layout/SpaceBeforeSemicolon:
+  Enabled: false
+
+Layout/SpaceInLambdaLiteral:
+  Enabled: false
+
+Layout/SpaceInsideArrayLiteralBrackets:
+  EnforcedStyle: no_space
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#no-spaces-braces
+
+Layout/SpaceInsideArrayPercentLiteral:
+  Enabled: true
+
+Layout/SpaceInsideBlockBraces:
+  Enabled: true
+
+Layout/SpaceInsideHashLiteralBraces:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#spaces-operators
+
+Layout/SpaceInsideParens:
+  Enabled: true
+
+Layout/SpaceInsidePercentLiteralDelimiters:
+  Enabled: false
+
+Layout/SpaceInsideRangeLiteral:
+  Enabled: true
+
+Layout/SpaceInsideReferenceBrackets:
+  Enabled: true
+
+Layout/SpaceInsideStringInterpolation:
+  Enabled: false
+
+Layout/TrailingEmptyLines:
+  Enabled: true
+
+Layout/TrailingWhitespace:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#trailing-whitespace
+
+Lint/AmbiguousAssignment:
+  Enabled: false
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: false
+
+Lint/AmbiguousOperator:
+  Enabled: false
+
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: false
+
+Lint/AmbiguousRange:
+  Enabled: false
+
+Lint/AmbiguousRegexpLiteral:
+  Enabled: false
+
+Lint/AssignmentInCondition:
+  Enabled: false
+
+Lint/BigDecimalNew:
+  Enabled: false
+
+Lint/BinaryOperatorWithIdenticalOperands:
+  Enabled: true
+
+Lint/BooleanSymbol:
+  Enabled: false
+
+Lint/CircularArgumentReference:
+  Enabled: true
+
+Lint/ConstantDefinitionInBlock:
+  Enabled: false
+
+Lint/ConstantOverwrittenInRescue:
+  Enabled: false
+
+Lint/ConstantResolution:
+  Enabled: false
+
+Lint/Debugger:
+  Enabled: true
+
+Lint/DeprecatedClassMethods:
+  Enabled: true
+
+Lint/DeprecatedConstants:
+  Enabled: false
+
+Lint/DeprecatedOpenSSLConstant:
+  Enabled: false
+
+Lint/DisjunctiveAssignmentInConstructor:
+  Enabled: false
+
+Lint/DuplicateBranch:
+  Enabled: false
+
+Lint/DuplicateCaseCondition:
+  Enabled: false
+
+Lint/DuplicateElsifCondition:
+  Enabled: false
+
+Lint/DuplicateHashKey:
+  Enabled: true
+
+Lint/DuplicateMethods:
+  Enabled: true
+
+Lint/DuplicateRegexpCharacterClassElement:
+  Enabled: false
+
+Lint/DuplicateRequire:
+  Enabled: false
+
+Lint/DuplicateRescueException:
+  Enabled: false
+
+Lint/EachWithObjectArgument:
+  Enabled: true
+
+Lint/ElseLayout:
+  Enabled: true
+
+Lint/EmptyBlock:
+  Enabled: false
+
+Lint/EmptyClass:
+  Enabled: false
+
+Lint/EmptyInPattern:
+  Enabled: false
+
+Lint/EmptyConditionalBody:
+  Enabled: false
+
+Lint/EmptyEnsure:
+  Enabled: true
+
+Lint/EmptyExpression:
+  Enabled: false
+
+Lint/EmptyFile:
+  Enabled: false
+
+Lint/EmptyWhen:
+  Enabled: false
+
+Lint/EmptyInterpolation:
+  Enabled: true
+
+Lint/EnsureReturn:
+  Enabled: true
+
+Lint/FlipFlop:
+  Enabled: true
+
+Lint/FloatComparison:
+  Enabled: false
+
+Lint/FloatOutOfRange:
+  Enabled: true
+
+Lint/FormatParameterMismatch:
+  Enabled: true
+
+Lint/HashCompareByIdentity:
+  Enabled: false
+
+Lint/HeredocMethodCallPosition:
+  Enabled: false
+
+Lint/IdentityComparison:
+  Enabled: false
+
+Lint/ImplicitStringConcatenation:
+  Enabled: false
+
+Lint/IncompatibleIoSelectWithFiberScheduler:
+  Enabled: false
+
+Lint/IneffectiveAccessModifier:
+  Enabled: false
+
+Lint/InheritException:
+  Enabled: false
+
+Lint/InterpolationCheck:
+  Enabled: false
+
+Lint/LambdaWithoutLiteralBlock:
+  Enabled: false
+
+Lint/LiteralAsCondition:
+  Enabled: true
+
+Lint/LiteralInInterpolation:
+  Enabled: true
+
+Lint/Loop:
+  Enabled: true
+
+Lint/MissingCopEnableDirective:
+  Enabled: false
+
+Lint/MissingSuper:
+  Enabled: false
+
+Lint/MixedRegexpCaptureTypes:
+  Enabled: false
+
+Lint/MultipleComparison:
+  Enabled: false
+
+Lint/NestedMethodDefinition:
+  Enabled: false
+
+Lint/NestedPercentLiteral:
+  Enabled: false
+
+Lint/NextWithoutAccumulator:
+  Enabled: true
+
+Lint/NoReturnInBeginEndBlocks:
+  Enabled: false
+
+Lint/NonAtomicFileOperation:
+  Enabled: false
+
+Lint/NonDeterministicRequireOrder:
+  Enabled: false
+
+Lint/NonLocalExitFromIterator:
+  Enabled: false
+
+Lint/NumberConversion:
+  Enabled: false
+
+Lint/NumberedParameterAssignment:
+  Enabled: false
+
+Lint/OrAssignmentToConstant:
+  Enabled: false
+
+Lint/OrderedMagicComments:
+  Enabled: false
+
+Lint/OutOfRangeRegexpRef:
+  Enabled: false
+
+Lint/ParenthesesAsGroupedExpression:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#no-spaces-method-parens
+  Exclude:
+  - "**/*.erb"
+
+Lint/PercentStringArray:
+  Enabled: false
+
+Lint/PercentSymbolArray:
+  Enabled: false
+
+Lint/RaiseException:
+  Enabled: false
+
+Lint/RandOne:
+  Enabled: true
+
+Lint/RedundantCopDisableDirective:
+  Enabled: true
+
+Lint/RedundantCopEnableDirective:
+  Enabled: false
+
+Lint/RedundantDirGlobSort:
+  Enabled: false
+
+Lint/RedundantRequireStatement:
+  Enabled: false
+
+Lint/RedundantSafeNavigation:
+  Enabled: false
+
+Lint/RedundantSplatExpansion:
+  Enabled: true
+
+Lint/RedundantStringCoercion:
+  Enabled: true
+
+Lint/RedundantWithIndex:
+  Enabled: false
+
+Lint/RedundantWithObject:
+  Enabled: false
+
+Lint/RefinementImportMethods:
+  Enabled: false
+
+Lint/RegexpAsCondition:
+  Enabled: false
+
+Lint/RequireParentheses:
+  Enabled: true
+
+Lint/RequireRangeParentheses:
+  Enabled: false
+
+Lint/RequireRelativeSelfPath:
+  Enabled: false
+
+Lint/RescueException:
+  Enabled: true
+
+Lint/RescueType:
+  Enabled: false
+
+Lint/ReturnInVoidContext:
+  Enabled: false
+
+Lint/SafeNavigationChain:
+  Enabled: false
+
+Lint/SafeNavigationConsistency:
+  Enabled: false
+
+Lint/SafeNavigationWithEmpty:
+  Enabled: false
+
+Lint/ScriptPermission:
+  Enabled: false
+
+Lint/SelfAssignment:
+  Enabled: false
+
+Lint/SendWithMixinArgument:
+  Enabled: false
+
+Lint/ShadowedArgument:
+  Enabled: false
+
+Lint/ShadowedException:
+  Enabled: false
+
+Lint/ShadowingOuterLocalVariable:
+  Enabled: false
+
+Lint/StructNewOverride:
+  Enabled: false
+
+Lint/SuppressedException:
+  Enabled: false
+
+Lint/SymbolConversion:
+  Enabled: false
+
+Lint/ToEnumArguments:
+  Enabled: false
+
+Lint/ToJSON:
+  Enabled: false
+
+Lint/TopLevelReturnWithArgument:
+  Enabled: false
+
+Lint/TrailingCommaInAttributeDeclaration:
+  Enabled: false
+
+Lint/TripleQuotes:
+  Enabled: false
+
+Lint/UnderscorePrefixedVariableName:
+  Enabled: true
+
+Lint/UnexpectedBlockArity:
+  Enabled: false
+
+Lint/UnifiedInteger:
+  Enabled: false
+
+Lint/UnmodifiedReduceAccumulator:
+  Enabled: false
+
+Lint/UnreachableCode:
+  Enabled: true
+
+Lint/UnreachableLoop:
+  Enabled: false
+
+# TODO: Enable this since it's in the styleguide.
+Lint/UnusedBlockArgument:
+  Enabled: false
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#underscore-unused-vars
+
+Lint/UnusedMethodArgument:
+  Enabled: false
+
+Lint/UriEscapeUnescape:
+  Enabled: false
+
+Lint/UriRegexp:
+  Enabled: false
+
+Lint/UselessAccessModifier:
+  Enabled: false
+
+Lint/UselessAssignment:
+  Enabled: false
+
+Lint/UselessElseWithoutRescue:
+  Enabled: false
+
+Lint/UselessMethodDefinition:
+  Enabled: false
+
+Lint/UselessRuby2Keywords:
+  Enabled: false
+
+Lint/UselessSetterCall:
+  Enabled: true
+
+Lint/UselessTimes:
+  Enabled: false
+
+Lint/Void:
+  Enabled: true
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/BlockNesting:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Migration/DepartmentName:
+  Enabled: false
+
+Naming/AccessorMethodName:
+  Enabled: false
+
+Naming/AsciiIdentifiers:
+  Enabled: true
+
+Naming/BinaryOperatorParameterName:
+  Enabled: false
+
+Naming/BlockForwarding:
+  Enabled: false
+
+Naming/BlockParameterName:
+  Enabled: false
+
+Naming/ClassAndModuleCamelCase:
+  Enabled: true
+
+Naming/ConstantName:
+  Enabled: false
+
+Naming/FileName:
+  Enabled: true
+
+Naming/HeredocDelimiterCase:
+  Enabled: false
+
+Naming/HeredocDelimiterNaming:
+  Enabled: false
+
+Naming/InclusiveLanguage:
+  Enabled: false
+
+Naming/MemoizedInstanceVariableName:
+  Enabled: false
+
+Naming/MethodName:
+  Enabled: true
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Naming/PredicatePrefix:
+  Enabled: false
+
+Naming/RescuedExceptionsVariableName:
+  Enabled: false
+
+Naming/VariableName:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Performance/AncestorsInclude:
+  Enabled: false
+
+Performance/ArraySemiInfiniteRangeSlice:
+  Enabled: false
+
+Performance/BigDecimalWithNumericArgument:
+  Enabled: false
+
+Performance/BindCall:
+  Enabled: false
+
+Performance/BlockGivenWithExplicitBlock:
+  Enabled: false
+
+Performance/Caller:
+  Enabled: false
+
+Performance/CaseWhenSplat:
+  Enabled: false
+
+Performance/Casecmp:
+  Enabled: false
+
+Performance/ChainArrayAllocation:
+  Enabled: false
+
+Performance/CollectionLiteralInLoop:
+  Enabled: false
+
+Performance/CompareWithBlock:
+  Enabled: false
+
+Performance/ConcurrentMonotonicTime:
+  Enabled: false
+
+Performance/ConstantRegexp:
+  Enabled: false
+
+Performance/Count:
+  Enabled: true
+
+Performance/DeletePrefix:
+  Enabled: false
+
+Performance/DeleteSuffix:
+  Enabled: false
+
+Performance/Detect:
+  Enabled: true
+
+Performance/DoubleStartEndWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/FixedSize:
+  Enabled: false
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/InefficientHashSearch:
+  Enabled: false
+
+Performance/IoReadlines:
+  Enabled: false
+
+Performance/MapCompact:
+  Enabled: false
+
+Performance/MethodObjectAsBlock:
+  Enabled: false
+
+Performance/OpenStruct:
+  Enabled: false
+
+Performance/RangeInclude:
+  Enabled: false
+
+Performance/RedundantBlockCall:
+  Enabled: false
+
+Performance/RedundantEqualityComparisonBlock:
+  Enabled: false
+
+Performance/RedundantMatch:
+  Enabled: false
+
+Performance/RedundantMerge:
+  Enabled: true
+  MaxKeyValuePairs: 1
+
+Performance/RedundantSortBlock:
+  Enabled: false
+
+Performance/RedundantSplitRegexpArgument:
+  Enabled: false
+
+Performance/RedundantStringChars:
+  Enabled: false
+
+Performance/RegexpMatch:
+  Enabled: false
+
+Performance/ReverseEach:
+  Enabled: true
+
+Performance/ReverseFirst:
+  Enabled: false
+
+Performance/SelectMap:
+  Enabled: false
+
+Performance/Size:
+  Enabled: true
+
+Performance/SortReverse:
+  Enabled: false
+
+Performance/Squeeze:
+  Enabled: false
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/StringIdentifierArgument:
+  Enabled: false
+
+Performance/StringInclude:
+  Enabled: false
+
+Performance/StringReplacement:
+  Enabled: false
+
+Performance/Sum:
+  Enabled: false
+
+Performance/TimesMap:
+  Enabled: false
+
+Performance/UnfreezeString:
+  Enabled: false
+
+Performance/UriDefaultParser:
+  Enabled: false
+
+Security/CompoundHash:
+  Enabled: false
+
+Security/Eval:
+  Enabled: true
+
+Security/IoMethods:
+  Enabled: false
+
+Security/JSONLoad:
+  Enabled: false
+
+Security/MarshalLoad:
+  Enabled: false
+
+Security/Open:
+  Enabled: false
+
+Security/YAMLLoad:
+  Enabled: false
+
+Style/AccessModifierDeclarations:
+  Enabled: false
+
+Style/AccessorGrouping:
+  Enabled: false
+
+Style/Alias:
+  Enabled: false
+
+Style/AndOr:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#no-and-or-or
+
+Style/ArgumentsForwarding:
+  Enabled: false
+
+Style/ArrayCoercion:
+  Enabled: false
+
+Style/ArrayJoin:
+  Enabled: true
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/Attr:
+  Enabled: false
+
+Style/AutoResourceCleanup:
+  Enabled: false
+
+Style/BarePercentLiterals:
+  Enabled: false
+
+Style/BeginBlock:
+  Enabled: true
+
+Style/BisectedAttrAccessor:
+  Enabled: false
+
+Style/BlockComments:
+  Enabled: true
+
+Style/BlockDelimiters:
+  Enabled: false
+
+Style/CaseEquality:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#type-checking-is-a-kind-of
+
+Style/CaseLikeIf:
+  Enabled: false
+
+Style/CharacterLiteral:
+  Enabled: true
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/ClassCheck:
+  Enabled: false
+
+Style/ClassEqualityComparison:
+  Enabled: false
+
+Style/ClassMethods:
+  Enabled: true
+
+Style/ClassMethodsDefinitions:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#classes
+
+Style/ClassVars:
+  Enabled: false
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#class-variables
+
+Style/CollectionCompact:
+  Enabled: false
+
+Style/CollectionMethods:
+  Enabled: false
+
+Style/ColonMethodCall:
+  Enabled: false
+
+Style/ColonMethodDefinition:
+  Enabled: false
+
+Style/CombinableLoops:
+  Enabled: false
+
+Style/CommandLiteral:
+  Enabled: false
+
+Style/CommentAnnotation:
+  Enabled: false
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Style/ConditionalAssignment:
+  Enabled: false
+
+Style/ConstantVisibility:
+  Enabled: false
+
+Style/Copyright:
+  Enabled: false
+
+Style/DateTime:
+  Enabled: false
+
+Style/DefWithParentheses:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#method-parens-when-arguments
+
+Style/Dir:
+  Enabled: false
+
+Style/DisableCopsWithinSourceCodeDirective:
+  Enabled: false
+
+Style/DocumentDynamicEvalDefinition:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/DocumentationMethod:
+  Enabled: false
+
+Style/DoubleCopDisableDirective:
+  Enabled: false
+
+Style/DoubleNegation:
+  Enabled: false
+
+Style/EachForSimpleLoop:
+  Enabled: false
+
+Style/EachWithObject:
+  Enabled: false
+
+Style/EmptyBlockParameter:
+  Enabled: false
+
+Style/EmptyCaseCondition:
+  Enabled: false
+
+Style/EmptyElse:
+  Enabled: false
+
+Style/EmptyHeredoc:
+  Enabled: false
+
+Style/EmptyLambdaParameter:
+  Enabled: false
+
+Style/EmptyLiteral:
+  Enabled: false
+
+Style/EmptyMethod:
+  Enabled: false
+
+Style/Encoding:
+  Enabled: false
+
+Style/EndBlock:
+  Enabled: true
+
+Style/EndlessMethod:
+  Enabled: false
+
+Style/EnvHome:
+  Enabled: false
+
+Style/EvalWithLocation:
+  Enabled: false
+
+Style/EvenOdd:
+  Enabled: false
+
+Style/ExpandPathArguments:
+  Enabled: false
+
+Style/ExplicitBlockArgument:
+  Enabled: false
+
+Style/ExponentialNotation:
+  Enabled: false
+
+Style/FetchEnvVar:
+  Enabled: false
+
+Style/FileRead:
+  Enabled: false
+
+Style/FileWrite:
+  Enabled: false
+
+Style/FloatDivision:
+  Enabled: false
+
+Style/For:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#avoid-for
+
+Style/FormatString:
+  Enabled: false
+
+Style/FormatStringToken:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+Style/GlobalStdStream:
+  Enabled: false
+
+Style/GlobalVars:
+  Enabled: false
+
+Style/GuardClause:
+  Enabled: false
+
+Style/HashAsLastArrayItem:
+  Enabled: false
+
+Style/HashConversion:
+  Enabled: false
+
+Style/HashEachMethods:
+  Enabled: false
+
+Style/HashExcept:
+  Enabled: false
+
+Style/HashLikeCase:
+  Enabled: false
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#symbols-as-keys
+
+Style/HashTransformKeys:
+  Enabled: false
+
+Style/HashTransformValues:
+  Enabled: false
+
+Style/IdenticalConditionalBranches:
+  Enabled: false
+
+Style/IfInsideElse:
+  Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/IfUnlessModifierOfIfUnless:
+  Enabled: false
+
+Style/IfWithBooleanLiteralBranches:
+  Enabled: false
+
+Style/IfWithSemicolon:
+  Enabled: false
+
+Style/ImplicitRuntimeError:
+  Enabled: false
+
+Style/InPatternThen:
+  Enabled: false
+
+Style/InfiniteLoop:
+  Enabled: false
+
+Style/InlineComment:
+  Enabled: false
+
+Style/InverseMethods:
+  Enabled: false
+
+Style/IpAddresses:
+  Enabled: false
+
+Style/KeywordParametersOrder:
+  Enabled: false
+
+Style/Lambda:
+  Enabled: false
+
+Style/LambdaCall:
+  Enabled: true
+
+Style/LineEndConcatenation:
+  Enabled: false
+
+Style/MagicCommentFormat:
+  Enabled: false
+
+Style/MapCompactWithConditionalBlock:
+  Enabled: false
+
+Style/MapToHash:
+  Enabled: false
+
+Style/MethodCallWithArgsParentheses:
+  Enabled: false
+
+Style/MethodCallWithoutArgsParentheses:
+  Enabled: true
+
+Style/MethodCalledOnDoEndBlock:
+  Enabled: false
+
+Style/MethodDefParentheses:
+  Enabled: true
+
+Style/MinMax:
+  Enabled: false
+
+Style/MissingElse:
+  Enabled: false
+
+Style/MissingRespondToMissing:
+  Enabled: false
+
+Style/MixinGrouping:
+  Enabled: false
+
+Style/MixinUsage:
+  Enabled: false
+
+Style/ModuleFunction:
+  Enabled: false
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Style/MultilineIfModifier:
+  Enabled: false
+
+Style/MultilineIfThen:
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#no-then-for-multi-line-if-unless
+
+Style/MultilineInPatternThen:
+  Enabled: false
+
+Style/MultilineMemoization:
+  Enabled: false
+
+Style/MultilineMethodSignature:
+  Enabled: false
+
+Style/MultilineTernaryOperator:
+  Enabled: false
+
+Style/MultilineWhenThen:
+  Enabled: false
+
+Style/MultipleComparison:
+  Enabled: false
+
+Style/MutableConstant:
+  Enabled: false
+
+Style/NegatedIf:
+  Enabled: false
+
+Style/NegatedIfElseCondition:
+  Enabled: false
+
+Style/NegatedUnless:
+  Enabled: true
+
+Style/NegatedWhile:
+  Enabled: false
+
+Style/NestedFileDirname:
+  Enabled: false
+
+Style/NestedModifier:
+  Enabled: false
+
+Style/NestedParenthesizedCalls:
+  Enabled: false
+
+Style/NestedTernaryOperator:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#one-expression-per-branch
+  Exclude:
+  - "**/*.erb"
+
+Style/Next:
+  Enabled: false
+
+Style/NilComparison:
+  Enabled: true
+
+Style/NilLambda:
+  Enabled: false
+
+Style/NonNilCheck:
+  Enabled: false
+
+Style/Not:
+  Enabled: true
+
+Style/NumberedParameters:
+  Enabled: false
+
+Style/NumberedParametersLimit:
+  Enabled: false
+
+Style/NumericLiteralPrefix:
+  Enabled: false
+
+Style/NumericLiterals:
+  Enabled: false
+
+Style/NumericPredicate:
+  Enabled: false
+
+Style/ObjectThen:
+  Enabled: false
+
+Style/OneLineConditional:
+  Enabled: true
+
+Style/OpenStructUse:
+  Enabled: false
+
+Style/OptionHash:
+  Enabled: false
+
+Style/OptionalArguments:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+Style/OrAssignment:
+  Enabled: true
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#memoize-away
+  Exclude:
+  - "**/*.erb"
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Style/ParenthesesAroundCondition:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  Enabled: false
+
+Style/PercentQLiterals:
+  Enabled: false
+
+Style/PerlBackrefs:
+  Enabled: false
+
+Style/PreferredHashMethods:
+  Enabled: false
+
+Style/Proc:
+  Enabled: false
+
+Style/QuotedSymbols:
+  Enabled: false
+
+Style/RaiseArgs:
+  Enabled: false
+
+Style/RandomWithOffset:
+  Enabled: false
+
+Style/RedundantArgument:
+  Enabled: false
+
+Style/RedundantAssignment:
+  Enabled: false
+
+Style/RedundantBegin:
+  Enabled: false
+
+Style/RedundantCapitalW:
+  Enabled: false
+
+Style/RedundantCondition:
+  Enabled: false
+
+Style/RedundantConditional:
+  Enabled: false
+
+Style/RedundantException:
+  Enabled: false
+
+Style/RedundantFetchBlock:
+  Enabled: false
+
+Style/RedundantFileExtensionInRequire:
+  Enabled: false
+
+Style/RedundantFreeze:
+  Enabled: false
+
+Style/RedundantInitialize:
+  Enabled: false
+
+Style/RedundantInterpolation:
+  Enabled: false
+
+Style/RedundantParentheses:
+  Enabled: false
+
+Style/RedundantPercentQ:
+  Enabled: false
+
+Style/RedundantRegexpCharacterClass:
+  Enabled: false
+
+Style/RedundantRegexpEscape:
+  Enabled: false
+
+# TODO: Enable this since it's in the styleguide.
+Style/RedundantReturn:
+  Enabled: false
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#avoid-return
+
+Style/RedundantSelf:
+  Enabled: false
+
+Style/RedundantSelfAssignment:
+  Enabled: false
+
+Style/RedundantSelfAssignmentBranch:
+  Enabled: false
+
+Style/RedundantSort:
+  Enabled: false
+
+Style/RedundantSortBy:
+  Enabled: true
+
+Style/RegexpLiteral:
+  Enabled: false
+
+Style/RescueModifier:
+  Enabled: false
+
+Style/RescueStandardError:
+  Enabled: false
+
+Style/ReturnNil:
+  Enabled: false
+
+Style/SafeNavigation:
+  Enabled: false
+
+Style/Sample:
+  Enabled: true
+
+Style/SelectByRegexp:
+  Enabled: false
+
+Style/SelfAssignment:
+  Enabled: false
+
+Style/Semicolon:
+  Enabled: false
+
+Style/Send:
+  Enabled: false
+
+Style/SignalException:
+  Enabled: false
+
+Style/SingleArgumentDig:
+  Enabled: false
+
+Style/SingleLineBlockParams:
+  Enabled: false
+
+Style/SingleLineMethods:
+  Enabled: false
+
+Style/SlicingWithRange:
+  Enabled: false
+
+Style/SoleNestedConditional:
+  Enabled: false
+
+Style/SpecialGlobalVars:
+  Enabled: false
+
+Style/StabbyLambdaParentheses:
+  Enabled: true
+
+Style/StaticClass:
+  Enabled: false
+
+Style/StderrPuts:
+  Enabled: false
+
+Style/StringChars:
+  Enabled: false
+
+Style/StringConcatenation:
+  Enabled: false
+
+Style/StringHashKeys:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#double-quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: false
+
+Style/StringMethods:
+  Enabled: false
+
+Style/Strip:
+  Enabled: true
+
+Style/StructInheritance:
+  Enabled: false
+
+Style/SwapValues:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
+
+Style/SymbolLiteral:
+  Enabled: false
+
+Style/SymbolProc:
+  Enabled: false
+
+Style/TernaryParentheses:
+  Enabled: false
+
+Style/TopLevelMethodDefinition:
+  Enabled: false
+
+Style/TrailingBodyOnClass:
+  Enabled: false
+
+Style/TrailingBodyOnMethodDefinition:
+  Enabled: false
+
+Style/TrailingBodyOnModule:
+  Enabled: false
+
+Style/TrailingCommaInArguments:
+  Enabled: false
+
+Style/TrailingCommaInArrayLiteral:
+  Enabled: false
+
+Style/TrailingCommaInBlockArgs:
+  Enabled: false
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: false
+
+Style/TrailingMethodEndStatement:
+  Enabled: false
+
+Style/TrailingUnderscoreVariable:
+  Enabled: false
+
+Style/TrivialAccessors:
+  Enabled: false
+
+# TODO: Enable this since it's in the styleguide.
+Style/UnlessElse:
+  Enabled: false
+  StyleGuide: https://github.com/github/rubocop-github/blob/main/STYLEGUIDE.md#no-else-with-unless
+
+Style/UnlessLogicalOperators:
+  Enabled: false
+
+Style/UnpackFirst:
+  Enabled: false
+
+Style/VariableInterpolation:
+  Enabled: false
+
+Style/WhenThen:
+  Enabled: false
+
+Style/WhileUntilDo:
+  Enabled: false
+
+Style/WhileUntilModifier:
+  Enabled: false
+
+Style/WordArray:
+  Enabled: false
+
+Style/YodaCondition:
+  Enabled: false
+
+Style/ZeroLengthPredicate:
+  Enabled: false

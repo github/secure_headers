@@ -1,0 +1,414 @@
+inherit_from:
+  - ./rails_pending.yml
+
+require:
+  - rubocop-github-rails
+
+plugins:
+  - rubocop-rails:
+      plugin_class_name: RuboCop::Rails::Plugin
+
+GitHub/RailsControllerRenderActionSymbol:
+  Enabled: true
+
+GitHub/RailsControllerRenderLiteral:
+  Enabled: true
+
+GitHub/RailsControllerRenderPathsExist:
+  Enabled: true
+
+GitHub/RailsControllerRenderShorthand:
+  Enabled: true
+
+GitHub/RailsRenderObjectCollection:
+  Enabled: false
+
+GitHub/RailsViewRenderLiteral:
+  Enabled: true
+
+GitHub/RailsViewRenderPathsExist:
+  Enabled: true
+
+GitHub/RailsViewRenderShorthand:
+  Enabled: true
+
+Layout/BlockAlignment:
+  Exclude:
+    - "**/*.erb"
+
+Layout/IndentationWidth:
+  Exclude:
+    - "**/*.erb"
+
+Layout/InitialIndentation:
+  Exclude:
+    - "**/*.erb"
+
+Layout/SpaceInsideParens:
+  Exclude:
+    - "**/*.erb"
+
+Layout/TrailingEmptyLines:
+  Exclude:
+    - "**/*.erb"
+
+Layout/TrailingWhitespace:
+  Exclude:
+    - "**/*.erb"
+
+Lint/UselessAccessModifier:
+  ContextCreatingMethods:
+    - concerning
+
+Rails/ActionControllerTestCase:
+  Enabled: false
+
+Rails/ActionFilter:
+  Enabled: false
+
+Rails/ActiveRecordAliases:
+  Enabled: false
+
+Rails/ActiveRecordCallbacksOrder:
+  Enabled: false
+
+Rails/ActiveRecordOverride:
+  Enabled: false
+
+Rails/ActiveSupportAliases:
+  Enabled: false
+
+Rails/AddColumnIndex:
+  Enabled: false
+
+Rails/AfterCommitOverride:
+  Enabled: false
+
+Rails/ApplicationController:
+  Enabled: false
+
+Rails/ApplicationJob:
+  Enabled: false
+
+Rails/ApplicationMailer:
+  Enabled: false
+
+Rails/ApplicationRecord:
+  Enabled: true
+
+Rails/ArelStar:
+  Enabled: false
+
+Rails/AssertNot:
+  Enabled: false
+
+Rails/AttributeDefaultBlockValue:
+  Enabled: false
+
+Rails/BelongsTo:
+  Enabled: false
+
+Rails/Blank:
+  Enabled: false
+
+Rails/BulkChangeTable:
+  Enabled: false
+
+Rails/CompactBlank:
+  Enabled: false
+
+Rails/ContentTag:
+  Enabled: false
+
+Rails/CreateTableWithTimestamps:
+  Enabled: false
+
+Rails/Date:
+  Enabled: false
+
+Rails/DefaultScope:
+  Enabled: false
+
+Rails/Delegate:
+  Enabled: false
+
+Rails/DelegateAllowBlank:
+  Enabled: false
+
+Rails/DeprecatedActiveModelErrorsMethods:
+  Enabled: false
+
+Rails/DotSeparatedKeys:
+  Enabled: false
+
+Rails/DuplicateAssociation:
+  Enabled: false
+
+Rails/DuplicateScope:
+  Enabled: false
+
+Rails/DurationArithmetic:
+  Enabled: false
+
+Rails/DynamicFindBy:
+  Enabled: false
+
+Rails/EagerEvaluationLogMessage:
+  Enabled: false
+
+Rails/EnumHash:
+  Enabled: false
+
+Rails/EnumUniqueness:
+  Enabled: false
+
+Rails/EnvironmentComparison:
+  Enabled: false
+
+Rails/EnvironmentVariableAccess:
+  Enabled: false
+
+Rails/Exit:
+  Enabled: false
+
+Rails/ExpandedDateRange:
+  Enabled: false
+
+Rails/FilePath:
+  Enabled: false
+
+Rails/FindBy:
+  Enabled: false
+
+Rails/FindById:
+  Enabled: false
+
+Rails/FindEach:
+  Enabled: false
+
+Rails/HasAndBelongsToMany:
+  Enabled: false
+
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+
+Rails/HelperInstanceVariable:
+  Enabled: false
+
+Rails/HttpPositionalArguments:
+  Enabled: false
+
+Rails/HttpStatus:
+  Enabled: false
+
+Rails/I18nLazyLookup:
+  Enabled: false
+
+Rails/I18nLocaleAssignment:
+  Enabled: false
+
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+Rails/IgnoredSkipActionFilterOption:
+  Enabled: false
+
+Rails/IndexBy:
+  Enabled: false
+
+Rails/IndexWith:
+  Enabled: false
+
+Rails/Inquiry:
+  Enabled: false
+
+Rails/InverseOf:
+  Enabled: false
+
+Rails/LexicallyScopedActionFilter:
+  Enabled: false
+
+Rails/LinkToBlank:
+  Enabled: false
+
+Rails/MailerName:
+  Enabled: false
+
+Rails/MatchRoute:
+  Enabled: false
+
+Rails/MigrationClassName:
+  Enabled: false
+
+Rails/NegateInclude:
+  Enabled: false
+
+Rails/NotNullColumn:
+  Enabled: false
+
+Rails/OrderById:
+  Enabled: false
+
+Rails/Output:
+  Enabled: false
+
+Rails/OutputSafety:
+  Enabled: true
+
+Rails/Pick:
+  Enabled: false
+
+Rails/Pluck:
+  Enabled: false
+
+Rails/PluckId:
+  Enabled: false
+
+Rails/PluckInWhere:
+  Enabled: false
+
+Rails/PluralizationGrammar:
+  Enabled: true
+
+Rails/Presence:
+  Enabled: false
+
+Rails/Present:
+  Enabled: false
+
+Rails/RakeEnvironment:
+  Enabled: false
+
+Rails/ReadWriteAttribute:
+  Enabled: false
+
+Rails/RedundantAllowNil:
+  Enabled: false
+
+Rails/RedundantForeignKey:
+  Enabled: false
+
+Rails/RedundantPresenceValidationOnBelongsTo:
+  Enabled: false
+
+Rails/RedundantReceiverInWithOptions:
+  Enabled: false
+
+Rails/RedundantTravelBack:
+  Enabled: false
+
+Rails/ReflectionClassName:
+  Enabled: false
+
+Rails/RefuteMethods:
+  Enabled: false
+
+Rails/RelativeDateConstant:
+  Enabled: false
+
+Rails/RenderInline:
+  Enabled: true
+
+Rails/RenderPlainText:
+  Enabled: false
+
+Rails/RequestReferer:
+  Enabled: true
+  EnforcedStyle: referrer
+
+Rails/RequireDependency:
+  Enabled: false
+
+Rails/ReversibleMigration:
+  Enabled: false
+
+Rails/ReversibleMigrationMethodDefinition:
+  Enabled: false
+
+Rails/RootJoinChain:
+  Enabled: false
+
+Rails/RootPublicPath:
+  Enabled: false
+
+Rails/SafeNavigation:
+  Enabled: false
+
+Rails/SafeNavigationWithBlank:
+  Enabled: false
+
+Rails/SaveBang:
+  Enabled: false
+
+Rails/SchemaComment:
+  Enabled: false
+
+Rails/ScopeArgs:
+  Enabled: true
+
+Rails/ShortI18n:
+  Enabled: false
+
+Rails/SkipsModelValidations:
+  Enabled: false
+
+Rails/SquishedSQLHeredocs:
+  Enabled: false
+
+Rails/StripHeredoc:
+  Enabled: false
+
+Rails/TableNameAssignment:
+  Enabled: false
+
+Rails/TimeZone:
+  Enabled: false
+
+Rails/TimeZoneAssignment:
+  Enabled: false
+
+Rails/ToFormattedS:
+  Enabled: false
+
+Rails/TransactionExitStatement:
+  Enabled: false
+
+Rails/UniqBeforePluck:
+  Enabled: true
+
+Rails/UniqueValidationWithoutIndex:
+  Enabled: false
+
+Rails/UnknownEnv:
+  Enabled: false
+
+Rails/UnusedIgnoredColumns:
+  Enabled: false
+
+Rails/Validation:
+  Enabled: false
+
+Rails/WhereEquals:
+  Enabled: false
+
+Rails/WhereExists:
+  Enabled: false
+
+Rails/WhereNot:
+  Enabled: false
+
+Style/For:
+  Exclude:
+    - "**/*.erb"
+
+Style/OneLineConditional:
+  Exclude:
+    - "**/*.erb"
+
+Style/Semicolon:
+  Exclude:
+    - "**/*.erb"
+
+Style/StringLiterals:
+  Exclude:
+    - "**/*.erb"
