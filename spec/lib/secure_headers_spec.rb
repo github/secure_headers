@@ -446,7 +446,7 @@ module SecureHeaders
               upgrade_insecure_requests: true
             }
           end
-          
+
           plaintext_request = Rack::Request.new({})
           hash = SecureHeaders.header_hash_for(plaintext_request)
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'")
@@ -462,7 +462,7 @@ module SecureHeaders
               upgrade_insecure_requests: true
             }
           end
-          
+
           https_request = Rack::Request.new("HTTPS" => "on")
           hash = SecureHeaders.header_hash_for(https_request)
           expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'; upgrade-insecure-requests")
@@ -477,7 +477,7 @@ module SecureHeaders
               upgrade_insecure_requests: true
             }
           end
-          
+
           plaintext_request = Rack::Request.new({})
           hash = SecureHeaders.header_hash_for(plaintext_request)
           expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'")
@@ -493,7 +493,7 @@ module SecureHeaders
               upgrade_insecure_requests: true
             }
           end
-          
+
           https_request = Rack::Request.new("HTTPS" => "on")
           hash = SecureHeaders.header_hash_for(https_request)
           expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'; upgrade-insecure-requests")
