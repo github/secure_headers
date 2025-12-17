@@ -1,6 +1,0 @@
-gemspec path: '../'
-
-filename = "gemfiles/common"
-instance_eval(IO.read(filename), filename, 1)
-
-gem 'rspec', '~> 2.99'
