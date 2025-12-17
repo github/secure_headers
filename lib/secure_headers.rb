@@ -133,6 +133,7 @@ module SecureHeaders
     # request.
     #
     # StrictTransportSecurity is not applied to http requests.
+    # upgrade_insecure_requests is not applied to http requests.
     # See #config_for to determine which config is used for a given request.
     #
     # Returns a hash of header names => header values. The value
@@ -146,6 +147,22 @@ module SecureHeaders
 
       if request.scheme != HTTPS
         headers.delete(StrictTransportSecurity::HEADER_NAME)
+        
+        # Remove upgrade_insecure_requests from CSP headers for HTTP requests
+        # as it doesn't make sense to upgrade requests when the page itself is served over HTTP
+        if !config.csp.opt_out? && config.csp.directive_value(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS)
+          modified_csp_config = config.csp.dup
+          modified_csp_config.update_directive(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS, false)
+          header_name, value = ContentSecurityPolicy.make_header(modified_csp_config)
+          headers[header_name] = value if header_name && value
+        end
+        
+        if !config.csp_report_only.opt_out? && config.csp_report_only.directive_value(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS)
+          modified_csp_report_only_config = config.csp_report_only.dup
+          modified_csp_report_only_config.update_directive(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS, false)
+          header_name, value = ContentSecurityPolicy.make_header(modified_csp_report_only_config)
+          headers[header_name] = value if header_name && value
+        end
       end
       headers
     end
