@@ -188,5 +188,64 @@ module SecureHeaders
         expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).not_to match(/rails-nonce/)
       end
     end
+
+    it "supports calling content_security_policy_nonce without parameters (Rails compatibility)" do
+      begin
+        allow(SecureRandom).to receive(:base64).and_return("xyz789")
+
+        # Create a test class that simulates what GoodJob does
+        # They call content_security_policy_nonce without any parameters
+        test_class = Class.new(Message) do
+          def self.template
+            <<-TEMPLATE
+<script nonce="<%= content_security_policy_nonce %>">
+  console.log("test")
+</script>
+TEMPLATE
+          end
+        end
+        
+        message = test_class.new(request)
+        result = message.result
+        
+        # The nonce should be included in the rendered output
+        expect(result).to include('nonce="xyz789"')
+        
+        # Call middleware to generate headers
+        _, env = middleware.call request.env
+        
+        # The nonce should be added to script-src in the CSP header (default behavior)
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/script-src[^;]*'nonce-xyz789'/)
+      end
+    end
+
+    it "supports calling content_security_policy_nonce with :style parameter" do
+      begin
+        allow(SecureRandom).to receive(:base64).and_return("style123")
+
+        # Create a test class that calls content_security_policy_nonce with :style
+        test_class = Class.new(Message) do
+          def self.template
+            <<-TEMPLATE
+<style nonce="<%= content_security_policy_nonce(:style) %>">
+  body { background: red; }
+</style>
+TEMPLATE
+          end
+        end
+        
+        message = test_class.new(request)
+        result = message.result
+        
+        # The nonce should be included in the rendered output
+        expect(result).to include('nonce="style123"')
+        
+        # Call middleware to generate headers
+        _, env = middleware.call request.env
+        
+        # The nonce should be added to style-src in the CSP header
+        expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'nonce-style123'/)
+      end
+    end
   end
 end
