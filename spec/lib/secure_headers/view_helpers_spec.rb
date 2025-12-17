@@ -192,8 +192,8 @@ module SecureHeaders
     it "supports calling content_security_policy_nonce without parameters (Rails compatibility)" do
       allow(SecureRandom).to receive(:base64).and_return("xyz789")
 
-      # Create a test class that simulates what GoodJob does
-      # They call content_security_policy_nonce without any parameters
+      # Create a test class that simulates Rails-compatible usage
+      # where content_security_policy_nonce is called without any parameters
       test_class = Class.new(Message) do
         def self.template
           <<-TEMPLATE
