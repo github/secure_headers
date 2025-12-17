@@ -204,16 +204,16 @@ module SecureHeaders
 TEMPLATE
           end
         end
-        
+
         message = test_class.new(request)
         result = message.result
-        
+
         # The nonce should be included in the rendered output
         expect(result).to include('nonce="xyz789"')
-        
+
         # Call middleware to generate headers
         _, env = middleware.call request.env
-        
+
         # The nonce should be added to script-src in the CSP header (default behavior)
         expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/script-src[^;]*'nonce-xyz789'/)
       end
@@ -233,16 +233,16 @@ TEMPLATE
 TEMPLATE
           end
         end
-        
+
         message = test_class.new(request)
         result = message.result
-        
+
         # The nonce should be included in the rendered output
         expect(result).to include('nonce="style123"')
-        
+
         # Call middleware to generate headers
         _, env = middleware.call request.env
-        
+
         # The nonce should be added to style-src in the CSP header
         expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match(/style-src[^;]*'nonce-style123'/)
       end
