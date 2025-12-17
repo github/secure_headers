@@ -150,19 +150,8 @@ module SecureHeaders
 
         # Remove upgrade_insecure_requests from CSP headers for HTTP requests
         # as it doesn't make sense to upgrade requests when the page itself is served over HTTP
-        if !config.csp.opt_out? && config.csp.directive_value(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS)
-          modified_csp_config = config.csp.dup
-          modified_csp_config.update_directive(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS, false)
-          header_name, value = ContentSecurityPolicy.make_header(modified_csp_config)
-          headers[header_name] = value if header_name && value
-        end
-
-        if !config.csp_report_only.opt_out? && config.csp_report_only.directive_value(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS)
-          modified_csp_report_only_config = config.csp_report_only.dup
-          modified_csp_report_only_config.update_directive(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS, false)
-          header_name, value = ContentSecurityPolicy.make_header(modified_csp_report_only_config)
-          headers[header_name] = value if header_name && value
-        end
+        remove_upgrade_insecure_requests_from_csp!(headers, config.csp)
+        remove_upgrade_insecure_requests_from_csp!(headers, config.csp_report_only)
       end
       headers
     end
@@ -258,6 +247,23 @@ module SecureHeaders
     # Returns the config.
     def override_secure_headers_request_config(request, config)
       request.env[SECURE_HEADERS_CONFIG] = config
+    end
+
+    # Private: removes upgrade_insecure_requests directive from a CSP config
+    # if it's present, and updates the headers hash with the modified CSP.
+    #
+    # headers - the headers hash to update
+    # csp_config - the CSP config to check and potentially modify
+    #
+    # Returns nothing (modifies headers in place)
+    def remove_upgrade_insecure_requests_from_csp!(headers, csp_config)
+      return if csp_config.opt_out?
+      return unless csp_config.directive_value(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS)
+
+      modified_config = csp_config.dup
+      modified_config.update_directive(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS, false)
+      header_name, value = ContentSecurityPolicy.make_header(modified_config)
+      headers[header_name] = value if header_name && value
     end
   end
 
