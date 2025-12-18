@@ -138,6 +138,66 @@ module SecureHeaders
         Configuration.disable!
         expect { Configuration.send(:default_config) }.not_to raise_error
       end
+
+      it "registers the NOOP_OVERRIDE when disabled without calling default" do
+        Configuration.disable!
+        expect(Configuration.overrides(Configuration::NOOP_OVERRIDE)).to_not be_nil
+      end
+
+      it "clears existing default config when called after default" do
+        Configuration.default do |config|
+          config.csp = { default_src: %w('self'), script_src: %w('self') }
+        end
+
+        Configuration.disable!
+
+        expect(Configuration.disabled?).to be true
+        expect(Configuration.instance_variable_defined?(:@default_config)).to be false
+      end
+
+      it "allows default to be called after disable! has been invoked" do
+        Configuration.disable!
+        reset_config
+
+        expect {
+          Configuration.default do |config|
+            config.csp = { default_src: %w('self'), script_src: %w('self') }
+          end
+        }.not_to raise_error
+
+        # After reset_config, disabled? returns nil (not false) because @disabled is removed
+        expect(Configuration.disabled?).to be_falsy
+        expect(Configuration.instance_variable_defined?(:@default_config)).to be true
+      end
+
+      it "works correctly with dup when library is disabled" do
+        Configuration.disable!
+        config = Configuration.dup
+
+        Configuration::CONFIG_ATTRIBUTES.each do |attr|
+          expect(config.instance_variable_get("@#{attr}")).to eq(OPT_OUT)
+        end
+      end
+
+      it "does not interfere with override mechanism" do
+        Configuration.disable!
+
+        # Should be able to use opt_out_of_all_protection without error
+        request = Rack::Request.new("HTTP_X_FORWARDED_SSL" => "on")
+        expect {
+          SecureHeaders.opt_out_of_all_protection(request)
+        }.not_to raise_error
+      end
+
+      it "interacts correctly with named overrides when disabled" do
+        Configuration.disable!
+
+        Configuration.override(:test_override) do |config|
+          config.x_frame_options = "DENY"
+        end
+
+        expect(Configuration.overrides(:test_override)).to_not be_nil
+      end
     end
   end
 end

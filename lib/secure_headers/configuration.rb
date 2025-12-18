@@ -11,10 +11,22 @@ module SecureHeaders
     class << self
       # Public: Disable secure_headers entirely. When disabled, no headers will be set.
       #
+      # Note: This should be called before Configuration.default. Calling it after
+      # Configuration.default has been set will clear the default configuration.
+      #
       # Returns nothing
       def disable!
+        # Clear any existing default config to maintain consistency
+        remove_instance_variable(:@default_config) if defined?(@default_config)
+
         @disabled = true
         @noop_config = create_noop_config.freeze
+
+        # Ensure the built-in NOOP override is available even if `default` has never been called
+        @overrides ||= {}
+        unless @overrides.key?(NOOP_OVERRIDE)
+          @overrides[NOOP_OVERRIDE] = method(:create_noop_config_block)
+        end
       end
 
       # Public: Check if secure_headers is disabled

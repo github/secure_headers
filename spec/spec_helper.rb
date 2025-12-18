@@ -53,11 +53,11 @@ module SecureHeaders
       def clear_appends
         remove_instance_variable(:@appends) if defined?(@appends)
       end
-    end
 
-    def self.clear_disabled
-      remove_instance_variable(:@disabled) if defined?(@disabled)
-      remove_instance_variable(:@noop_config) if defined?(@noop_config)
+      def clear_disabled
+        remove_instance_variable(:@disabled) if defined?(@disabled)
+        remove_instance_variable(:@noop_config) if defined?(@noop_config)
+      end
     end
   end
 end
