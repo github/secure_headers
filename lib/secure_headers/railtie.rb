@@ -20,6 +20,7 @@ if defined?(Rails::Railtie)
 
       initializer "secure_headers.action_controller" do
         ActiveSupport.on_load(:action_controller) do
+          prepend SecureHeaders::ViewHelpers
           include SecureHeaders
 
           default_headers = Rails.application.config.action_dispatch.default_headers
