@@ -144,18 +144,27 @@ module SecureHeaders
         expect(Configuration.overrides(Configuration::NOOP_OVERRIDE)).to_not be_nil
       end
 
-      it "clears existing default config when called after default" do
+      it "raises AlreadyConfiguredError when called after default" do
         Configuration.default do |config|
           config.csp = { default_src: %w('self'), script_src: %w('self') }
         end
 
-        Configuration.disable!
-
-        expect(Configuration.disabled?).to be true
-        expect(Configuration.instance_variable_defined?(:@default_config)).to be false
+        expect {
+          Configuration.disable!
+        }.to raise_error(Configuration::AlreadyConfiguredError, "Configuration already set, cannot disable")
       end
 
-      it "allows default to be called after disable! has been invoked" do
+      it "raises AlreadyConfiguredError when default is called after disable!" do
+        Configuration.disable!
+
+        expect {
+          Configuration.default do |config|
+            config.csp = { default_src: %w('self'), script_src: %w('self') }
+          end
+        }.to raise_error(Configuration::AlreadyConfiguredError, "Configuration has been disabled, cannot set default")
+      end
+
+      it "allows default to be called after disable! and reset_config" do
         Configuration.disable!
         reset_config
 

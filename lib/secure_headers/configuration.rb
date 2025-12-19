@@ -11,13 +11,15 @@ module SecureHeaders
     class << self
       # Public: Disable secure_headers entirely. When disabled, no headers will be set.
       #
-      # Note: This should be called before Configuration.default. Calling it after
-      # Configuration.default has been set will clear the default configuration.
+      # Note: This must be called before Configuration.default. Calling it after
+      # Configuration.default has been set will raise an AlreadyConfiguredError.
       #
       # Returns nothing
+      # Raises AlreadyConfiguredError if Configuration.default has already been called
       def disable!
-        # Clear any existing default config to maintain consistency
-        remove_instance_variable(:@default_config) if defined?(@default_config)
+        if defined?(@default_config)
+          raise AlreadyConfiguredError, "Configuration already set, cannot disable"
+        end
 
         @disabled = true
         @noop_config = create_noop_config.freeze
@@ -41,7 +43,12 @@ module SecureHeaders
       # Optionally supply a block to override the defaults set by this library.
       #
       # Returns the newly created config.
+      # Raises AlreadyConfiguredError if Configuration.disable! has already been called
       def default(&block)
+        if disabled?
+          raise AlreadyConfiguredError, "Configuration has been disabled, cannot set default"
+        end
+
         if defined?(@default_config)
           raise AlreadyConfiguredError, "Policy already configured"
         end
