@@ -184,7 +184,7 @@ module SecureHeaders
       content_security_policy_nonce(request, ContentSecurityPolicy::STYLE_SRC)
     end
 
-    # Public: Retreives the config for a given header type:
+    # Public: Retrieves the config for a given header type:
     #
     # Checks to see if there is an override for this request, then
     # Checks to see if a named override is used for this request, then
@@ -214,7 +214,7 @@ module SecureHeaders
 
     def config_and_target(request, target)
       config = config_for(request)
-      target = guess_target(config) unless target
+      target ||= guess_target(config)
       raise_on_unknown_target(target)
       [config, target]
     end

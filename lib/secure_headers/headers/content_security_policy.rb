@@ -79,7 +79,7 @@ module SecureHeaders
       end
 
       # A maximally strict sandbox policy is just the `sandbox` directive,
-      # whith no configuraiton values.
+      # with no configuration values.
       if max_strict_policy
         symbol_to_hyphen_case(directive)
       elsif sandbox_list && sandbox_list.any?
@@ -120,7 +120,7 @@ module SecureHeaders
     end
 
     # If a directive contains *, all other values are omitted.
-    # If a directive contains 'none' but has other values, 'none' is ommitted.
+    # If a directive contains 'none' but has other values, 'none' is omitted.
     # Schemes are stripped (see http://www.w3.org/TR/CSP2/#match-source-expression)
     def minify_source_list(directive, source_list)
       source_list = source_list.compact

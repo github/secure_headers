@@ -201,7 +201,7 @@ module SecureHeaders
 
       # Public: Validates each source expression.
       #
-      # Does not validate the invididual values of the source expression (e.g.
+      # Does not validate the individual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
       def validate_config!(config)
         return if config.nil? || config.opt_out?
@@ -402,7 +402,7 @@ module SecureHeaders
       # 1. is an array of strings
       # 2. does not contain any deprecated, now invalid values (inline, eval, self, none)
       #
-      # Does not validate the invididual values of the source expression (e.g.
+      # Does not validate the individual values of the source expression (e.g.
       # script_src => h*t*t*p: will not raise an exception)
       def validate_source_expression!(directive, source_expression)
         if source_expression != OPT_OUT

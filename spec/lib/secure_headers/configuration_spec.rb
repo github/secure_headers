@@ -99,7 +99,7 @@ module SecureHeaders
     end
 
     it "gives cookies a default config" do
-      expect(Configuration.default.cookies).to eq({httponly: true, secure: true, samesite: {lax: true}})
+      expect(Configuration.default.cookies).to eq({ httponly: true, secure: true, samesite: { lax: true } })
     end
 
     it "allows OPT_OUT" do
@@ -113,11 +113,11 @@ module SecureHeaders
 
     it "allows me to be explicit too" do
       Configuration.default do |config|
-        config.cookies = {httponly: true, secure: true, samesite: {lax: false}}
+        config.cookies = { httponly: true, secure: true, samesite: { lax: false } }
       end
 
       config = Configuration.dup
-      expect(config.cookies).to eq({httponly: true, secure: true, samesite: {lax: false}})
+      expect(config.cookies).to eq({ httponly: true, secure: true, samesite: { lax: false } })
     end
 
     describe ".disable!" do

@@ -41,23 +41,21 @@ end
 
 module SecureHeaders
   class Configuration
-    class << self
-      def clear_default_config
-        remove_instance_variable(:@default_config) if defined?(@default_config)
-      end
+    def self.clear_default_config
+      remove_instance_variable(:@default_config) if defined?(@default_config)
+    end
 
-      def clear_overrides
-        remove_instance_variable(:@overrides) if defined?(@overrides)
-      end
+    def self.clear_overrides
+      remove_instance_variable(:@overrides) if defined?(@overrides)
+    end
 
-      def clear_appends
-        remove_instance_variable(:@appends) if defined?(@appends)
-      end
+    def self.clear_appends
+      remove_instance_variable(:@appends) if defined?(@appends)
+    end
 
-      def clear_disabled
-        remove_instance_variable(:@disabled) if defined?(@disabled)
-        remove_instance_variable(:@noop_config) if defined?(@noop_config)
-      end
+    def self.clear_disabled
+      remove_instance_variable(:@disabled) if defined?(@disabled)
+      remove_instance_variable(:@noop_config) if defined?(@noop_config)
     end
   end
 end
