@@ -147,7 +147,7 @@ module SecureHeaders
       end
 
       it "does not flag cookies" do
-        _, env = cookie_middleware.call(Rack::MockRequest.env_for("https://looocalhost", {}))
+        _, env = cookie_middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
         expect(env["Set-Cookie"]).to eq("foo=bar")
       end
     end
