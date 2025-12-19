@@ -139,6 +139,8 @@ else
 end
 ```
 
+**Important**: This configuration must be set during application startup (e.g., in an initializer). Once you call either `Configuration.default` or `Configuration.disable!`, the choice cannot be changed at runtime. Attempting to call `disable!` after `default` (or vice versa) will raise an `AlreadyConfiguredError`.
+
 When disabled, no security headers will be set by the gem. This is useful when:
 - You're gradually rolling out secure_headers across different customers or deployments
 - You need to migrate existing custom headers to secure_headers
