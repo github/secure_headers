@@ -131,7 +131,7 @@ module SecureHeaders
       end
 
       it "does not set any headers" do
-        _, env = middleware.call(Rack::MockRequest.env_for("https://looocalhost", {}))
+        _, env = middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
 
         # Verify no security headers are set by checking all configured header classes
         Configuration::HEADERABLE_ATTRIBUTES.each do |attr|
