@@ -595,6 +595,146 @@ module SecureHeaders
           end
         end.to raise_error(CookiesConfigError)
       end
+
+      it "validates report_to directive on configuration" do
+        expect do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self'),
+              script_src: %w('self'),
+              report_to: ["not_a_string"]
+            }
+          end
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "allows report_to directive with string endpoint" do
+        expect do
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self'),
+              script_src: %w('self'),
+              report_to: "csp-endpoint"
+            }
+          end
+        end.to_not raise_error
+      end
+    end
+
+    describe "report_to with overrides and appends" do
+      let(:request) { double("Request", scheme: "https", env: {}) }
+
+      it "overrides the report_to directive" do
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            script_src: %w('self'),
+            report_to: "endpoint-1"
+          }
+        end
+
+        SecureHeaders.override_content_security_policy_directives(request, report_to: "endpoint-2")
+        headers = SecureHeaders.header_hash_for(request)
+        csp_header = headers[ContentSecurityPolicyConfig::HEADER_NAME]
+        expect(csp_header).to include("report-to endpoint-2")
+      end
+
+      it "includes report_to when appending CSP directives" do
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            script_src: %w('self')
+          }
+        end
+
+        SecureHeaders.append_content_security_policy_directives(request, report_to: "new-endpoint")
+        headers = SecureHeaders.header_hash_for(request)
+        csp_header = headers[ContentSecurityPolicyConfig::HEADER_NAME]
+        expect(csp_header).to include("report-to new-endpoint")
+      end
+
+      it "handles report_to with report_uri together" do
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            script_src: %w('self'),
+            report_uri: %w(/csp-report),
+            report_to: "reporting-endpoint"
+          }
+        end
+
+        headers = SecureHeaders.header_hash_for(request)
+        csp_header = headers[ContentSecurityPolicyConfig::HEADER_NAME]
+        # Both should be present
+        expect(csp_header).to include("report-to reporting-endpoint")
+        expect(csp_header).to include("report-uri /csp-report")
+        # report-to should come before report-uri (alphabetical order)
+        expect(csp_header.index("report-to")).to be < csp_header.index("report-uri")
+      end
+    end
+
+    describe "reporting_endpoints header generation" do
+      let(:request) { double("Request", scheme: "https", env: {}) }
+
+      before(:each) do
+        reset_config
+      end
+
+      it "includes reporting_endpoints header in generated headers" do
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            script_src: %w('self')
+          }
+          config.reporting_endpoints = {
+            "csp-endpoint" => "https://example.com/reports"
+          }
+        end
+
+        headers = SecureHeaders.header_hash_for(request)
+        expect(headers["reporting-endpoints"]).to eq('csp-endpoint="https://example.com/reports"')
+      end
+
+      it "includes reporting_endpoints after config.dup() is called" do
+        # This test specifically validates that reporting_endpoints survives
+        # the .dup() call made by the middleware
+        Configuration.default do |config|
+          config.csp = {
+            default_src: %w('self'),
+            script_src: %w('self')
+          }
+          config.reporting_endpoints = {
+            "csp-violations" => "https://api.example.com/reports?enforcement=enforce",
+            "csp-violations-report-only" => "https://api.example.com/reports?enforcement=report-only"
+          }
+        end
+
+        # Simulate what the middleware does internally
+        config = Configuration.dup  # ← This calls .dup() which must preserve reporting_endpoints
+        headers = config.generate_headers
+
+        expect(headers["reporting-endpoints"]).to include('csp-violations="https://api.example.com/reports?enforcement=enforce"')
+        expect(headers["reporting-endpoints"]).to include('csp-violations-report-only="https://api.example.com/reports?enforcement=report-only"')
+      end
+
+      it "does not include reporting_endpoints header when OPT_OUT" do
+        Configuration.default do |config|
+          config.csp = { default_src: %w('self'), script_src: %w('self') }
+          config.reporting_endpoints = OPT_OUT
+        end
+
+        headers = SecureHeaders.header_hash_for(request)
+        expect(headers["reporting-endpoints"]).to be_nil
+      end
+
+      it "does not include reporting_endpoints header when not configured" do
+        Configuration.default do |config|
+          config.csp = { default_src: %w('self'), script_src: %w('self') }
+        end
+
+        headers = SecureHeaders.header_hash_for(request)
+        expect(headers["reporting-endpoints"]).to be_nil
+      end
     end
   end
 end
