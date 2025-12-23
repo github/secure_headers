@@ -112,6 +112,12 @@ module SecureHeaders
         expect(hash.count).to eq(0)
       end
 
+      it "allows you to disable secure_headers entirely via Configuration.disable!" do
+        Configuration.disable!
+        hash = SecureHeaders.header_hash_for(request)
+        expect(hash.count).to eq(0)
+      end
+
       it "allows you to override x-frame-options settings" do
         Configuration.default
         SecureHeaders.override_x_frame_options(request, XFrameOptions::DENY)
@@ -435,6 +441,68 @@ module SecureHeaders
             end
 
           end
+        end
+
+        it "does not set upgrade-insecure-requests if request is over HTTP" do
+          reset_config
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self'),
+              script_src: %w('self'),
+              upgrade_insecure_requests: true
+            }
+          end
+
+          plaintext_request = Rack::Request.new({})
+          hash = SecureHeaders.header_hash_for(plaintext_request)
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'")
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).not_to include("upgrade-insecure-requests")
+        end
+
+        it "sets upgrade-insecure-requests if request is over HTTPS" do
+          reset_config
+          Configuration.default do |config|
+            config.csp = {
+              default_src: %w('self'),
+              script_src: %w('self'),
+              upgrade_insecure_requests: true
+            }
+          end
+
+          https_request = Rack::Request.new("HTTPS" => "on")
+          hash = SecureHeaders.header_hash_for(https_request)
+          expect(hash[ContentSecurityPolicyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'; upgrade-insecure-requests")
+        end
+
+        it "does not set upgrade-insecure-requests in report-only mode if request is over HTTP" do
+          reset_config
+          Configuration.default do |config|
+            config.csp_report_only = {
+              default_src: %w('self'),
+              script_src: %w('self'),
+              upgrade_insecure_requests: true
+            }
+          end
+
+          plaintext_request = Rack::Request.new({})
+          hash = SecureHeaders.header_hash_for(plaintext_request)
+          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'")
+          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).not_to include("upgrade-insecure-requests")
+        end
+
+        it "sets upgrade-insecure-requests in report-only mode if request is over HTTPS" do
+          reset_config
+          Configuration.default do |config|
+            config.csp_report_only = {
+              default_src: %w('self'),
+              script_src: %w('self'),
+              upgrade_insecure_requests: true
+            }
+          end
+
+          https_request = Rack::Request.new("HTTPS" => "on")
+          hash = SecureHeaders.header_hash_for(https_request)
+          expect(hash[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to eq("default-src 'self'; script-src 'self'; upgrade-insecure-requests")
         end
       end
     end

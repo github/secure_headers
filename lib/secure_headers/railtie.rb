@@ -22,9 +22,12 @@ if defined?(Rails::Railtie)
         ActiveSupport.on_load(:action_controller) do
           include SecureHeaders
 
-          unless Rails.application.config.action_dispatch.default_headers.nil?
-            conflicting_headers.each do |header|
-              Rails.application.config.action_dispatch.default_headers.delete(header)
+          default_headers = Rails.application.config.action_dispatch.default_headers
+          unless default_headers.nil?
+            default_headers.each_key do |header|
+              if conflicting_headers.include?(header.downcase)
+                default_headers.delete(header)
+              end
             end
           end
         end
