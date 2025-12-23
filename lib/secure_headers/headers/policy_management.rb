@@ -58,15 +58,13 @@ module SecureHeaders
     CHILD_SRC = :child_src
     FORM_ACTION = :form_action
     FRAME_ANCESTORS = :frame_ancestors
-    PLUGIN_TYPES = :plugin_types
 
     DIRECTIVES_2_0 = [
       DIRECTIVES_1_0,
       BASE_URI,
       CHILD_SRC,
       FORM_ACTION,
-      FRAME_ANCESTORS,
-      PLUGIN_TYPES
+      FRAME_ANCESTORS
     ].flatten.freeze
 
     # All the directives currently under consideration for CSP level 3.
@@ -128,7 +126,6 @@ module SecureHeaders
       MEDIA_SRC                 => :source_list,
       NAVIGATE_TO               => :source_list,
       OBJECT_SRC                => :source_list,
-      PLUGIN_TYPES              => :media_type_list,
       REQUIRE_SRI_FOR           => :require_sri_for_list,
       REQUIRE_TRUSTED_TYPES_FOR => :require_trusted_types_for_list,
       REPORT_URI                => :source_list,
@@ -281,7 +278,6 @@ module SecureHeaders
       def list_directive?(directive)
         source_list?(directive) ||
           sandbox_list?(directive) ||
-          media_type_list?(directive) ||
           require_sri_for_list?(directive) ||
           require_trusted_types_for_list?(directive)
       end
@@ -313,10 +309,6 @@ module SecureHeaders
         DIRECTIVE_VALUE_TYPES[directive] == :sandbox_list
       end
 
-      def media_type_list?(directive)
-        DIRECTIVE_VALUE_TYPES[directive] == :media_type_list
-      end
-
       def require_sri_for_list?(directive)
         DIRECTIVE_VALUE_TYPES[directive] == :require_sri_for_list
       end
@@ -338,8 +330,6 @@ module SecureHeaders
           end
         when :sandbox_list
           validate_sandbox_expression!(directive, value)
-        when :media_type_list
-          validate_media_type_expression!(directive, value)
         when :require_sri_for_list
           validate_require_sri_source_expression!(directive, value)
         when :require_trusted_types_for_list
@@ -361,20 +351,6 @@ module SecureHeaders
         end
         if !valid
           raise ContentSecurityPolicyConfigError.new("#{directive} must be True or an array of zero or more sandbox token strings (ex. allow-forms)")
-        end
-      end
-
-      # Private: validates that a media type expression:
-      # 1. is an array of strings
-      # 2. each element is of the form type/subtype
-      def validate_media_type_expression!(directive, media_type_expression)
-        ensure_array_of_strings!(directive, media_type_expression)
-        valid = media_type_expression.compact.all? do |v|
-          # All media types are of the form: <type from RFC 2045> "/" <subtype from RFC 2045>.
-          v =~ /\A.+\/.+\z/
-        end
-        if !valid
-          raise ContentSecurityPolicyConfigError.new("#{directive} must be an array of valid media types (ex. application/pdf)")
         end
       end
 
