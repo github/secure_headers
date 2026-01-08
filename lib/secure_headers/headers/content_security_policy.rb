@@ -63,6 +63,8 @@ module SecureHeaders
           build_sandbox_list_directive(directive_name)
         when :media_type_list
           build_media_type_list_directive(directive_name)
+        when :report_to_endpoint
+          build_report_to_directive(directive_name)
         end
       end.compact.join("; ")
     end
@@ -97,6 +99,13 @@ module SecureHeaders
           symbol_to_hyphen_case(directive),
           media_type_list.uniq
         ].join(" ")
+      end
+    end
+
+    def build_report_to_directive(directive)
+      return unless endpoint_name = @config.directive_value(directive)
+      if endpoint_name && endpoint_name.is_a?(String) && !endpoint_name.empty?
+        [symbol_to_hyphen_case(directive), endpoint_name].join(" ")
       end
     end
 
@@ -200,11 +209,12 @@ module SecureHeaders
     end
 
     # Private: return the list of directives,
-    # starting with default-src and ending with report-uri.
+    # starting with default-src and ending with reporting directives (alphabetically ordered).
     def directives
       [
         DEFAULT_SRC,
         BODY_DIRECTIVES,
+        REPORT_TO,
         REPORT_URI,
       ].flatten
     end
