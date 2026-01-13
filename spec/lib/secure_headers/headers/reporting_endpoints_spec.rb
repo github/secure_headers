@@ -19,6 +19,13 @@ module SecureHeaders
         expect(value).to eq('csp-endpoint="https://example.com/csp-reports"')
       end
 
+      it "formats a single endpoint with a symbol" do
+        config = { "csp-endpoint": "https://example.com/csp-reports" }
+        header_name, value = ReportingEndpoints.make_header(config)
+        expect(header_name).to eq("reporting-endpoints")
+        expect(value).to eq('csp-endpoint="https://example.com/csp-reports"')
+      end
+
       it "formats multiple endpoints" do
         config = {
           "csp-endpoint" => "https://example.com/csp-reports",
@@ -56,6 +63,14 @@ module SecureHeaders
         expect do
           ReportingEndpoints.validate_config!({
             "csp-violations" => "https://example.com/reports"
+          })
+        end.to_not raise_error
+      end
+
+      it "accepts valid endpoint configuration with symbol keys" do
+        expect do
+          ReportingEndpoints.validate_config!({
+            "csp-violations": "https://example.com/reports"
           })
         end.to_not raise_error
       end

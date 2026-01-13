@@ -24,6 +24,9 @@ module SecureHeaders
           # valid
         when Hash
           config.each_pair do |name, url|
+            if name.is_a?(Symbol)
+              name = name.to_s
+            end
             unless name.is_a?(String) && !name.empty?
               raise ReportingEndpointsConfigError.new("Endpoint name must be a non-empty string, got: #{name.inspect}")
             end
