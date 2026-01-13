@@ -9,7 +9,12 @@ module SecureHeaders
     def call(env)
       req = Rack::Request.new(env)
       status, headers, response = @app.call(env)
-      headers = Rack::Headers[headers]
+
+      # Rack::Headers is available in Rack 3.x and later
+      # So we should pull the headers into that structure if possible
+      if defined?(Rack::Headers)
+        headers = Rack::Headers[headers]
+      end
 
       config = SecureHeaders.config_for(req)
       flag_cookies!(headers, override_secure(env, config.cookies)) unless config.cookies == OPT_OUT

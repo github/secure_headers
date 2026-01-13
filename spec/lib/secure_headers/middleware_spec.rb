@@ -36,6 +36,27 @@ module SecureHeaders
       expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match("example.org")
     end
 
+    context "Rack::Headers conversion" do
+      it "converts headers to Rack::Headers when Rack::Headers is defined" do
+        if defined?(Rack::Headers)
+          _, headers, = middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+          expect(headers.is_a?(Rack::Headers)).to be true
+        else
+          skip "Rack::Headers is not defined in this version of Rack"
+        end
+      end
+
+      it "keeps headers as a hash when Rack::Headers is not defined" do
+        # Temporarily hide the Rack::Headers constant if it exists
+        if defined?(Rack::Headers)
+          hide_const("Rack::Headers")
+        end
+
+        _, headers, = middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+        expect(headers.is_a?(Hash)).to be true
+      end
+    end
+
     context "cookies" do
       before(:each) do
         reset_config
