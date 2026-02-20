@@ -13,6 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd
+        with:
+          bundler-cache: true
       - name: Calculate release name
         run: |
           GITHUB_REF=${{ github.ref }}
@@ -27,12 +34,4 @@ jobs:
           release_name: ${{ env.RELEASE_NAME }}
           draft: false
           prerelease: false
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd
-        with:
-          bundler-cache: true
-          ruby-version: ruby
       - uses: rubygems/release-gem@v1
