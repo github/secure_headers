@@ -48,12 +48,20 @@ module SecureHeaders
         expect(csp.value).to eq("default-src * 'unsafe-inline' 'unsafe-eval' data: blob:")
       end
 
-      it "does not minify source expressions based on overlapping wildcards" do
+      it "normalizes source expressions that end with a trailing /" do
         config = {
-          default_src: %w(a.example.org b.example.org *.example.org https://*.example.org)
+          default_src: %w(a.example.org/ b.example.com/ wss://c.example.com/ c.example.net/foo/ b.example.co/bar wss://b.example.co/)
         }
         csp = ContentSecurityPolicy.new(config)
-        expect(csp.value).to eq("default-src a.example.org b.example.org *.example.org")
+        expect(csp.value).to eq("default-src a.example.org b.example.com wss://c.example.com c.example.net/foo/ b.example.co/bar wss://b.example.co")
+      end
+
+      it "does not minify source expressions based on overlapping wildcards" do
+        config = {
+          default_src: %w(a.example.org b.example.org *.example.org https://*.example.org c.example.org/)
+        }
+        csp = ContentSecurityPolicy.new(config)
+        expect(csp.value).to eq("default-src a.example.org b.example.org *.example.org c.example.org")
       end
 
       it "removes http/s schemes from hosts" do
@@ -209,6 +217,31 @@ module SecureHeaders
       it "allows duplicate policy names in trusted-types directive" do
         csp = ContentSecurityPolicy.new({ trusted_types: %w(blahblahpolicy 'allow-duplicates') })
         expect(csp.value).to eq("trusted-types blahblahpolicy 'allow-duplicates'")
+      end
+
+      it "supports report-to directive with endpoint name" do
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_to: "csp-endpoint" })
+        expect(csp.value).to eq("default-src 'self'; report-to csp-endpoint")
+      end
+
+      it "includes report-to before report-uri in alphabetical order" do
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_uri: %w(/csp_report), report_to: "csp-endpoint" })
+        expect(csp.value).to eq("default-src 'self'; report-to csp-endpoint; report-uri /csp_report")
+      end
+
+      it "does not add report-to if the endpoint name is empty" do
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_to: "" })
+        expect(csp.value).to eq("default-src 'self'")
+      end
+
+      it "does not add report-to if not provided" do
+        csp = ContentSecurityPolicy.new({ default_src: %w('self') })
+        expect(csp.value).not_to include("report-to")
+      end
+
+      it "supports report-to without report-uri" do
+        csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_to: "reporting-endpoint-name" })
+        expect(csp.value).to eq("default-src 'self'; report-to reporting-endpoint-name")
       end
     end
   end

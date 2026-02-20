@@ -169,6 +169,30 @@ module SecureHeaders
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyReportOnlyConfig.new(default_opts.merge(report_only: true)))
         end.to_not raise_error
       end
+
+      it "requires report_to to be a string" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_to: ["endpoint"])))
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "rejects empty report_to endpoint names" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_to: "")))
+        end.to raise_error(ContentSecurityPolicyConfigError)
+      end
+
+      it "accepts valid report_to endpoint names" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_to: "csp-endpoint")))
+        end.to_not raise_error
+      end
+
+      it "accepts report_to with hyphens and underscores" do
+        expect do
+          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(report_to: "csp-endpoint_name-123")))
+        end.to_not raise_error
+      end
     end
 
     describe "#combine_policies" do

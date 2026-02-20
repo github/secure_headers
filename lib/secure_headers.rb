@@ -11,6 +11,7 @@ require "secure_headers/headers/x_permitted_cross_domain_policies"
 require "secure_headers/headers/referrer_policy"
 require "secure_headers/headers/clear_site_data"
 require "secure_headers/headers/expect_certificate_transparency"
+require "secure_headers/headers/reporting_endpoints"
 require "secure_headers/middleware"
 require "secure_headers/railtie"
 require "secure_headers/view_helper"
@@ -133,6 +134,7 @@ module SecureHeaders
     # request.
     #
     # StrictTransportSecurity is not applied to http requests.
+    # upgrade_insecure_requests is not applied to http requests.
     # See #config_for to determine which config is used for a given request.
     #
     # Returns a hash of header names => header values. The value
@@ -146,6 +148,11 @@ module SecureHeaders
 
       if request.scheme != HTTPS
         headers.delete(StrictTransportSecurity::HEADER_NAME)
+
+        # Remove upgrade_insecure_requests from CSP headers for HTTP requests
+        # as it doesn't make sense to upgrade requests when the page itself is served over HTTP
+        remove_upgrade_insecure_requests_from_csp!(headers, config.csp)
+        remove_upgrade_insecure_requests_from_csp!(headers, config.csp_report_only)
       end
       headers
     end
@@ -241,6 +248,23 @@ module SecureHeaders
     # Returns the config.
     def override_secure_headers_request_config(request, config)
       request.env[SECURE_HEADERS_CONFIG] = config
+    end
+
+    # Private: removes upgrade_insecure_requests directive from a CSP config
+    # if it's present, and updates the headers hash with the modified CSP.
+    #
+    # headers - the headers hash to update
+    # csp_config - the CSP config to check and potentially modify
+    #
+    # Returns nothing (modifies headers in place)
+    def remove_upgrade_insecure_requests_from_csp!(headers, csp_config)
+      return if csp_config.opt_out?
+      return unless csp_config.directive_value(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS)
+
+      modified_config = csp_config.dup
+      modified_config.update_directive(ContentSecurityPolicy::UPGRADE_INSECURE_REQUESTS, false)
+      header_name, value = ContentSecurityPolicy.make_header(modified_config)
+      headers[header_name] = value if header_name && value
     end
   end
 

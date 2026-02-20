@@ -39,6 +39,7 @@ module SecureHeaders
     SCRIPT_SRC = :script_src
     STYLE_SRC = :style_src
     REPORT_URI = :report_uri
+    REPORT_TO = :report_to
 
     DIRECTIVES_1_0 = [
       DEFAULT_SRC,
@@ -51,7 +52,8 @@ module SecureHeaders
       SANDBOX,
       SCRIPT_SRC,
       STYLE_SRC,
-      REPORT_URI
+      REPORT_URI,
+      REPORT_TO
     ].freeze
 
     BASE_URI = :base_uri
@@ -110,9 +112,9 @@ module SecureHeaders
 
     ALL_DIRECTIVES = (DIRECTIVES_1_0 + DIRECTIVES_2_0 + DIRECTIVES_3_0 + DIRECTIVES_EXPERIMENTAL).uniq.sort
 
-    # Think of default-src and report-uri as the beginning and end respectively,
+    # Think of default-src and report-uri/report-to as the beginning and end respectively,
     # everything else is in between.
-    BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI]
+    BODY_DIRECTIVES = ALL_DIRECTIVES - [DEFAULT_SRC, REPORT_URI, REPORT_TO]
 
     DIRECTIVE_VALUE_TYPES = {
       BASE_URI                  => :source_list,
@@ -129,10 +131,11 @@ module SecureHeaders
       NAVIGATE_TO               => :source_list,
       OBJECT_SRC                => :source_list,
       PLUGIN_TYPES              => :media_type_list,
+      PREFETCH_SRC              => :source_list,
+      REPORT_TO                 => :report_to_endpoint,
+      REPORT_URI                => :source_list,
       REQUIRE_SRI_FOR           => :require_sri_for_list,
       REQUIRE_TRUSTED_TYPES_FOR => :require_trusted_types_for_list,
-      REPORT_URI                => :source_list,
-      PREFETCH_SRC              => :source_list,
       SANDBOX                   => :sandbox_list,
       SCRIPT_SRC                => :source_list,
       SCRIPT_SRC_ELEM           => :source_list,
@@ -158,6 +161,7 @@ module SecureHeaders
       FORM_ACTION,
       FRAME_ANCESTORS,
       NAVIGATE_TO,
+      REPORT_TO,
       REPORT_URI,
     ]
 
@@ -344,6 +348,8 @@ module SecureHeaders
           validate_require_sri_source_expression!(directive, value)
         when :require_trusted_types_for_list
           validate_require_trusted_types_for_source_expression!(directive, value)
+        when :report_to_endpoint
+          validate_report_to_endpoint_expression!(directive, value)
         else
           raise ContentSecurityPolicyConfigError.new("Unknown directive #{directive}")
         end
@@ -395,6 +401,18 @@ module SecureHeaders
         ensure_array_of_strings!(directive, require_trusted_types_for_expression)
         unless require_trusted_types_for_expression.to_set.subset?(REQUIRE_TRUSTED_TYPES_FOR_VALUES)
           raise ContentSecurityPolicyConfigError.new(%(require-trusted-types-for for must be a subset of #{REQUIRE_TRUSTED_TYPES_FOR_VALUES.to_a} but was #{require_trusted_types_for_expression}))
+        end
+      end
+
+      # Private: validates that a report-to endpoint expression:
+      # 1. is a string
+      # 2. is not empty
+      def validate_report_to_endpoint_expression!(directive, endpoint_name)
+        unless endpoint_name.is_a?(String)
+          raise ContentSecurityPolicyConfigError.new("#{directive} must be a string. Found #{endpoint_name.class} value")
+        end
+        if endpoint_name.empty?
+          raise ContentSecurityPolicyConfigError.new("#{directive} must not be empty")
         end
       end
 

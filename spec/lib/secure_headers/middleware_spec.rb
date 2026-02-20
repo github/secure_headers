@@ -36,6 +36,27 @@ module SecureHeaders
       expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to match("example.org")
     end
 
+    context "Rack::Headers conversion" do
+      it "converts headers to Rack::Headers when Rack::Headers is defined" do
+        if defined?(Rack::Headers)
+          _, headers, = middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+          expect(headers.is_a?(Rack::Headers)).to be true
+        else
+          skip "Rack::Headers is not defined in this version of Rack"
+        end
+      end
+
+      it "keeps headers as a hash when Rack::Headers is not defined" do
+        # Temporarily hide the Rack::Headers constant if it exists
+        if defined?(Rack::Headers)
+          hide_const("Rack::Headers")
+        end
+
+        _, headers, = middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+        expect(headers.is_a?(Hash)).to be true
+      end
+    end
+
     context "cookies" do
       before(:each) do
         reset_config
@@ -83,7 +104,7 @@ module SecureHeaders
       end
 
       it "flags cookies with a combination of SameSite configurations" do
-        cookie_middleware = Middleware.new(lambda { |env| [200, env.merge("Set-Cookie" => ["_session=foobar", "_guest=true"]), "app"] })
+        cookie_middleware = Middleware.new(lambda { |env| [200, env.merge("Set-Cookie" => "_session=foobar\n_guest=true"), "app"] })
 
         Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } }, httponly: OPT_OUT, secure: OPT_OUT } }
         request = Rack::Request.new("HTTPS" => "on")
@@ -91,6 +112,16 @@ module SecureHeaders
 
         expect(env["Set-Cookie"]).to match("_session=foobar; SameSite=Strict")
         expect(env["Set-Cookie"]).to match("_guest=true; SameSite=Lax")
+      end
+
+      it "keeps cookies as array after flagging if they are already an array" do
+        cookie_middleware = Middleware.new(lambda { |env| [200, env.merge("Set-Cookie" => ["_session=foobar", "_guest=true"]), "app"] })
+
+        Configuration.default { |config| config.cookies = { samesite: { lax: { except: ["_session"] }, strict: { only: ["_session"] } }, httponly: OPT_OUT, secure: OPT_OUT } }
+        request = Rack::Request.new("HTTPS" => "on")
+        _, env = cookie_middleware.call request.env
+
+        expect(env["Set-Cookie"]).to match_array(["_session=foobar; SameSite=Strict", "_guest=true; SameSite=Lax"])
       end
 
       it "disables secure cookies for non-https requests" do
@@ -111,6 +142,34 @@ module SecureHeaders
         request = Rack::Request.new("HTTPS" => "on")
         _, env = cookie_middleware.call request.env
         expect(env["Set-Cookie"]).to eq("foo=bar; secure")
+      end
+    end
+
+    context "when disabled" do
+      before(:each) do
+        reset_config
+        Configuration.disable!
+      end
+
+      it "does not set any headers" do
+        _, env = middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+
+        # Verify no security headers are set by checking all configured header classes
+        Configuration::HEADERABLE_ATTRIBUTES.each do |attr|
+          klass = Configuration::CONFIG_ATTRIBUTES_TO_HEADER_CLASSES[attr]
+          # Handle CSP specially since it has multiple classes
+          if attr == :csp
+            expect(env[ContentSecurityPolicyConfig::HEADER_NAME]).to be_nil
+            expect(env[ContentSecurityPolicyReportOnlyConfig::HEADER_NAME]).to be_nil
+          elsif klass.const_defined?(:HEADER_NAME)
+            expect(env[klass::HEADER_NAME]).to be_nil
+          end
+        end
+      end
+
+      it "does not flag cookies" do
+        _, env = cookie_middleware.call(Rack::MockRequest.env_for("https://localhost", {}))
+        expect(env["Set-Cookie"]).to eq("foo=bar")
       end
     end
   end

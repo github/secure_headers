@@ -88,8 +88,49 @@ SecureHeaders::Configuration.default do |config|
     img_src: %w(somewhereelse.com),
     report_uri: %w(https://report-uri.io/example-csp-report-only)
   })
+
+  # Optional: Use the modern report-to directive (with Reporting-Endpoints header)
+  config.csp = config.csp.merge({
+    report_to: "csp-endpoint"
+  })
+
+  # When using report-to, configure the reporting endpoints header
+  config.reporting_endpoints = {
+    "csp-endpoint": "https://report-uri.io/example-csp",
+    "csp-report-only": "https://report-uri.io/example-csp-report-only"
+  }
 end
 ```
+
+### CSP Reporting
+
+SecureHeaders supports both the legacy `report-uri` and the modern `report-to` directives for CSP violation reporting:
+
+#### report-uri (Legacy)
+The `report-uri` directive sends violations to a URL endpoint. It's widely supported but limited to POST requests with JSON payloads.
+
+```ruby
+config.csp = {
+  default_src: %w('self'),
+  report_uri: %w(https://example.com/csp-report)
+}
+```
+
+#### report-to (Modern)
+The `report-to` directive specifies a named reporting endpoint defined in the `Reporting-Endpoints` header. This enables more flexible reporting through the HTTP Reporting API standard.
+
+```ruby
+config.csp = {
+  default_src: %w('self'),
+  report_to: "csp-endpoint"
+}
+
+config.reporting_endpoints = {
+  "csp-endpoint": "https://example.com/reports"
+}
+```
+
+**Recommendation:** Use both `report-uri` and `report-to` for maximum compatibility while transitioning to the modern approach.
 
 ### Deprecated Configuration Values
 * `block_all_mixed_content` - this value is deprecated in favor of `upgrade_insecure_requests`. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content for more information.
@@ -124,6 +165,29 @@ end
 ```
 
 However, I would consider these headers anyways depending on your load and bandwidth requirements.
+
+## Disabling secure_headers
+
+If you want to disable `secure_headers` entirely (e.g., for specific environments or deployment scenarios), you can use `Configuration.disable!`:
+
+```ruby
+if ENV["ENABLE_STRICT_HEADERS"]
+  SecureHeaders::Configuration.default do |config|
+    # your configuration here
+  end
+else
+  SecureHeaders::Configuration.disable!
+end
+```
+
+**Important**: This configuration must be set during application startup (e.g., in an initializer). Once you call either `Configuration.default` or `Configuration.disable!`, the choice cannot be changed at runtime. Attempting to call `disable!` after `default` (or vice versa) will raise an `AlreadyConfiguredError`.
+
+When disabled, no security headers will be set by the gem. This is useful when:
+- You're gradually rolling out secure_headers across different customers or deployments
+- You need to migrate existing custom headers to secure_headers
+- You want environment-specific control over security headers
+
+Note: When `disable!` is used, you don't need to configure a default configuration. The gem will not raise a `NotYetConfiguredError`.
 
 ## Acknowledgements
 

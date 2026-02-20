@@ -9,23 +9,53 @@ module SecureHeaders
     class NotYetConfiguredError < StandardError; end
     class IllegalPolicyModificationError < StandardError; end
     class << self
+      # Public: Disable secure_headers entirely. When disabled, no headers will be set.
+      #
+      # Note: This must be called before Configuration.default. Calling it after
+      # Configuration.default has been set will raise an AlreadyConfiguredError.
+      #
+      # Returns nothing
+      # Raises AlreadyConfiguredError if Configuration.default has already been called
+      def disable!
+        if defined?(@default_config)
+          raise AlreadyConfiguredError, "Configuration already set, cannot disable"
+        end
+
+        @disabled = true
+        @noop_config = create_noop_config.freeze
+
+        # Ensure the built-in NOOP override is available even if `default` has never been called
+        @overrides ||= {}
+        unless @overrides.key?(NOOP_OVERRIDE)
+          @overrides[NOOP_OVERRIDE] = method(:create_noop_config_block)
+        end
+      end
+
+      # Public: Check if secure_headers is disabled
+      #
+      # Returns boolean
+      def disabled?
+        defined?(@disabled) && @disabled
+      end
+
       # Public: Set the global default configuration.
       #
       # Optionally supply a block to override the defaults set by this library.
       #
       # Returns the newly created config.
+      # Raises AlreadyConfiguredError if Configuration.disable! has already been called
       def default(&block)
+        if disabled?
+          raise AlreadyConfiguredError, "Configuration has been disabled, cannot set default"
+        end
+
         if defined?(@default_config)
           raise AlreadyConfiguredError, "Policy already configured"
         end
 
         # Define a built-in override that clears all configuration options and
         # results in no security headers being set.
-        override(NOOP_OVERRIDE) do |config|
-          CONFIG_ATTRIBUTES.each do |attr|
-            config.instance_variable_set("@#{attr}", OPT_OUT)
-          end
-        end
+        override(NOOP_OVERRIDE, &method(:create_noop_config_block))
 
         new_config = new(&block).freeze
         new_config.validate_config!
@@ -101,6 +131,7 @@ module SecureHeaders
       # of ensuring that the default config is never mutated and is dup(ed)
       # before it is used in a request.
       def default_config
+        return @noop_config if disabled?
         unless defined?(@default_config)
           raise NotYetConfiguredError, "Default policy not yet configured"
         end
@@ -114,6 +145,19 @@ module SecureHeaders
           deep_copy(value)
         else
           value
+        end
+      end
+
+      # Private: Creates a NOOP configuration that opts out of all headers
+      def create_noop_config
+        new(&method(:create_noop_config_block))
+      end
+
+      # Private: Block for creating NOOP configuration
+      # Used by both create_noop_config and the NOOP_OVERRIDE mechanism
+      def create_noop_config_block(config)
+        CONFIG_ATTRIBUTES.each do |attr|
+          config.instance_variable_set("@#{attr}", OPT_OUT)
         end
       end
     end
@@ -131,6 +175,7 @@ module SecureHeaders
       csp: ContentSecurityPolicy,
       csp_report_only: ContentSecurityPolicy,
       cookies: Cookie,
+      reporting_endpoints: ReportingEndpoints,
     }.freeze
 
     CONFIG_ATTRIBUTES = CONFIG_ATTRIBUTES_TO_HEADER_CLASSES.keys.freeze
@@ -167,6 +212,7 @@ module SecureHeaders
       @x_permitted_cross_domain_policies = nil
       @x_xss_protection = nil
       @expect_certificate_transparency = nil
+      @reporting_endpoints = nil
 
       self.referrer_policy = OPT_OUT
       self.csp = ContentSecurityPolicyConfig.new(ContentSecurityPolicyConfig::DEFAULT)
@@ -192,6 +238,7 @@ module SecureHeaders
       copy.clear_site_data = @clear_site_data
       copy.expect_certificate_transparency = @expect_certificate_transparency
       copy.referrer_policy = @referrer_policy
+      copy.reporting_endpoints = self.class.send(:deep_copy_if_hash, @reporting_endpoints)
       copy
     end
 
