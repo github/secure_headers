@@ -63,6 +63,8 @@ module SecureHeaders
           build_sandbox_list_directive(directive_name)
         when :media_type_list
           build_media_type_list_directive(directive_name)
+        when :report_to_endpoint
+          build_report_to_directive(directive_name)
         end
       end.compact.join("; ")
     end
@@ -100,6 +102,13 @@ module SecureHeaders
       end
     end
 
+    def build_report_to_directive(directive)
+      return unless endpoint_name = @config.directive_value(directive)
+      if endpoint_name && endpoint_name.is_a?(String) && !endpoint_name.empty?
+        [symbol_to_hyphen_case(directive), endpoint_name].join(" ")
+      end
+    end
+
     # Private: builds a string that represents one directive in a minified form.
     #
     # directive_name - a symbol representing the various ALL_DIRECTIVES
@@ -129,6 +138,7 @@ module SecureHeaders
       else
         source_list = populate_nonces(directive, source_list)
         source_list = reject_all_values_if_none(source_list)
+        source_list = normalize_uri_paths(source_list)
 
         unless directive == REPORT_URI || @preserve_schemes
           source_list = strip_source_schemes(source_list)
@@ -148,6 +158,26 @@ module SecureHeaders
         source_list.reject { |value| value == NONE }
       else
         source_list
+      end
+    end
+
+    def normalize_uri_paths(source_list)
+      source_list.map do |source|
+        # Normalize domains ending in a single / as without omitting the slash accomplishes the same.
+        # https://www.w3.org/TR/CSP3/#match-paths § 6.6.2.10 Step 2
+        begin
+          uri = URI(source)
+          if uri.path == "/"
+            next source.chomp("/")
+          end
+        rescue URI::InvalidURIError
+        end
+
+        if source.chomp("/").include?("/")
+          source
+        else
+          source.chomp("/")
+        end
       end
     end
 
@@ -179,11 +209,12 @@ module SecureHeaders
     end
 
     # Private: return the list of directives,
-    # starting with default-src and ending with report-uri.
+    # starting with default-src and ending with reporting directives (alphabetically ordered).
     def directives
       [
         DEFAULT_SRC,
         BODY_DIRECTIVES,
+        REPORT_TO,
         REPORT_URI,
       ].flatten
     end
