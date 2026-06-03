@@ -87,7 +87,7 @@ module SecureHeaders
       elsif sandbox_list && sandbox_list.any?
         [
           symbol_to_hyphen_case(directive),
-          sandbox_list.uniq
+          scrub_directive_value(directive, sandbox_list.uniq.join(" "))
         ].join(" ")
       end
     end
@@ -97,7 +97,7 @@ module SecureHeaders
       if media_type_list && media_type_list.any?
         [
           symbol_to_hyphen_case(directive),
-          media_type_list.uniq
+          scrub_directive_value(directive, media_type_list.uniq.join(" "))
         ].join(" ")
       end
     end
@@ -105,7 +105,29 @@ module SecureHeaders
     def build_report_to_directive(directive)
       return unless endpoint_name = @config.directive_value(directive)
       if endpoint_name && endpoint_name.is_a?(String) && !endpoint_name.empty?
-        [symbol_to_hyphen_case(directive), endpoint_name].join(" ")
+        [symbol_to_hyphen_case(directive), scrub_directive_value(directive, endpoint_name)].join(" ")
+      end
+    end
+
+    # Bytes that would let a caller-controlled value break out of its
+    # directive and inject sibling CSP directives. CR/LF are included
+    # so naive downstreams that split on bare \r can't be used to
+    # smuggle directives either.
+    DIRECTIVE_INJECTION_REGEX = /[\n\r;]/.freeze
+
+    # Private: scrubs caller-controlled bytes that would let a value
+    # break out of its CSP directive (CR, LF, semicolon). Shared across
+    # every directive builder so sandbox / plugin-types / report-to /
+    # source-list all reject the same byte set with the same warn UX.
+    # Emits a single Kernel.warn per directive even when multiple
+    # offending bytes are present.
+    def scrub_directive_value(directive, value)
+      str = value.to_s
+      if str =~ DIRECTIVE_INJECTION_REGEX
+        Kernel.warn("#{directive} contains a #{$~[0].inspect} in #{str.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
+        str.gsub(DIRECTIVE_INJECTION_REGEX, " ")
+      else
+        str
       end
     end
 
@@ -118,12 +140,7 @@ module SecureHeaders
       source_list = @config.directive_value(directive)
       if source_list != OPT_OUT && source_list && source_list.any?
         minified_source_list = minify_source_list(directive, source_list).join(" ")
-
-        if minified_source_list =~ /(\n|;)/
-          Kernel.warn("#{directive} contains a #{$1} in #{minified_source_list.inspect} which will raise an error in future versions. It has been replaced with a blank space.")
-        end
-
-        escaped_source_list = minified_source_list.gsub(/[\n;]/, " ")
+        escaped_source_list = scrub_directive_value(directive, minified_source_list)
         [symbol_to_hyphen_case(directive), escaped_source_list].join(" ").strip
       end
     end

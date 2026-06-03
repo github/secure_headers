@@ -29,12 +29,12 @@ module SecureHeaders
       end
 
       it "deprecates and escapes semicolons in directive source lists" do
-        expect(Kernel).to receive(:warn).with(%(frame_ancestors contains a ; in "google.com;script-src *;.;" which will raise an error in future versions. It has been replaced with a blank space.))
+        expect(Kernel).to receive(:warn).with(%(frame_ancestors contains a ";" in "google.com;script-src *;.;" which will raise an error in future versions. It has been replaced with a blank space.))
         expect(ContentSecurityPolicy.new(frame_ancestors: %w(https://google.com;script-src https://*;.;)).value).to eq("frame-ancestors google.com script-src * .")
       end
 
       it "deprecates and escapes semicolons in directive source lists" do
-        expect(Kernel).to receive(:warn).with(%(frame_ancestors contains a \n in "\\nfoo.com\\nhacked" which will raise an error in future versions. It has been replaced with a blank space.))
+        expect(Kernel).to receive(:warn).with(%(frame_ancestors contains a "\\n" in "\\nfoo.com\\nhacked" which will raise an error in future versions. It has been replaced with a blank space.))
         expect(ContentSecurityPolicy.new(frame_ancestors: ["\nfoo.com\nhacked"]).value).to eq("frame-ancestors  foo.com hacked")
       end
 
@@ -242,6 +242,84 @@ module SecureHeaders
       it "supports report-to without report-uri" do
         csp = ContentSecurityPolicy.new({ default_src: %w('self'), report_to: "reporting-endpoint-name" })
         expect(csp.value).to eq("default-src 'self'; report-to reporting-endpoint-name")
+      end
+
+      it "strips semicolons and newlines from sandbox tokens to prevent directive injection" do
+        # Pins both halves of the contract: scrub neutralizes the
+        # injection AND the deprecation warning fires exactly once
+        # for the offending value (the joined-string scrub means one
+        # warn per directive regardless of token count or how many
+        # offending bytes a token contains).
+        expect(Kernel).to receive(:warn).with(%(sandbox contains a ";" in "allow-forms; script-src 'unsafe-inline' * allow-scripts" which will raise an error in future versions. It has been replaced with a blank space.)).once
+        csp = ContentSecurityPolicy.new(
+          default_src: %w('self'),
+          sandbox: ["allow-forms; script-src 'unsafe-inline' *", "allow-scripts"],
+          script_src: %w('self')
+        )
+        expect(csp.value).not_to match(/sandbox[^;]*;\s*script-src 'unsafe-inline'/)
+        expect(csp.value).to include("sandbox allow-forms  script-src 'unsafe-inline' * allow-scripts")
+      end
+
+      it "strips semicolons and newlines from plugin-types tokens to prevent directive injection" do
+        allow(Kernel).to receive(:warn)
+        csp = ContentSecurityPolicy.new(
+          default_src: %w('self'),
+          plugin_types: ["application/pdf;\nscript-src 'unsafe-inline' *"],
+          script_src: %w('self')
+        )
+        expect(csp.value).not_to match(/plugin-types[^;]*;\s*script-src 'unsafe-inline'/)
+        expect(csp.value).not_to include("\n")
+        expect(csp.value).not_to include("plugin-types application/pdf;")
+      end
+
+      it "strips semicolons and newlines from report-to endpoint to prevent directive injection" do
+        allow(Kernel).to receive(:warn)
+        csp = ContentSecurityPolicy.new(
+          default_src: %w('self'),
+          report_to: "csp-endpoint; script-src 'unsafe-inline' *",
+          script_src: %w('self')
+        )
+        expect(csp.value).not_to match(/report-to[^;]*;\s*script-src 'unsafe-inline'/)
+        expect(csp.value).to include("report-to csp-endpoint  script-src 'unsafe-inline' *")
+      end
+
+      it "strips carriage returns from source-list values to prevent directive injection" do
+        allow(Kernel).to receive(:warn)
+        csp = ContentSecurityPolicy.new(
+          default_src: %w('self'),
+          script_src: ["'self'\rscript-src 'unsafe-inline' *"]
+        )
+        expect(csp.value).not_to include("\r")
+        expect(csp.value).to include("script-src 'self' script-src 'unsafe-inline' *")
+      end
+
+      it "emits a single Kernel.warn per directive even when multiple offending bytes are present" do
+        # Per-directive (not per-token) warn semantics so high-cardinality
+        # input can't spam stderr / error trackers.
+        expect(Kernel).to receive(:warn).once
+        ContentSecurityPolicy.new(
+          default_src: %w('self'),
+          sandbox: ["allow-forms;allow-scripts;allow-popups"]
+        ).value
+      end
+
+      it "applies the directive-injection scrub in report-only mode too" do
+        # Report-only CSP goes through the same `value` builder as
+        # enforced CSP, so the scrub is structurally inherited — but
+        # nothing pins that. A future refactor that split the builders
+        # (e.g., to differentiate report-only semantics) could silently
+        # leave Content-Security-Policy-Report-Only exploitable while
+        # the enforced spec stayed green. Pin it explicitly.
+        allow(Kernel).to receive(:warn)
+        csp = ContentSecurityPolicy.new(
+          default_src: %w('self'),
+          sandbox: ["allow-forms; script-src 'unsafe-inline' *"],
+          script_src: %w('self'),
+          report_only: true
+        )
+        expect(csp.name).to eq(ContentSecurityPolicyReportOnlyConfig::HEADER_NAME)
+        expect(csp.value).not_to match(/sandbox[^;]*;\s*script-src 'unsafe-inline'/)
+        expect(csp.value).to include("sandbox allow-forms  script-src 'unsafe-inline' *")
       end
     end
   end
