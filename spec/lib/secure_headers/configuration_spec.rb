@@ -22,9 +22,8 @@ module SecureHeaders
       configuration = Configuration.dup
       expect(original_configuration).not_to be(configuration)
       Configuration::CONFIG_ATTRIBUTES.each do |attr|
-        # rubocop:disable GitHub/AvoidObjectSendWithDynamicMethod
-        expect(original_configuration.public_send(attr)).to eq(configuration.public_send(attr))
-        # rubocop:enable GitHub/AvoidObjectSendWithDynamicMethod
+        expected_value = original_configuration.instance_variable_get("@#{attr}")
+        expect(configuration).to have_attributes(attr => expected_value)
       end
     end
 

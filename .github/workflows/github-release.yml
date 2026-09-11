@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Set up Ruby
@@ -26,7 +26,7 @@ jobs:
           RELEASE_NAME=${GITHUB_REF#"refs/tags/"}
           echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
       - name: Publish release
-        uses: actions/create-release@v1
+        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1.1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -34,4 +34,4 @@ jobs:
           release_name: ${{ env.RELEASE_NAME }}
           draft: false
           prerelease: false
-      - uses: rubygems/release-gem@v1
+      - uses: rubygems/release-gem@7f9650160c1a4e7989fdc9855807bdbd421d8b6b # v1.4.1
