@@ -10,6 +10,7 @@ group :test do
   gem "json"
   gem "pry-nav"
   gem "rack"
+  gem "rake"
   gem "rspec"
   gem "rubocop"
   gem "rubocop-github"
