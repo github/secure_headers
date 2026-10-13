@@ -72,7 +72,6 @@ SecureHeaders::Configuration.default do |config|
     media_src: %w(utoob.com),
     object_src: %w('self'),
     sandbox: true, # true and [] will set a maximally restrictive setting
-    plugin_types: %w(application/x-shockwave-flash),
     script_src: %w('self'),
     script_src_elem: %w('self'),
     script_src_attr: %w('self'),

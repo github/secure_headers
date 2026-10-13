@@ -41,7 +41,6 @@ module SecureHeaders
           media_src: %w(utoob.com),
           navigate_to: %w(netscape.com),
           object_src: %w('self'),
-          plugin_types: %w(application/x-shockwave-flash),
           prefetch_src: %w(fetch.com),
           require_sri_for: %w(script style),
           require_trusted_types_for: %w('script'),
@@ -143,18 +142,6 @@ module SecureHeaders
       it "accepts true as a sandbox policy" do
         expect do
           ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(sandbox: true)))
-        end.to_not raise_error
-      end
-
-      it "rejects anything not of the form type/subtype as a plugin-type value" do
-        expect do
-          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["steve"])))
-        end.to raise_error(ContentSecurityPolicyConfigError)
-      end
-
-      it "accepts anything of the form type/subtype as a plugin-type value " do
-        expect do
-          ContentSecurityPolicy.validate_config!(ContentSecurityPolicyConfig.new(default_opts.merge(plugin_types: ["application/pdf"])))
         end.to_not raise_error
       end
 
