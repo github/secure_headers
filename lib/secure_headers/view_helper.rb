@@ -65,8 +65,11 @@ module SecureHeaders
     # Public: use the content security policy nonce for this request directly.
     # Instructs secure_headers to append a nonce to style/script-src directives.
     #
+    # type - (optional) The type of nonce to generate (:script or :style).
+    #        Defaults to :script to match Rails' content_security_policy_nonce behavior.
+    #
     # Returns a non-html-safe nonce value.
-    def _content_security_policy_nonce(type)
+    def _content_security_policy_nonce(type = :script)
       case type
       when :script
         SecureHeaders.content_security_policy_script_nonce(@_request)
