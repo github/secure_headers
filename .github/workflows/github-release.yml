@@ -17,7 +17,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Ruby
-        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8
+        uses: ruby/setup-ruby@b1da4809b005e0178fe08a1d57317bffc00b7b4c
         with:
           bundler-cache: true
       - name: Calculate release name
